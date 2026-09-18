@@ -212,7 +212,7 @@ await step("both download cards work before any JavaScript runs", async () => {
   );
   if (links.length !== 2) throw new Error(`${links.length} download links, expected 2`);
   for (const href of links) {
-    if (!/^https:\/\/github\.com\/kingnazz\/EXP-IP-Scanner\/releases/.test(href ?? "")) {
+    if (!/^https:\/\/github\.com\/nazar-exp\/EXP-IP-Scanner\/releases/.test(href ?? "")) {
       throw new Error(`a download link points at ${href}`);
     }
   }
