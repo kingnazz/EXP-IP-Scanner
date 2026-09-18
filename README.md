@@ -77,9 +77,11 @@ results or discovered-device data:
   and when you press refresh, it is listed in the application's
   Content-Security-Policy so the window cannot reach anywhere else, and it can
   be turned off in Settings.
-- **The update check**, in the installed edition only, runs against GitHub when
-  you press "Check now". The portable edition does not contain the updater at
-  all.
+- **The update check**, in the installed edition only, asks GitHub Releases
+  which stable version is current when you press "Check now". If a signed
+  updater manifest is available the app can install it in place; otherwise it
+  opens the normal download page. The portable edition does not contain the
+  updater at all.
 
 The full notes are on the
 [privacy page](https://kingnazz.github.io/EXP-IP-Scanner/privacy.html).
