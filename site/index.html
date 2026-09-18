@@ -1,512 +1,245 @@
 <!doctype html>
-<!-- EXP IP Scanner site build: v1.0.0 -->
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <!-- No maximum-scale and no user-scalable=no: pinch zoom stays available. -->
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EXP IP Scanner | Fast Network Discovery by EXP Technical</title>
+  <meta name="description" content="EXP IP Scanner is a fast, lightweight Windows network scanner for everyday IT work. Discover devices, identify manufacturers and services, and connect in seconds." />
+  <link rel="canonical" href="https://kingnazz.github.io/EXP-IP-Scanner/" />
+  <link rel="icon" href="assets/favicon.png" />
+  <meta name="color-scheme" content="light" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https://api.github.com; base-uri 'none'; form-action 'none'" />
+  <link rel="stylesheet" href="exp.v3.css" />
+  <link rel="preload" as="image" href="assets/shots/scan-dark.webp" fetchpriority="high" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="EXP IP Scanner" />
+  <meta property="og:url" content="https://kingnazz.github.io/EXP-IP-Scanner/" />
+  <meta property="og:title" content="EXP IP Scanner | Find what's on the network. Fast." />
+  <meta property="og:description" content="A lightweight Windows network scanner built for everyday IT work." />
+  <meta property="og:image" content="https://kingnazz.github.io/EXP-IP-Scanner/assets/shots/scan-dark.webp" />
+  <meta property="og:image:alt" content="EXP IP Scanner showing discovered network devices." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"SoftwareApplication","name":"EXP IP Scanner","applicationCategory":"UtilitiesApplication","operatingSystem":"Windows 10, Windows 11","softwareVersion":"1.0.0","url":"https://kingnazz.github.io/EXP-IP-Scanner/","downloadUrl":"https://github.com/kingnazz/EXP-IP-Scanner/releases/latest","isAccessibleForFree":true}
+  </script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
 
-    <title>EXP IP Scanner — a fast network scanner for Windows</title>
-    <meta
-      name="description"
-      content="EXP IP Scanner finds what is on the network, fast. A lightweight Windows network scanner for everyday IT work: IP addresses, hostnames, MAC addresses, manufacturers, latency and open services, with Remote Desktop, file share, SSH and web shortcuts. Portable, no install, no account."
-    />
-    <link rel="canonical" href="https://kingnazz.github.io/EXP-IP-Scanner/" />
-    <link rel="icon" href="assets/favicon.png" />
-    <meta name="color-scheme" content="light" />
-    <meta name="theme-color" content="#ffffff" />
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="./" aria-label="EXP IP Scanner home">
+      <img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner" width="900" height="300" />
+    </a>
+    <nav aria-label="Site">
+      <a href="https://exptechnical.com/it-services/">IT Services</a>
+      <a href="https://exptechnical.com/exp-clients/">Our Clients</a>
+      <a href="https://exptechnical.com/about/">About</a>
+      <a href="https://exptechnical.com/resources/">Resources</a>
+      <a href="https://exptechnical.com/seattle-it-service-pricing/">Pricing</a>
+      <a class="header-cta" href="https://exptechnical.com/it-support-seattle/">Contact Us</a>
+    </nav>
+  </div>
+</header>
 
-    <!--
-      The page fetches release metadata from the GitHub API and nothing else.
-      No analytics, no web fonts, no CDN, no third-party script of any kind,
-      and the policy below is what enforces that rather than a promise in the
-      copy.
-    -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https://api.github.com; base-uri 'none'; form-action 'none'"
-    />
-
-    <link rel="stylesheet" href="exp.v2.css" />
-    <!-- The screenshot is the largest paint on the page, so it is preloaded. -->
-    <link rel="preload" as="image" href="assets/shots/scan-light.webp" fetchpriority="high" />
-
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="EXP IP Scanner" />
-    <meta property="og:url" content="https://kingnazz.github.io/EXP-IP-Scanner/" />
-    <meta property="og:title" content="EXP IP Scanner — find what's on the network, fast" />
-    <meta
-      property="og:description"
-      content="A lightweight Windows network scanner built for everyday IT work. Portable, no install, no account."
-    />
-    <meta
-      property="og:image"
-      content="https://kingnazz.github.io/EXP-IP-Scanner/assets/shots/scan-dark.webp"
-    />
-    <meta
-      property="og:image:alt"
-      content="The EXP IP Scanner results table, listing discovered devices with their addresses, manufacturers and open services."
-    />
-    <meta name="twitter:card" content="summary_large_image" />
-
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "EXP IP Scanner",
-        "applicationCategory": "UtilitiesApplication",
-        "applicationSubCategory": "Network Scanner",
-        "operatingSystem": "Windows 10, Windows 11",
-        "processorRequirements": "x64",
-        "description": "A lightweight Windows network scanner for everyday IT work. It discovers devices with their IP address, hostname, MAC address, manufacturer, latency and open services, and opens Remote Desktop, file shares, SSH or a web interface straight from the results. Scans run locally; results are not uploaded.",
-        "url": "https://kingnazz.github.io/EXP-IP-Scanner/",
-        "downloadUrl": "https://github.com/kingnazz/EXP-IP-Scanner/releases/latest",
-        "softwareVersion": "1.0.0",
-        "license": "https://github.com/kingnazz/EXP-IP-Scanner/blob/main/LICENSE",
-        "isAccessibleForFree": true,
-        "screenshot": "https://kingnazz.github.io/EXP-IP-Scanner/assets/shots/scan-dark.webp",
-        "featureList": [
-          "Automatic subnet detection",
-          "Fast device discovery over ICMP, TCP and ARP",
-          "Hostname resolution",
-          "MAC address and manufacturer identification",
-          "Common service detection",
-          "Remote Desktop, file share, SSH and web shortcuts",
-          "CSV export and clipboard copy",
-          "Portable edition with no installation"
-        ],
-        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
-      }
-    </script>
-  </head>
-
-  <body>
-    <a class="skip" href="#main">Skip to content</a>
-
-    <header class="site-header">
-      <div class="wrap bar">
-        <a class="brand" href="./" aria-label="EXP Technical IP Scanner home">
-          <img src="assets/favicon.png" alt="" width="30" height="30" />
-          <span class="brand-company">EXP Technical</span>
-          <span class="brand-divider" aria-hidden="true">/</span>
-          <span class="brand-product">IP Scanner</span>
-        </a>
-        <nav aria-label="Site">
-          <a href="#features">Features</a>
-          <a href="#download">Download</a>
-          <a href="releases.html">What&rsquo;s new</a>
-          <a href="privacy.html">Privacy</a>
-          <a href="https://exptechnical.com/">EXP Technical</a>
-          <a href="https://github.com/kingnazz/EXP-IP-Scanner">GitHub</a>
-        </nav>
-      </div>
-    </header>
-
-    <main id="main">
-      <div class="wrap hero">
-        <p class="eyebrow">EXP Technical Field Tools</p>
+<main id="main">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kicker">EXP Technical Field Tools</p>
         <h1>EXP IP Scanner</h1>
         <p class="tagline">Find what&rsquo;s on the network. Fast.</p>
-        <p class="lede">
-          A lightweight Windows network scanner built for the way IT engineers actually work.
-          Detect the active network, find devices quickly, identify what is there, and jump directly
-          into Remote Desktop, file shares, SSH, or a device web interface.
-        </p>
-
+        <p class="lede">A lightweight Windows network scanner built for everyday support work. Detect the active network, discover devices quickly, identify what is there, and jump straight into Remote Desktop, file shares, SSH, or a device web interface.</p>
         <div class="cta-row">
-          <a
-            class="btn btn-primary"
-            id="hero-download"
-            href="https://github.com/kingnazz/EXP-IP-Scanner/releases/latest"
-          >
-            Download portable
-          </a>
+          <a class="btn btn-primary" id="hero-download" href="https://github.com/kingnazz/EXP-IP-Scanner/releases/latest">Download portable</a>
           <a class="btn btn-secondary" href="#download">Installer and details</a>
         </div>
+      </div>
+      <div class="hero-visual">
+        <img src="assets/shots/scan-dark.webp" alt="EXP IP Scanner results showing discovered devices" width="1180" height="780" />
+        <div class="hero-note"><strong>One screen.</strong>Launch, detect the subnet, scan, identify, connect.</div>
+      </div>
+    </div>
+  </section>
 
-        <ul class="facts">
-          <li>
-            <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
-              <path
-                d="M2 8.5l4 4 8-9"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.2"
-                stroke-linecap="round"
-              />
-            </svg>
-            <span id="version-fallback">v1.0.0</span><span id="release-meta"></span>
-          </li>
-          <li>
-            <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
-              <path
-                d="M2 8.5l4 4 8-9"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.2"
-                stroke-linecap="round"
-              />
-            </svg>
-            Windows 10 and 11, x64
-          </li>
-          <li>
-            <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
-              <path
-                d="M2 8.5l4 4 8-9"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.2"
-                stroke-linecap="round"
-              />
-            </svg>
-            No account, no telemetry
-          </li>
-          <li>
-            <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
-              <path
-                d="M2 8.5l4 4 8-9"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.2"
-                stroke-linecap="round"
-              />
-            </svg>
-            Free and open source
-          </li>
-        </ul>
+  <div class="wrap facts-wrap">
+    <ul class="facts">
+      <li><span class="fact-title">Built for technicians</span><span class="fact-text">Fast, practical network discovery without platform overhead.</span></li>
+      <li><span class="fact-title">No admin required</span><span class="fact-text">Ordinary Windows networking with no custom driver.</span></li>
+      <li><span class="fact-title">No account, no telemetry</span><span class="fact-text">Scan results stay on the machine running the tool.</span></li>
+      <li><span class="fact-title"><span id="version-fallback">v1.0.0</span><span id="release-meta"></span></span><span class="fact-text">Windows 10 and 11, x64.</span></li>
+    </ul>
+  </div>
 
-        <div class="shot">
-          <div class="shot-tabs" role="tablist" aria-label="Screenshots">
-            <button
-              class="shot-tab"
-              id="tab-scan-dark"
-              type="button"
-              role="tab"
-              aria-selected="true"
-              aria-controls="shot-panel"
-              data-shot="scan-dark"
-              data-caption="A finished scan of a small business network, in dark mode."
-            >
-              Results
-            </button>
-            <button
-              class="shot-tab"
-              id="tab-scan-light"
-              type="button"
-              role="tab"
-              aria-selected="false"
-              aria-controls="shot-panel"
-              data-shot="scan-light"
-              data-caption="The same scan in light mode."
-            >
-              Light mode
-            </button>
-            <button
-              class="shot-tab"
-              id="tab-details"
-              type="button"
-              role="tab"
-              aria-selected="false"
-              aria-controls="shot-panel"
-              data-shot="details-light"
-              data-caption="Device details, with everything the scan found and the actions it supports."
-            >
-              Device details
-            </button>
-            <button
-              class="shot-tab"
-              id="tab-actions"
-              type="button"
-              role="tab"
-              aria-selected="false"
-              aria-controls="shot-panel"
-              data-shot="actions-dark"
-              data-caption="Right-click a device for Remote Desktop, file shares, SSH and its web interface."
-            >
-              Actions
-            </button>
-            <button
-              class="shot-tab"
-              id="tab-empty"
-              type="button"
-              role="tab"
-              aria-selected="false"
-              aria-controls="shot-panel"
-              data-shot="ready-light"
-              data-caption="On launch the network is already detected. One button to press."
-            >
-              First run
-            </button>
-          </div>
+  <section id="features" class="section-soft">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Expert IT Tools</p>
+        <h2>Precision network discovery for everyday IT work</h2>
+        <p class="section-lede">The same practical philosophy EXP brings to support engagements: clear information, less friction, and the tools needed to move the work forward.</p>
+      </div>
+      <div class="services-grid">
+        <article class="service-card"><span class="service-num">01</span><h3>Automatic network detection</h3><p>Starts with the network you are actually connected to and keeps every adapter available when you need to switch.</p></article>
+        <article class="service-card"><span class="service-num">02</span><h3>Fast device discovery</h3><p>Combines ICMP, TCP, and ARP so printers, cameras, servers, and hardened endpoints are easier to find.</p></article>
+        <article class="service-card"><span class="service-num">03</span><h3>Identify what you found</h3><p>Hostname, MAC address, manufacturer, latency, and useful service names appear directly in the results.</p></article>
+        <article class="service-card"><span class="service-num">04</span><h3>Connect in one click</h3><p>Open RDP, SMB, SSH, VNC, or a device web interface directly from the result that supports it.</p></article>
+      </div>
+    </div>
+  </section>
 
-          <figure id="shot-panel" role="tabpanel" aria-labelledby="tab-scan-dark">
-            <img
-              id="shot-image"
-              src="assets/shots/scan-dark.webp"
-              alt="A finished scan of a small business network, in dark mode."
-              width="1180"
-              height="780"
-            />
-            <figcaption id="shot-caption">
-              A finished scan of a small business network, in dark mode.
-            </figcaption>
-          </figure>
+  <section>
+    <div class="wrap exp-way">
+      <div class="logo-stage">
+        <img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner product logo" width="900" height="300" />
+      </div>
+      <div class="exp-way-copy">
+        <p class="eyebrow">Built the EXP Way</p>
+        <h2>A focused tool, not another management platform</h2>
+        <p>EXP IP Scanner is intentionally small. It is designed to answer the questions technicians ask at the start of a network visit without turning the scan into an inventory system, monitoring platform, or security product.</p>
+        <div class="exp-way-list">
+          <div class="exp-way-item"><b>01</b><div><strong>Launch and scan</strong><span>The active subnet is already filled in.</span></div></div>
+          <div class="exp-way-item"><b>02</b><div><strong>Identify the device</strong><span>See names, vendors, latency, and common services.</span></div></div>
+          <div class="exp-way-item"><b>03</b><div><strong>Take action</strong><span>Right-click and connect with the tool the device supports.</span></div></div>
+          <div class="exp-way-item"><b>04</b><div><strong>Close and move on</strong><span>No customer inventory or scan history is left behind.</span></div></div>
         </div>
       </div>
+    </div>
+  </section>
 
-      <section id="features">
-        <div class="wrap">
-          <p class="eyebrow">Built for real support work</p>
-          <h2>Everything a technician needs, without the overhead.</h2>
-          <p class="section-lede">
-            One screen, no training needed. Launch it, and the network you are plugged into is
-            already in the target field.
-          </p>
-
-          <ul class="features">
-            <li>
-              <h3>Automatic subnet detection</h3>
-              <p>
-                Picks the adapter you are actually working through, ranking a wired or wireless NIC
-                above a Hyper-V switch, a Docker bridge or a VPN tunnel — and still lets you choose
-                any of them.
-              </p>
-            </li>
-            <li>
-              <h3>Fast, thorough discovery</h3>
-              <p>
-                ICMP, TCP and the ARP cache together, so printers, cameras and hardened
-                workstations that ignore ping are still found. No administrator rights needed.
-              </p>
-            </li>
-            <li>
-              <h3>Hostname resolution</h3>
-              <p>Reverse DNS runs alongside the sweep, so names appear while it is still going.</p>
-            </li>
-            <li>
-              <h3>MAC and manufacturer</h3>
-              <p>
-                The full IEEE registry is built in, so Dell, HP, Cisco, Ubiquiti, Apple, Brother
-                and the rest are named offline on an isolated customer network.
-              </p>
-            </li>
-            <li>
-              <h3>Service detection</h3>
-              <p>
-                A curated set of the ports that matter on a business network, shown as words:
-                <code>445 SMB</code>, <code>3389 RDP</code>, <code>9100 Print</code>.
-              </p>
-            </li>
-            <li>
-              <h3>Connect in one click</h3>
-              <p>
-                Right-click a device for Remote Desktop, its file shares, SSH, VNC or its web
-                interface — only the ones its open ports actually support.
-              </p>
-            </li>
-            <li>
-              <h3>Ping and traceroute</h3>
-              <p>Ping in the details panel, or open a command prompt already running against it.</p>
-            </li>
-            <li>
-              <h3>CSV export and copy</h3>
-              <p>
-                A spreadsheet that opens cleanly in Excel, or tab-separated rows that paste
-                straight into a ticket, an email or Teams.
-              </p>
-            </li>
-            <li>
-              <h3>Portable mode</h3>
-              <p>
-                Download, run, scan, close. No installer, no administrator rights, and it never
-                writes to the folder you extracted it into.
-              </p>
-            </li>
-            <li>
-              <h3>Nothing left behind</h3>
-              <p>
-                No inventory database and no scan history. Results live in memory until you export
-                them, because the next site visit is a different customer.
-              </p>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <section id="download">
-        <div class="wrap">
-          <p class="eyebrow">Get EXP IP Scanner</p>
-          <h2>Choose the version that fits your workflow.</h2>
-          <p class="section-lede">Windows 10 and Windows 11, x64. Both editions are the same application.</p>
-
-          <div class="downloads">
-            <article class="dl" data-kind="portable" data-recommended="true">
-              <div class="dl-head">
-                <h3>Portable</h3>
-                <span class="tag">Recommended</span>
-              </div>
-              <p>For field and support work. Extract it and run it.</p>
-              <ul>
-                <li>No installation, no administrator rights</li>
-                <li>Runs from a USB stick, a share or a tools folder</li>
-                <li>Never writes to the folder it was extracted into</li>
-                <li>Update by downloading the next ZIP</li>
-              </ul>
-              <a
-                class="btn btn-primary"
-                data-field="link"
-                href="https://github.com/kingnazz/EXP-IP-Scanner/releases/latest"
-              >
-                Download portable ZIP
-              </a>
-              <dl class="dl-meta">
-                <div>
-                  <dt hidden>Version</dt>
-                  <dd>v<span data-field="version">1.0.0</span></dd>
-                </div>
-                <div>
-                  <dt hidden>Size</dt>
-                  <dd><span data-field="size">see the release page</span></dd>
-                </div>
-                <div>
-                  <dt hidden>Release notes</dt>
-                  <dd>
-                    <a
-                      data-field="notes"
-                      href="https://github.com/kingnazz/EXP-IP-Scanner/releases/latest"
-                      >Release notes</a
-                    >
-                  </dd>
-                </div>
-              </dl>
-            </article>
-
-            <article class="dl" data-kind="installer">
-              <div class="dl-head">
-                <h3>Installer</h3>
-              </div>
-              <p>For a workstation you use every day.</p>
-              <ul>
-                <li>Start Menu entry and file associations</li>
-                <li>Checks GitHub for updates when you ask it to</li>
-                <li>Installs for all users</li>
-                <li>Ordinary Windows uninstaller</li>
-              </ul>
-              <a
-                class="btn btn-secondary"
-                data-field="link"
-                href="https://github.com/kingnazz/EXP-IP-Scanner/releases/latest"
-              >
-                Download installer
-              </a>
-              <dl class="dl-meta">
-                <div>
-                  <dt hidden>Version</dt>
-                  <dd>v<span data-field="version">1.0.0</span></dd>
-                </div>
-                <div>
-                  <dt hidden>Size</dt>
-                  <dd><span data-field="size">see the release page</span></dd>
-                </div>
-                <div>
-                  <dt hidden>Release notes</dt>
-                  <dd>
-                    <a
-                      data-field="notes"
-                      href="https://github.com/kingnazz/EXP-IP-Scanner/releases/latest"
-                      >Release notes</a
-                    >
-                  </dd>
-                </div>
-              </dl>
-            </article>
-          </div>
-
-          <p class="download-note" id="download-status">
-            Both editions need the Microsoft Edge WebView2 Runtime, which ships with Windows 11 and
-            with current Windows 10. This build is not code-signed, so Windows SmartScreen may show
-            an unknown-publisher warning the first time; choose &ldquo;More info&rdquo;, then
-            &ldquo;Run anyway&rdquo;.
-          </p>
-        </div>
-      </section>
-
-      <section id="comparison">
-        <div class="wrap">
-          <p class="eyebrow">Deployment options</p>
-          <h2>Portable or installer</h2>
-          <div class="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col"></th>
-                  <th scope="col">Portable</th>
-                  <th scope="col">Installer</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <th scope="row">Installation</th>
-                  <td>None — extract and run</td>
-                  <td>Windows installer, all users</td>
-                </tr>
-                <tr>
-                  <th scope="row">Administrator rights</th>
-                  <td>Not needed</td>
-                  <td>Needed to install</td>
-                </tr>
-                <tr>
-                  <th scope="row">Scanning</th>
-                  <td>Identical</td>
-                  <td>Identical</td>
-                </tr>
-                <tr>
-                  <th scope="row">Updates</th>
-                  <td>Download the next ZIP</td>
-                  <td>Checks GitHub when you ask</td>
-                </tr>
-                <tr>
-                  <th scope="row">Start Menu entry</th>
-                  <td>No</td>
-                  <td>Yes</td>
-                </tr>
-                <tr>
-                  <th scope="row">Scan data kept on disk</th>
-                  <td>None</td>
-                  <td>None</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section id="scope">
-        <div class="wrap">
-          <p class="eyebrow">Intentionally focused</p>
-          <h2>What it is not</h2>
-          <p class="section-lede">
-            EXP IP Scanner is a read-only discovery and administration utility, and intentionally
-            small. It keeps no inventory database, no scan history and no change tracking; it does
-            no vulnerability scanning, no credential testing and no internet-wide scanning. Scan
-            only networks you are authorised to inspect.
-          </p>
-        </div>
-      </section>
-    </main>
-
-    <footer class="site-footer">
-      <div class="wrap footer-row">
-        <span>EXP Technical &middot; EXP IP Scanner &middot; MIT licensed</span>
-        <nav aria-label="Footer">
-          <a href="releases.html">What&rsquo;s new</a>
-          <a href="privacy.html">Privacy</a>
-          <a href="https://github.com/kingnazz/EXP-IP-Scanner">Source</a>
-          <a href="https://github.com/kingnazz/EXP-IP-Scanner/releases">All releases</a>
-        </nav>
+  <section class="section-dark">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Designed for support teams</p>
+        <h2>Useful information, without the noise</h2>
+        <p class="section-lede">The scanner focuses on the details that help a technician identify and reach a device quickly.</p>
       </div>
-    </footer>
+      <div class="stats">
+        <div class="stat"><strong>32</strong><span>Common business-network services checked by default</span></div>
+        <div class="stat"><strong>39K+</strong><span>Embedded IEEE manufacturer prefixes for offline vendor lookup</span></div>
+        <div class="stat"><strong>0</strong><span>Accounts, telemetry streams, or cloud databases required</span></div>
+        <div class="stat"><strong>1</strong><span>Primary screen from subnet detection through export</span></div>
+      </div>
+    </div>
+  </section>
 
-    <script src="exp.v2.js"></script>
-  </body>
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">See it in action</p>
+        <h2>One scanner. The views technicians actually need.</h2>
+      </div>
+      <div class="shot">
+        <div class="shot-tabs" role="tablist" aria-label="Screenshots">
+          <button class="shot-tab" id="tab-scan-dark" type="button" role="tab" aria-selected="true" aria-controls="shot-panel" data-shot="scan-dark" data-caption="A finished scan of a small business network, in dark mode.">Results</button>
+          <button class="shot-tab" id="tab-scan-light" type="button" role="tab" aria-selected="false" aria-controls="shot-panel" data-shot="scan-light" data-caption="The same scan in light mode.">Light mode</button>
+          <button class="shot-tab" id="tab-details" type="button" role="tab" aria-selected="false" aria-controls="shot-panel" data-shot="details-light" data-caption="Device details with everything the scan found and the actions it supports.">Device details</button>
+          <button class="shot-tab" id="tab-actions" type="button" role="tab" aria-selected="false" aria-controls="shot-panel" data-shot="actions-dark" data-caption="Right-click a device for Remote Desktop, file shares, SSH, and its web interface.">Actions</button>
+          <button class="shot-tab" id="tab-empty" type="button" role="tab" aria-selected="false" aria-controls="shot-panel" data-shot="ready-light" data-caption="On launch the network is already detected. One button to press.">First run</button>
+        </div>
+        <figure id="shot-panel" role="tabpanel" aria-labelledby="tab-scan-dark">
+          <img id="shot-image" src="assets/shots/scan-dark.webp" alt="A finished scan of a small business network, in dark mode." width="1180" height="780" />
+          <figcaption id="shot-caption">A finished scan of a small business network, in dark mode.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="download" class="section-soft">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Download EXP IP Scanner</p>
+        <h2>Choose the version that fits your workflow</h2>
+        <p class="section-lede">Windows 10 and Windows 11, x64. Both editions use the same scanner.</p>
+      </div>
+      <div class="downloads">
+        <article class="dl" data-kind="portable" data-recommended="true">
+          <div class="dl-head"><h3>Portable</h3><span class="tag">Recommended</span></div>
+          <div class="dl-price">Free</div>
+          <p>For field work, support folders, and one-off scans. Extract it and run it.</p>
+          <ul><li>No installation</li><li>No administrator rights</li><li>Runs from Downloads, a tools folder, or USB media</li><li>Update by downloading the next ZIP</li></ul>
+          <a class="btn btn-primary" data-field="link" href="https://github.com/kingnazz/EXP-IP-Scanner/releases/latest">Download portable ZIP</a>
+          <dl class="dl-meta"><div><dt hidden>Version</dt><dd>v<span data-field="version">1.0.0</span></dd></div><div><dt hidden>Size</dt><dd><span data-field="size">see release page</span></dd></div><div><dt hidden>Notes</dt><dd><a data-field="notes" href="https://github.com/kingnazz/EXP-IP-Scanner/releases/latest">Release notes</a></dd></div></dl>
+        </article>
+        <article class="dl" data-kind="installer">
+          <div class="dl-head"><h3>Installer</h3></div>
+          <div class="dl-price">Free</div>
+          <p>For a workstation where you want EXP IP Scanner available every day.</p>
+          <ul><li>Windows installer</li><li>Start Menu entry</li><li>Checks GitHub for updates when you ask</li><li>Standard Windows uninstaller</li></ul>
+          <a class="btn btn-secondary" data-field="link" href="https://github.com/kingnazz/EXP-IP-Scanner/releases/latest">Download installer</a>
+          <dl class="dl-meta"><div><dt hidden>Version</dt><dd>v<span data-field="version">1.0.0</span></dd></div><div><dt hidden>Size</dt><dd><span data-field="size">see release page</span></dd></div><div><dt hidden>Notes</dt><dd><a data-field="notes" href="https://github.com/kingnazz/EXP-IP-Scanner/releases/latest">Release notes</a></dd></div></dl>
+        </article>
+      </div>
+      <p class="download-note" id="download-status">Both editions need Microsoft Edge WebView2 Runtime, included with Windows 11 and current Windows 10. The current build is not code-signed, so Windows SmartScreen may show an unknown-publisher warning the first time.</p>
+    </div>
+  </section>
+
+  <section id="comparison">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Deployment options</p>
+        <h2>Portable or installer</h2>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th scope="col"></th><th scope="col">Portable</th><th scope="col">Installer</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Installation</th><td>None, extract and run</td><td>Windows installer</td></tr>
+            <tr><th scope="row">Administrator rights</th><td>Not needed</td><td>Needed to install</td></tr>
+            <tr><th scope="row">Scanning</th><td>Identical</td><td>Identical</td></tr>
+            <tr><th scope="row">Updates</th><td>Download the next ZIP</td><td>Checks GitHub when you ask</td></tr>
+            <tr><th scope="row">Start Menu entry</th><td>No</td><td>Yes</td></tr>
+            <tr><th scope="row">Scan data kept on disk</th><td>None</td><td>None</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-soft">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">You&rsquo;ve got questions, we have answers</p>
+        <h2>Built to be simple on purpose</h2>
+      </div>
+      <div class="faq-grid">
+        <article class="faq-item"><h3>Does it upload scan results?</h3><p>No. Scanning happens on your computer, and scan results are not uploaded. There is no account, telemetry, or analytics.</p></article>
+        <article class="faq-item"><h3>Does it need administrator rights?</h3><p>No for normal scanning. The portable edition can be extracted and run without installation.</p></article>
+        <article class="faq-item"><h3>Is this a vulnerability scanner?</h3><p>No. It is a read-only discovery and administration utility. It does not test credentials or exploit devices.</p></article>
+        <article class="faq-item"><h3>Why no inventory history?</h3><p>The tool is designed for technicians moving between unrelated environments. One customer&rsquo;s scan should not follow you into the next visit.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-orange">
+    <div class="wrap cta-panel">
+      <div>
+        <p class="eyebrow">EXP Technical</p>
+        <h2>People-focused IT tools for people doing the work.</h2>
+        <p>EXP IP Scanner is a practical field utility from EXP Technical.</p>
+      </div>
+      <a class="btn" href="https://exptechnical.com/">Visit EXP Technical</a>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner" width="900" height="300" />
+        <p>A lightweight network discovery tool built for everyday technician workflows.</p>
+      </div>
+      <div class="footer-col"><h3>EXP Technical</h3><a href="https://exptechnical.com/it-services/">IT Services</a><a href="https://exptechnical.com/exp-clients/">Our Clients</a><a href="https://exptechnical.com/about/">About</a><a href="https://exptechnical.com/resources/">Resources</a></div>
+      <div class="footer-col"><h3>EXP IP Scanner</h3><a href="#download">Download</a><a href="releases.html">What&rsquo;s new</a><a href="privacy.html">Privacy</a><a href="https://github.com/kingnazz/EXP-IP-Scanner">GitHub</a></div>
+      <div class="footer-col"><h3>Seattle Office</h3><span>1325 4th Ave, Suite 1540</span><span>Seattle, WA 98101</span><a href="mailto:info@exptechnical.com">info@exptechnical.com</a><span>Support Desk: Mon-Fri | 7am - 6pm</span><span class="footer-phone">206-264-2784</span></div>
+    </div>
+    <div class="footer-bottom">
+      <span>EXP IP Scanner &middot; MIT licensed</span>
+      <nav aria-label="Footer"><a href="privacy.html">Privacy</a><a href="releases.html">Release history</a><a href="https://exptechnical.com/">EXPTechnical.com</a></nav>
+    </div>
+  </div>
+</footer>
+<script src="exp.v2.js"></script>
+</body>
 </html>
