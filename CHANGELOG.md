@@ -2,9 +2,32 @@
 
 All notable changes to EXP IP Scanner are recorded here. The same history, in a
 form built for reading, is on the
-[website](https://kingnazz.github.io/EXP-IP-Scanner/releases.html).
+[website](https://nazar-exp.github.io/EXP-IP-Scanner/releases.html).
 
 This project uses [semantic versioning](https://semver.org/).
+
+## 1.1.2
+
+### Changed
+
+- EXP's company-owned repository, `nazar-exp/EXP-IP-Scanner`, is now the
+  permanent update authority for the application.
+- The installed edition's **Check now** flow reads the latest stable release
+  from the EXP-owned repository instead of a personal GitHub account.
+- The future signed Tauri updater feed now points at the EXP-owned repository.
+- In-app Website, Releases, Downloads, and Privacy links now open the EXP-owned
+  GitHub Pages site and repository.
+- The product website, canonical metadata, sitemap, release history, and
+  download resolver now use the EXP-owned project as their source of truth.
+
+### Notes
+
+- The personal development repository continues to build releases and mirrors
+  the exact code, tags, release notes, installer, portable ZIP, and checksums
+  into the EXP-owned repository automatically.
+- Existing 1.1.1 installations can discover 1.1.2 through the personal release
+  channel one last time. After installing 1.1.2, future update checks use the
+  EXP-owned repository.
 
 ## 1.1.1
 
