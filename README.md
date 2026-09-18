@@ -69,8 +69,8 @@ release carries a `SHA256SUMS.txt`.
 Scanning happens on your computer, and scan results are not uploaded anywhere.
 There is no account, no telemetry, no analytics and no cloud service.
 
-The application makes exactly two requests of its own, both of which send
-nothing about your network or your scans:
+The application makes exactly two requests of its own. Neither sends scan
+results or discovered-device data:
 
 - **The public IP lookup** in the network summary asks a plain-text service what
   address this network appears as from outside. It runs when the window opens
