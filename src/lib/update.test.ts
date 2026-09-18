@@ -36,7 +36,7 @@ describe("fetchLatestRelease", () => {
     const fetchSpy = vi.fn(async () =>
       new Response(
         JSON.stringify({
-          tag_name: "v1.1.1",
+          tag_name: "v1.1.2",
           html_url: "https://github.com/nazar-exp/EXP-IP-Scanner/releases/tag/v1.1.1",
           draft: false,
           prerelease: false,
@@ -46,7 +46,7 @@ describe("fetchLatestRelease", () => {
     );
 
     await expect(fetchLatestRelease(fetchSpy as typeof fetch, 100)).resolves.toEqual({
-      version: "1.1.1",
+      version: "1.1.2",
       url: "https://github.com/nazar-exp/EXP-IP-Scanner/releases/tag/v1.1.1",
     });
     expect(fetchSpy).toHaveBeenCalledWith(
