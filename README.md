@@ -6,9 +6,9 @@ A lightweight Windows network scanner built for everyday IT work. It detects the
 network you are on, sweeps it in seconds, and lets you open Remote Desktop, a
 file share, SSH or a device's web interface straight from the results.
 
-[Download](https://kingnazz.github.io/EXP-IP-Scanner/) ·
-[What's new](https://kingnazz.github.io/EXP-IP-Scanner/releases.html) ·
-[Privacy](https://kingnazz.github.io/EXP-IP-Scanner/privacy.html)
+[Download](https://nazar-exp.github.io/EXP-IP-Scanner/) ·
+[What's new](https://nazar-exp.github.io/EXP-IP-Scanner/releases.html) ·
+[Privacy](https://nazar-exp.github.io/EXP-IP-Scanner/privacy.html)
 
 ![A finished scan of a small business network](site/assets/shots/scan-dark.webp)
 
@@ -60,8 +60,8 @@ rather than having the button hidden.
 Both editions need the Microsoft Edge WebView2 Runtime, which ships with
 Windows 11 and with current Windows 10.
 
-Get them from the [website](https://kingnazz.github.io/EXP-IP-Scanner/) or the
-[releases page](https://github.com/kingnazz/EXP-IP-Scanner/releases). Each
+Get them from the [website](https://nazar-exp.github.io/EXP-IP-Scanner/) or the
+[releases page](https://github.com/nazar-exp/EXP-IP-Scanner/releases). Each
 release carries a `SHA256SUMS.txt`.
 
 ## Privacy
@@ -84,7 +84,7 @@ results or discovered-device data:
   updater at all.
 
 The full notes are on the
-[privacy page](https://kingnazz.github.io/EXP-IP-Scanner/privacy.html).
+[privacy page](https://nazar-exp.github.io/EXP-IP-Scanner/privacy.html).
 
 ## Scope
 
@@ -148,11 +148,11 @@ cd src-tauri
 CARGO_TARGET_DIR=target-portable cargo build --release \
   --target x86_64-pc-windows-msvc --no-default-features --features portable,custom-protocol
 cd ..
-node scripts/package-portable.mjs --version 1.1.1 --target x86_64-pc-windows-msvc \
+node scripts/package-portable.mjs --version 1.1.2 --target x86_64-pc-windows-msvc \
   --binary src-tauri/target-portable/x86_64-pc-windows-msvc/release/exp-ip-scanner.exe \
   --out artifacts
-node scripts/verify-portable-zip.mjs --zip artifacts/EXP-IP-Scanner_1.1.1_windows-x64-portable.zip \
-  --architecture x64 --version 1.1.1
+node scripts/verify-portable-zip.mjs --zip artifacts/EXP-IP-Scanner_1.1.2_windows-x64-portable.zip \
+  --architecture x64 --version 1.1.2
 ```
 
 ### Regenerating assets
