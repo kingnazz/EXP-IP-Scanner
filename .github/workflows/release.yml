@@ -279,8 +279,8 @@ jobs:
 
             `SHA256SUMS.txt` carries a checksum for each download.
 
-            What changed: https://kingnazz.github.io/EXP-IP-Scanner/whats-new-${{ needs.build.outputs.version }}.html
-            All releases: https://kingnazz.github.io/EXP-IP-Scanner/releases.html
+            What changed: https://nazar-exp.github.io/EXP-IP-Scanner/whats-new-${{ needs.build.outputs.version }}.html
+            All releases: https://nazar-exp.github.io/EXP-IP-Scanner/releases.html
 
       - name: Notify EXP work mirror after publishing
         env:
