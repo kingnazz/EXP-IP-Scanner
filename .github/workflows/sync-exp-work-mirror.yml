@@ -1,0 +1,125 @@
+name: Sync EXP work mirror
+
+# This workflow is intentionally present in both repositories, but only runs in
+# the EXP-owned copy. The source repository sends a repository_dispatch after
+# main changes. The work repository then:
+#   1. makes its main branch and tags match the public source,
+#   2. copies any missing GitHub Releases and their exact assets,
+#   3. deploys its own GitHub Pages site.
+#
+# Because the code push below uses this repository's GITHUB_TOKEN, GitHub does
+# not recursively start CI/release workflows. That is deliberate: source CI has
+# already verified the commit, and releases are copied byte-for-byte instead of
+# rebuilding a second set of binaries.
+on:
+  repository_dispatch:
+    types: [sync_from_personal]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: exp-work-mirror
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    if: github.repository == 'nazar-exp/EXP-IP-Scanner'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Mirror main and tags from the development source
+        env:
+          SOURCE_REPO: kingnazz/EXP-IP-Scanner
+        run: |
+          set -euo pipefail
+          git remote remove source 2>/dev/null || true
+          git remote add source "https://github.com/$SOURCE_REPO.git"
+          git fetch source main --tags --force
+
+          # Make the checked-out worktree match the source before Pages is built.
+          git checkout -B main source/main
+
+          # GITHUB_TOKEN credentials from actions/checkout are retained on
+          # origin. Force is intentional: this repository is a managed mirror
+          # while the sync workflow is enabled.
+          git push origin main --force
+          git push origin --tags --force
+
+      - name: Copy missing releases and their exact assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REPO: kingnazz/EXP-IP-Scanner
+          DEST_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/exp-release-sync
+
+          gh api --paginate "repos/$SOURCE_REPO/releases?per_page=100"             --jq '.[] | select(.draft == false) | @base64' |
+          while IFS= read -r encoded; do
+            release_json=$(printf '%s' "$encoded" | base64 --decode)
+            tag=$(printf '%s' "$release_json" | jq -r '.tag_name')
+            name=$(printf '%s' "$release_json" | jq -r '.name // .tag_name')
+            prerelease=$(printf '%s' "$release_json" | jq -r '.prerelease')
+            body=$(printf '%s' "$release_json" | jq -r '.body // ""')
+
+            if gh release view "$tag" --repo "$DEST_REPO" >/dev/null 2>&1; then
+              echo "$tag already exists in $DEST_REPO"
+              continue
+            fi
+
+            dir="/tmp/exp-release-sync/$tag"
+            rm -rf "$dir"
+            mkdir -p "$dir"
+            gh release download "$tag" --repo "$SOURCE_REPO" --dir "$dir"
+
+            notes="$dir/RELEASE_NOTES.md"
+            printf '%s\n' "$body" > "$notes"
+
+            args=(release create "$tag" --repo "$DEST_REPO" --title "$name" --notes-file "$notes")
+            if [[ "$prerelease" == "true" ]]; then
+              args+=(--prerelease)
+            fi
+
+            mapfile -t assets < <(find "$dir" -maxdepth 1 -type f ! -name RELEASE_NOTES.md -print | sort)
+            gh "${args[@]}" "${assets[@]}"
+            echo "Copied $tag to $DEST_REPO"
+          done
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build the Pages artifact
+        run: |
+          set -euo pipefail
+          rm -rf _site
+          cp -r site _site
+          shopt -s failglob
+          for css in _site/exp.*.css; do
+            npx --yes esbuild@0.24 "$css" --minify --outfile="$css" --allow-overwrite
+          done
+          for js in _site/exp.*.js; do
+            npx --yes esbuild@0.24 "$js" --minify --target=es2018 --outfile="$js" --allow-overwrite
+          done
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy the EXP-owned Pages site
+        id: deployment
+        uses: actions/deploy-pages@v4
