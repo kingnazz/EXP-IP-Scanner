@@ -39,6 +39,15 @@ export interface Settings {
   portSpec: string;
   resolveHostnames: boolean;
   scanServices: boolean;
+  /**
+   * Whether the network summary looks up this network's public IP address.
+   *
+   * On by default, because it is one of the first things a technician wants
+   * from a site and the lookup sends nothing. It is a setting because it is the
+   * only request the application makes on its own, and somebody working on an
+   * isolated network is entitled to switch it off.
+   */
+  lookupPublicIp: boolean;
   hiddenColumns: ColumnKey[];
   sortKey: ColumnKey;
   sortDir: SortDir;
@@ -64,6 +73,7 @@ export const DEFAULT_SETTINGS: Settings = {
   portSpec: "",
   resolveHostnames: true,
   scanServices: true,
+  lookupPublicIp: true,
   hiddenColumns: DEFAULT_HIDDEN_COLUMNS,
   sortKey: "ip",
   sortDir: "asc",
@@ -130,6 +140,7 @@ export function loadSettings(): Settings {
     portSpec: typeof stored.portSpec === "string" ? stored.portSpec : d.portSpec,
     resolveHostnames: stored.resolveHostnames !== false,
     scanServices: stored.scanServices !== false,
+    lookupPublicIp: stored.lookupPublicIp !== false,
     hiddenColumns: Array.isArray(stored.hiddenColumns)
       ? (stored.hiddenColumns.filter(
           (c): c is ColumnKey => COLUMN_KEYS.includes(c as ColumnKey) && c !== "status",

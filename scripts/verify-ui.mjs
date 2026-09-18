@@ -99,12 +99,24 @@ await setTheme("light");
 
 // --- First run ------------------------------------------------------------
 
-await step("the window shows the product, its version and nothing else", async () => {
-  const heading = await page.locator("h1").first().innerText();
-  if (heading !== "EXP IP Scanner") throw new Error(`unexpected heading: ${heading}`);
+await step("the window is branded, names its version, and shows nothing else", async () => {
+  // The heading is the logo rather than type, so it is checked by its
+  // accessible name: what a screen reader announces, and what stops the mark
+  // from being a picture of nothing.
+  const heading = page.getByRole("heading", { name: "EXP IP Scanner", level: 1 });
+  if ((await heading.count()) !== 1) throw new Error("no branded heading");
+  if ((await heading.locator("svg").count()) !== 1) throw new Error("the heading is not the logo");
+
+  // The wordmark follows the theme; the oval does not. Both have to be true or
+  // the logo disappears into one of the two backgrounds.
+  const fills = await heading.locator("svg g").evaluateAll((groups) =>
+    groups.map((g) => getComputedStyle(g).fill),
+  );
+  if (fills.length !== 3) throw new Error(`the logo has ${fills.length} groups, expected 3`);
+
   const version = await page.locator("header").first().innerText();
   if (!/v\d+\.\d+\.\d+/.test(version)) throw new Error(`no version in the title bar: ${version}`);
-  return heading;
+  return `logo + ${version.trim().split("\n")[0]}`;
 });
 
 await step("the network is detected and the target is filled in", async () => {
@@ -115,11 +127,70 @@ await step("the network is detected and the target is filled in", async () => {
   return target;
 });
 
-await step("the network context strip names the adapter and this machine's address", async () => {
-  const strip = await page.locator("form").first().innerText();
-  if (!/Ethernet/.test(strip)) throw new Error(`no adapter named: ${strip}`);
-  if (!/\d+\.\d+\.\d+\.\d+/.test(strip)) throw new Error(`no address shown: ${strip}`);
-  return strip.split("\n")[0];
+await step("the scan bar names the adapter being scanned", async () => {
+  const bar = await page.locator("form").first().innerText();
+  if (!/Ethernet/.test(bar)) throw new Error(`no adapter named: ${bar}`);
+  return bar.split("\n")[0];
+});
+
+await step("the network summary reports where this machine is", async () => {
+  const summary = page.getByLabel("Network summary");
+  await summary.waitFor({ timeout: 5_000 });
+  const text = (await summary.innerText()).replace(/\s+/g, " ");
+
+  for (const [label, pattern] of [
+    ["Adapter", /Adapter Ethernet/],
+    ["Local IP", /Local IP 192\.168\.50\.37/],
+    ["Gateway", /Gateway 192\.168\.50\.1\b/],
+    ["Scan range", /Scan range 192\.168\.50\.0\/24 \(254 addresses\)/],
+  ]) {
+    if (!pattern.test(text)) throw new Error(`${label} is wrong or missing: ${text}`);
+  }
+  return text;
+});
+
+await step("the public IP arrives without holding anything else up", async () => {
+  // The lookup is asynchronous by design. The target was already detected and
+  // filled in, two checks ago, while this request was still in flight -- which
+  // is the property being verified as much as the address itself.
+  const summary = page.getByLabel("Network summary");
+  await summary.getByText("203.0.113.42").waitFor({ timeout: 10_000 });
+
+  // And it can be asked again.
+  const again = page.getByRole("button", { name: "Look up the public IP address again" });
+  if ((await again.count()) !== 1) throw new Error("no refresh control for the public IP");
+  await again.click();
+  await summary.getByText("Looking up…").waitFor({ timeout: 2_000 });
+  await summary.getByText("203.0.113.42").waitFor({ timeout: 10_000 });
+  return "203.0.113.42, refreshable";
+});
+
+await step("the public IP lookup can be turned off, and says so", async () => {
+  await page.evaluate(() => {
+    const raw = localStorage.getItem("exp-ip-scanner-settings");
+    const settings = raw ? JSON.parse(raw) : {};
+    settings.lookupPublicIp = false;
+    localStorage.setItem("exp-ip-scanner-settings", JSON.stringify(settings));
+  });
+  await page.reload({ waitUntil: "networkidle" });
+
+  const summary = page.getByLabel("Network summary");
+  await summary.waitFor({ timeout: 5_000 });
+  const text = (await summary.innerText()).replace(/\s+/g, " ");
+  // "Off" rather than "Unavailable": nobody asked, so nothing failed.
+  if (!/Public IP Off/.test(text)) throw new Error(`expected the lookup to read Off: ${text}`);
+  if (/Unavailable/.test(text)) throw new Error("a deliberate choice is reported as a failure");
+  // The rest of the summary is unaffected.
+  if (!/Gateway 192\.168\.50\.1/.test(text)) throw new Error(`the summary lost the gateway: ${text}`);
+  return text.split("·").pop().trim();
+}, async () => {
+  await page.evaluate(() => {
+    const raw = localStorage.getItem("exp-ip-scanner-settings");
+    const settings = raw ? JSON.parse(raw) : {};
+    settings.lookupPublicIp = true;
+    localStorage.setItem("exp-ip-scanner-settings", JSON.stringify(settings));
+  });
+  await page.reload({ waitUntil: "networkidle" });
 });
 
 await step("the empty state says what will be scanned and how much", async () => {
@@ -628,7 +699,15 @@ for (const size of SIZES) {
     if ((await page.locator("tbody tr[aria-rowindex]").count()) === 0) {
       throw new Error("no rows are rendered");
     }
-    return "no overflow, controls reachable";
+
+    // The summary gives up its address count as the window narrows, never an
+    // address: half of an IP address is not a smaller IP address.
+    const summary = (await page.getByLabel("Network summary").innerText()).replace(/\s+/g, " ");
+    for (const address of ["192.168.50.37", "192.168.50.1", "203.0.113.42"]) {
+      if (!summary.includes(address)) throw new Error(`${address} is cut off: ${summary}`);
+    }
+    if (summary.includes("\u2026")) throw new Error(`the summary ellipsised a value: ${summary}`);
+    return "no overflow, controls reachable, addresses whole";
   });
 }
 

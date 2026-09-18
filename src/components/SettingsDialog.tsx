@@ -4,6 +4,7 @@ import { Modal } from "../ui/Modal";
 import { CheckboxRow, NumberField, SectionTitle } from "../ui/primitives";
 import { parsePorts } from "../lib/format";
 import type { Settings } from "../lib/prefs";
+import { PUBLIC_IP_SERVICES } from "../lib/publicip";
 
 /**
  * Settings.
@@ -66,6 +67,20 @@ export function SettingsDialog({
           onChange={(resolveHostnames) => onChange({ resolveHostnames })}
           label="Look up hostnames"
           hint="Reverse DNS, run alongside the scan. Worth turning off only where DNS is broken or very slow."
+        />
+      </section>
+
+      <section className="mb-5">
+        <SectionTitle>Network summary</SectionTitle>
+        <CheckboxRow
+          checked={settings.lookupPublicIp}
+          onChange={(lookupPublicIp) => onChange({ lookupPublicIp })}
+          label="Look up this network's public IP address"
+          hint={`The only request this application makes on its own. It asks ${PUBLIC_IP_SERVICES.map(
+            (service) => service.host,
+          ).join(
+            " or ",
+          )} what address this network appears as from outside. It sends no scan results, discovered-device data or application identifier; like any HTTPS request, the lookup service can see the public IP making the request. Turning it off leaves the rest of the summary working.`}
         />
       </section>
 

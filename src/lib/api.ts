@@ -20,6 +20,7 @@ import type {
   ServiceInfo,
 } from "../types";
 import { demo } from "./demo";
+import { fetchPublicIp, type PublicIpResult } from "./publicip";
 
 /** True when running inside the packaged desktop application. */
 export function isTauri(): boolean {
@@ -114,6 +115,22 @@ export const api = {
   async ping(ip: string): Promise<PingOutcome> {
     if (isTauri()) return invoke<PingOutcome>("ping_host", { ip });
     return demo.ping(ip);
+  },
+
+  /**
+   * This network's public IP address, or null if no service answered.
+   *
+   * The only outbound request the application makes on its own, and the only
+   * one that does not go through a Rust command. It stays in the webview
+   * deliberately: `connect-src` in `tauri.conf.json` names the two hosts it may
+   * reach, which is a stronger and more auditable limit than a constant in
+   * Rust, and it keeps an HTTP client and a TLS stack out of the portable
+   * binary, which has neither and is 1.9 MB because of it. Nothing is sent, and
+   * the reply is validated as an address before it is shown.
+   */
+  async publicIp(): Promise<PublicIpResult | null> {
+    if (isTauri()) return fetchPublicIp();
+    return demo.publicIp();
   },
 
   // --- Technician actions --------------------------------------------------

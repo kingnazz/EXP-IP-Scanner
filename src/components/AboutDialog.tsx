@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ExternalLink, Loader2 } from "lucide-react";
+import { BrandLogo } from "./BrandLogo";
 import { Modal } from "../ui/Modal";
 import { api } from "../lib/api";
 import type { RuntimeInfo } from "../types";
@@ -63,22 +64,26 @@ export function AboutDialog({
 
   return (
     <Modal title="About EXP IP Scanner" onClose={onClose} width="470px">
-      <div className="mb-4 flex items-start gap-3">
-        <img src="/icon.png" alt="" width={44} height={44} className="shrink-0 rounded-lg" />
-        <div className="min-w-0">
-          <p className="text-[14px] font-semibold leading-tight">EXP IP Scanner</p>
-          <p className="mono mt-0.5 text-[12px] text-ink-muted">
-            Version {runtime?.version ?? APP_VERSION}
-            {runtime ? ` · ${runtime.edition_label}` : null}
-            {runtime ? ` · ${runtime.platform} ${runtime.architecture}` : null}
-          </p>
-        </div>
+      {/* The logo at a size that lets the wordmark be read, on the brand's own
+          tint rather than a plain panel, because this is the one place in the
+          application where the product is being introduced rather than used. */}
+      <div
+        className="mb-4 flex flex-col items-start gap-2.5 rounded-lg px-4 py-3.5"
+        style={{ background: "var(--accent-soft)" }}
+      >
+        <BrandLogo height={30} />
+        <p className="mono text-[12px] text-ink-soft">
+          Version {runtime?.version ?? APP_VERSION}
+          {runtime ? ` · ${runtime.edition_label}` : null}
+          {runtime ? ` · ${runtime.platform} ${runtime.architecture}` : null}
+        </p>
       </div>
 
       <p className="mb-4 text-[12.5px] leading-relaxed text-ink-soft">
         A network scanner for everyday IT work. Scans happen on this computer, results stay in
         memory until you export them, and there is no account, no telemetry and no cloud service
-        behind it.
+        behind it. The only thing it sends out on its own is the public IP lookup in the network
+        summary, which you can turn off in Settings.
       </p>
 
       <div className="mb-4 rounded-md border border-line px-3 py-2.5">

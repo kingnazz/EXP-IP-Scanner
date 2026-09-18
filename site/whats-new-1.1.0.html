@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>What’s new in EXP IP Scanner 1.1.0</title>
+    <meta name="description" content="EXP IP Scanner 1.1.0 adds a network summary with the default gateway and your public IP address, and brings the EXP brand into the application." />
+    <link rel="canonical" href="https://kingnazz.github.io/EXP-IP-Scanner/whats-new-1.1.0.html" />
+    <link rel="icon" href="assets/favicon.png" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'none'; connect-src 'self'; base-uri 'none'; form-action 'none'" />
+    <link rel="stylesheet" href="exp.v5.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap bar">
+        <a class="brand" href="./" aria-label="EXP IP Scanner home">
+          <img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner" width="1874" height="347" />
+        </a>
+        <nav aria-label="Site">
+          <a href="./#features">Features</a>
+          <a href="./#screenshots">Screenshots</a>
+          <a href="releases.html">Changelog</a>
+          <a href="privacy.html">Privacy</a>
+          <a class="header-cta" href="./#download">Download</a>
+        </nav>
+      </div>
+    </header>
+    <main id="main">
+      <section>
+        <div class="wrap whats-new">
+          <p class="kicker">EXP IP Scanner 1.1.0</p>
+          <h1>The network you are standing on, in one line.</h1>
+          <p class="lede">Version 1.1.0 adds a network summary to the top of the window. Before a scan starts it already tells you which adapter you are on, this machine&rsquo;s address, the default gateway, what is about to be swept, and the public IP address the site appears as from outside. It is also the release where EXP IP Scanner starts looking like an EXP product.</p>
+
+          <h2>Everything a site visit starts with</h2>
+          <p>The summary sits under the scan bar and stays on screen while you work. Adapter, local IP, gateway, scan range and public IP, on one 28-pixel line. Click any address to copy it, because the next thing you do with a gateway address is paste it into a ticket, a browser or an SSH session.</p>
+
+          <h2>The gateway, from the routing table</h2>
+          <p>The default gateway is read from the routing table and matched to the adapter its route actually leaves by. On a laptop with a VPN up, the tunnel shows the tunnel&rsquo;s gateway and the wired NIC shows the office one. An adapter with no default route &mdash; a second NIC, a Hyper-V switch &mdash; says so plainly instead of being given an invented <code>x.x.x.1</code>.</p>
+
+          <h2>Your public IP, without opening a browser</h2>
+          <p>Checking what address a customer site presents to the internet used to mean leaving the tool. Now it is already there. The lookup runs in the background and never delays startup, falls back to a second service if the first is unreachable, and reports &ldquo;Unavailable&rdquo; rather than failing loudly when neither answers. A refresh button asks again whenever you want.</p>
+
+          <h2>It is still the only thing that leaves your machine</h2>
+          <p>The lookup asks a plain-text service what address you appear as and sends nothing about you, your network or your scans. It is named in the application&rsquo;s Content-Security-Policy, so the window cannot reach anywhere else, and it can be switched off in Settings, where the services it uses are named. Scan results are still never uploaded, and there is still no account, telemetry or analytics of any kind.</p>
+
+          <h2>EXP branding throughout</h2>
+          <p>The EXP IP Scanner logo now appears in the title bar and in About, the accent colour across the interface is the EXP orange this website already used, and the application, executable, installer, window and site icons are all derived from the same artwork rather than drawn separately.</p>
+
+          <div class="notice">
+            <strong>Still deliberately not included</strong>
+            No inventory database, no historical scan tracking, no monitoring, no vulnerability scanning, and no cloud account. Results live in the current session unless you export them.
+          </div>
+
+          <div class="cta-row">
+            <a class="btn btn-primary" href="./#download">Download 1.1.0</a>
+            <a class="btn btn-secondary" href="releases.html">All releases</a>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <div class="product-footer">
+          <div class="product-footer-brand">
+            <img src="assets/exp-ip-scanner-logo-light.svg" alt="EXP IP Scanner" width="1874" height="347" />
+            <p>Fast, local network discovery for technicians.</p>
+          </div>
+          <nav aria-label="Footer">
+            <a href="./#download">Download</a>
+            <a href="releases.html">Changelog</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="https://github.com/kingnazz/EXP-IP-Scanner">GitHub</a>
+          </nav>
+        </div>
+        <div class="footer-bottom">
+          <span>EXP IP Scanner · MIT licensed</span>
+          <span>Built by <a href="https://exptechnical.com/">EXP Technical</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -16,7 +16,7 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'"
     />
-    <link rel="stylesheet" href="exp.v4.css" />
+    <link rel="stylesheet" href="exp.v5.css" />
   </head>
 
   <body>
@@ -25,7 +25,7 @@
     <header class="site-header">
       <div class="wrap bar">
         <a class="brand" href="./" aria-label="EXP IP Scanner home">
-          <img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner" width="900" height="300" />
+          <img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner" width="1874" height="347" />
         </a>
         <nav aria-label="Site">
           <a href="./#features">Features</a>
@@ -42,7 +42,7 @@
         <h1>Privacy</h1>
         <p class="lede">
           What EXP IP Scanner stores, sends, and leaves behind. No vague privacy language.
-          Applies to <span id="privacy-version">v1.0.0</span>.
+          Applies to <span id="privacy-version">v1.1.0</span>.
         </p>
       </div>
 
@@ -89,9 +89,27 @@
             the folder the executable sits in.
           </p>
 
-          <h2>The one network request the application makes</h2>
+          <h2>The network requests the application makes</h2>
           <p>
-            The installed edition can check
+            There are two, both listed here. Neither sends scan results or discovered-device
+            data.
+          </p>
+          <p>
+            <strong>The public IP lookup.</strong> The network summary at the top of the window
+            shows the address this network appears as from outside. That is the one fact the
+            application cannot work out for itself, so it asks
+            <a href="https://www.ipify.org/">api.ipify.org</a> &mdash; or
+            <a href="https://icanhazip.com/">icanhazip.com</a> if the first is unreachable &mdash;
+            which answers with your address in plain text and nothing else. Like any HTTPS request
+            it tells that service your IP address, which is the answer you asked it for; it sends
+            no identifier, no scan result and nothing about the network you are on. It runs when
+            the window opens and when you press refresh, never otherwise, and
+            <strong>it can be turned off</strong> in Settings, where both services are named. The
+            application&rsquo;s Content-Security-Policy lists these two hosts, so the window cannot
+            reach anywhere else even if it tried.
+          </p>
+          <p>
+            <strong>The update check.</strong> The installed edition can check
             <a href="https://github.com/kingnazz/EXP-IP-Scanner/releases">this project&rsquo;s GitHub releases</a>
             for a newer version. That check runs only when you press &ldquo;Check now&rdquo; in the
             About panel — never on its own and never in the background. Like any HTTPS request, it
@@ -139,7 +157,7 @@
       <div class="wrap">
         <div class="product-footer">
           <div class="product-footer-brand">
-            <img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner" width="900" height="300" />
+            <img src="assets/exp-ip-scanner-logo-light.svg" alt="EXP IP Scanner" width="1874" height="347" />
             <p>Fast, local network discovery for technicians.</p>
           </div>
           <nav aria-label="Footer">

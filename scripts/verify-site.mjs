@@ -58,7 +58,24 @@ await step("the home page leads with the product and its promise", async () => {
 });
 
 await step("it states the version, the platform and that no account is needed", async () => {
-  const facts = await page.locator(".facts").innerText();
+  // Read the page with the GitHub API blocked, so what is measured is the
+  // committed markup rather than whatever is published right now.
+  //
+  // The live API reports the latest *released* version, which is deliberately
+  // behind package.json between a version bump and the release that ships it.
+  // Asserting against the live page therefore failed every release pull
+  // request and passed only where the API happened to be unreachable. What has
+  // to be true here is that the page `sync-version` maintains carries this
+  // version; the live path is covered by the asset rules and by "the page
+  // survives GitHub not answering" below.
+  const committed = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page2 = await committed.newPage();
+  await page2.route("https://api.github.com/**", (route) => route.abort());
+  await page2.goto(BASE, { waitUntil: "networkidle" });
+
+  const facts = await page2.locator(".facts").innerText();
+  await committed.close();
+
   if (!facts.includes(VERSION)) throw new Error(`the page does not show v${VERSION}: ${facts}`);
   if (!/Windows 10 and 11/.test(facts)) throw new Error("no supported Windows versions");
   if (!/x64/.test(facts)) throw new Error("no architecture");

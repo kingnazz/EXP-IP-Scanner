@@ -27,13 +27,15 @@ pub fn runtime_info() -> RuntimeInfo {
     runtime::info()
 }
 
-/// The usable local networks, best default first.
+/// The usable local networks, best default first, each with its gateway.
 ///
-/// Called once at startup. This is what fills the network context strip and the
-/// target field before the technician touches anything.
+/// Called once at startup. This is what fills the network summary and the
+/// target field before the technician touches anything. Async because the
+/// gateway comes from the routing table, and reading it must not block the
+/// window while it opens.
 #[tauri::command]
-pub fn detect_networks() -> Vec<LocalNetwork> {
-    netinfo::detect()
+pub async fn detect_networks() -> Vec<LocalNetwork> {
+    netinfo::detect().await
 }
 
 /// One known TCP service.

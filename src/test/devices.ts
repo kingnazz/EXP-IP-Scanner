@@ -176,4 +176,5 @@ export const ETHERNET: LocalNetwork = {
   kind_label: "Ethernet",
   is_private: true,
   recommended: true,
+  gateway: "192.168.50.1",
 };

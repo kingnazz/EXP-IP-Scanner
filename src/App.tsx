@@ -11,6 +11,7 @@ import { AboutDialog } from "./components/AboutDialog";
 import { ContextMenu } from "./components/ContextMenu";
 import { DeviceDrawer } from "./components/DeviceDrawer";
 import { NoMatchesState, ReadyState } from "./components/EmptyState";
+import { NetworkSummary } from "./components/NetworkSummary";
 import { ProgressStrip } from "./components/ProgressStrip";
 import { ResultsTable } from "./components/ResultsTable";
 import { ResultsToolbar } from "./components/ResultsToolbar";
@@ -19,6 +20,7 @@ import { SettingsDialog } from "./components/SettingsDialog";
 import { TopBar } from "./components/TopBar";
 import { useContextMenu } from "./hooks/useContextMenu";
 import { useHotkeys } from "./hooks/useHotkeys";
+import { usePublicIp } from "./hooks/usePublicIp";
 import { useScan } from "./hooks/useScan";
 import { useSettings } from "./hooks/useSettings";
 import { useTheme } from "./hooks/useTheme";
@@ -80,6 +82,9 @@ export default function App() {
   const onScanError = useCallback((message: string) => toasts.error(message), [toasts]);
   const scan = useScan({ onError: onScanError });
   const menu = useContextMenu<DeviceRow>();
+  // Deliberately outside the startup effect below: the window is usable, and a
+  // scan can already be running, while this is still in flight.
+  const publicIp = usePublicIp(settings.lookupPublicIp);
 
   // --- Startup -------------------------------------------------------------
 
@@ -506,6 +511,15 @@ export default function App() {
         stopping={scan.stopping}
         onScan={startScan}
         onStop={stopScan}
+      />
+
+      <NetworkSummary
+        network={selectedNetwork}
+        target={target.trim()}
+        addressCount={addressCount}
+        publicIp={publicIp.state}
+        onRefreshPublicIp={publicIp.refresh}
+        onCopy={(value, what) => void copyText(value, what)}
       />
 
       <div className="flex min-h-0 flex-1">
