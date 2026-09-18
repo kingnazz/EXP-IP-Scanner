@@ -53,7 +53,7 @@ await step("the home page leads with the product and its promise", async () => {
   const h1 = await page.locator("h1").innerText();
   if (h1 !== "EXP IP Scanner") throw new Error(`unexpected h1: ${h1}`);
   const tagline = await page.locator(".tagline").innerText();
-  if (!/Find what/.test(tagline)) throw new Error(`unexpected tagline: ${tagline}`);
+  if (!/Scan the network/.test(tagline)) throw new Error(`unexpected tagline: ${tagline}`);
   return `${h1} — ${tagline}`;
 });
 
