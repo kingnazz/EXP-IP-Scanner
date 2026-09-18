@@ -1,27 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://kingnazz.github.io/EXP-IP-Scanner/</loc>
+    <loc>https://nazar-exp.github.io/EXP-IP-Scanner/</loc>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://kingnazz.github.io/EXP-IP-Scanner/releases.html</loc>
+    <loc>https://nazar-exp.github.io/EXP-IP-Scanner/releases.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://kingnazz.github.io/EXP-IP-Scanner/privacy.html</loc>
+    <loc>https://nazar-exp.github.io/EXP-IP-Scanner/privacy.html</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://kingnazz.github.io/EXP-IP-Scanner/whats-new-1.1.1.html</loc>
+    <loc>https://nazar-exp.github.io/EXP-IP-Scanner/whats-new-1.1.2.html</loc>
   </url>
   <url>
-    <loc>https://kingnazz.github.io/EXP-IP-Scanner/whats-new-1.1.0.html</loc>
+    <loc>https://nazar-exp.github.io/EXP-IP-Scanner/whats-new-1.1.1.html</loc>
   </url>
   <url>
-    <loc>https://kingnazz.github.io/EXP-IP-Scanner/whats-new-1.0.0.html</loc>
+    <loc>https://nazar-exp.github.io/EXP-IP-Scanner/whats-new-1.1.0.html</loc>
+  </url>
+  <url>
+    <loc>https://nazar-exp.github.io/EXP-IP-Scanner/whats-new-1.0.0.html</loc>
   </url>
 </urlset>
