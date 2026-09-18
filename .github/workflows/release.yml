@@ -35,6 +35,7 @@ permissions:
 jobs:
   release_gate:
     name: Check whether the version changed
+    if: github.repository == 'kingnazz/EXP-IP-Scanner'
     runs-on: ubuntu-latest
     outputs:
       should_release: ${{ steps.gate.outputs.should_release }}

@@ -4,59 +4,62 @@ The EXP-owned copy lives at:
 
 - https://github.com/nazar-exp/EXP-IP-Scanner
 
-The development/source repository currently lives at:
+The development/source repository lives at:
 
 - https://github.com/kingnazz/EXP-IP-Scanner
 
-## Why this exists
+## Design
 
-The work repository must remain usable if Nazar leaves EXP, while day-to-day
-Claude/Codex/GitHub work can continue through the existing `kingnazz` account.
+The personal repository is the development source while this mirror is enabled.
+The EXP repository remains a complete company-owned copy that can continue
+independently if access to the personal account is later removed.
 
-The work repository is therefore a managed mirror while this arrangement is
-active. It receives the same `main` history and tags, copies the exact release
-assets, and deploys its own GitHub Pages site.
+On every push to source `main`:
 
-## One-time bootstrap
+1. `EXP_MIRROR_TOKEN` pushes the exact `main` history and tags to the
+   EXP-owned repository.
+2. The source-side release sync copies any missing GitHub Releases and their
+   exact assets into the EXP-owned repository.
+3. A `repository_dispatch` wakes the EXP-owned repository, which builds and
+   deploys its own GitHub Pages site.
 
-From a local clone authenticated as `kingnazz` (which is a collaborator on
-the work repository):
+The EXP-owned repository does not rebuild release binaries. Release assets are
+copied byte-for-byte from the source release, so both repositories distribute
+the same files.
 
-```bash
-git checkout main
-git pull --ff-only origin main
-git remote remove exp 2>/dev/null || true
-git remote add exp https://github.com/nazar-exp/EXP-IP-Scanner.git
-git push exp main --force
-git push exp --tags --force
-```
+## Token
 
-Then enable GitHub Pages in the work repository:
+The source repository contains the Actions secret `EXP_MIRROR_TOKEN`.
 
-**Settings → Pages → Build and deployment → Source → GitHub Actions**
+It is a classic PAT belonging to `kingnazz`, which is a collaborator on the
+public work repository. GitHub requires the classic `repo` and `workflow`
+scopes for this mirror because the pushed history contains GitHub Actions
+workflow files.
 
-Finally run **Actions → Sync EXP work mirror → Run workflow** once in the
-work repository. That copies historical releases and deploys the work Pages
-site.
+The token exists only in the personal source repository. The EXP-owned
+repository does not store this PAT.
 
-## Automatic sync
+## GitHub Pages
 
-The source repository stores a secret named `EXP_MIRROR_TOKEN`. It is a
-classic GitHub personal access token belonging to `kingnazz` with only the
-`public_repo` scope. Because `kingnazz` is a collaborator on the public
-work repository, that is sufficient to send a `repository_dispatch`.
+Both repositories use GitHub Pages.
 
-The token does **not** push code or publish releases. It only wakes the work
-repository. The work repository then performs the sync with its own
-`GITHUB_TOKEN`.
+The EXP-owned Pages site is deployed by
+`.github/workflows/sync-exp-work-mirror.yml` after each mirror dispatch.
 
-A source release sends a second notification after publication so the release
-assets are copied as soon as they exist.
+## Releases
 
-## Offboarding / making the EXP repo independent
+Only `kingnazz/EXP-IP-Scanner` performs the official Windows build and release
+pipeline. The same release notes, tags, installer, portable ZIP and checksums
+are copied into `nazar-exp/EXP-IP-Scanner`.
 
-Before EXP begins developing directly in the work repository, disable
-`.github/workflows/sync-exp-work-mirror.yml` (or remove the dispatch trigger).
-At that point the work repository already contains the code, tags, release
-assets, changelog, and Pages site and can operate normally using its existing CI
-and release workflows.
+The release workflow is explicitly gated so the mirrored work repository never
+rebuilds and publishes a second set of binaries.
+
+## Offboarding / making EXP independent
+
+Before EXP begins developing directly in the work repository, disable the
+source-side mirror workflows or revoke `EXP_MIRROR_TOKEN`.
+
+At that point the work repository already has the source history, tags,
+releases, release assets, changelog, workflows and Pages site. EXP can then
+develop from its own repository normally.

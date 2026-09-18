@@ -1,31 +1,24 @@
-name: Sync EXP work mirror
+name: Deploy EXP work mirror
 
-# This workflow is intentionally present in both repositories, but only runs in
-# the EXP-owned copy. The source repository sends a repository_dispatch after
-# main changes. The work repository then:
-#   1. makes its main branch match the public source,
-#   2. deploys its own GitHub Pages site.
-#
-# Release/tag mirroring runs from the personal source repository using the
-# dedicated EXP_MIRROR_TOKEN. The work repo's built-in GitHub App token is
-# intentionally not used for release creation because GitHub restricts that
-# token around refs that contain workflow files.
+# Source-side automation pushes main + tags into this repository, then sends a
+# repository_dispatch. The work repo only needs to build and deploy its own
+# Pages site using its native GitHub Pages permissions.
 on:
   repository_dispatch:
     types: [sync_from_personal]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
 concurrency:
-  group: exp-work-mirror
+  group: exp-work-pages
   cancel-in-progress: true
 
 jobs:
-  sync:
+  deploy:
     if: github.repository == 'nazar-exp/EXP-IP-Scanner'
     runs-on: ubuntu-latest
     environment:
@@ -34,25 +27,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Mirror main from the development source
-        env:
-          SOURCE_REPO: kingnazz/EXP-IP-Scanner
-        run: |
-          set -euo pipefail
-          git remote remove source 2>/dev/null || true
-          git remote add source "https://github.com/$SOURCE_REPO.git"
-          git fetch source main --tags --force
-
-          # Make the checked-out worktree match the source before Pages is built.
-          git checkout -B main source/main
-
-          # GITHUB_TOKEN credentials from actions/checkout are retained on
-          # origin. Force is intentional: this repository is a managed mirror
-          # while the sync workflow is enabled.
-          git push origin main --force
 
       - uses: actions/setup-node@v4
         with:
