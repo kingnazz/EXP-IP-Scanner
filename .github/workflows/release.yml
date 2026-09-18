@@ -244,7 +244,7 @@ jobs:
 
       - name: Generate the updater manifest
         if: needs.build.outputs.updater == 'true'
-        run: node scripts/gen-latest-json.mjs "v${{ needs.build.outputs.version }}" "${{ github.repository }}" dist
+        run: node scripts/gen-latest-json.mjs "v${{ needs.build.outputs.version }}" "nazar-exp/EXP-IP-Scanner" dist
 
       # latest.json tells every installed copy what it may download and install.
       # A portable ZIP in it would be an update that cannot be applied, so this
