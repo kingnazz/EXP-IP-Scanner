@@ -1,7 +1,7 @@
 import { APP_VERSION } from "../version";
 
 export const LATEST_RELEASE_API =
-  "https://api.github.com/repos/kingnazz/EXP-IP-Scanner/releases/latest";
+  "https://api.github.com/repos/nazar-exp/EXP-IP-Scanner/releases/latest";
 
 export interface LatestRelease {
   version: string;
@@ -76,7 +76,7 @@ export async function fetchLatestRelease(
     }
     if (
       typeof release.html_url !== "string" ||
-      !release.html_url.startsWith("https://github.com/kingnazz/EXP-IP-Scanner/releases/")
+      !release.html_url.startsWith("https://github.com/nazar-exp/EXP-IP-Scanner/releases/")
     ) {
       throw new Error("GitHub returned a release with an invalid URL");
     }
