@@ -87,13 +87,31 @@ jobs:
         if: steps.updater.outputs.configured != 'true'
         run: npm run tauri:build -- --target x86_64-pc-windows-msvc --bundles nsis
 
-      - name: Collect the installer
+      # Tauri names the bundle after productName, which carries spaces:
+      # "EXP IP Scanner_1.0.0_x64-setup.exe". A release asset with spaces is
+      # percent-encoded in its download URL, and the website's asset rules, the
+      # checksums and the updater manifest all expect the hyphenated form, so
+      # the artifact is collected under its canonical name. The assertion that
+      # follows fails loudly if this ever stops matching.
+      - name: Collect the installer under its canonical name
         shell: bash
         run: |
+          set -euo pipefail
           mkdir -p artifacts
-          base="src-tauri/target/x86_64-pc-windows-msvc/release/bundle"
-          find "$base" -name '*-setup.exe' -exec cp {} artifacts/ \;
-          find "$base" -name '*.sig' -exec cp {} artifacts/ \; 2>/dev/null || true
+          canonical="EXP-IP-Scanner_${{ steps.version.outputs.value }}_x64-setup.exe"
+          base="src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis"
+          built=$(find "$base" -maxdepth 1 -name '*_x64-setup.exe' -print -quit)
+          if [[ -z "$built" ]]; then
+            echo "No installer was produced in $base"
+            find src-tauri/target/x86_64-pc-windows-msvc/release/bundle -type f -print
+            exit 1
+          fi
+          cp "$built" "artifacts/$canonical"
+          # A signature has to follow the rename, or the updater would look for
+          # it under a name that does not exist.
+          if [[ -f "$built.sig" ]]; then
+            cp "$built.sig" "artifacts/$canonical.sig"
+          fi
           ls -la artifacts
 
       - name: The installer was produced

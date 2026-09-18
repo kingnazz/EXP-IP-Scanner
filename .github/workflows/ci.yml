@@ -167,13 +167,40 @@ jobs:
       - name: Build the installer
         run: npm run tauri:build -- --target x86_64-pc-windows-msvc --bundles nsis
 
-      - name: The installer was produced
+      # Tauri names the bundle after productName, which carries spaces:
+      # "EXP IP Scanner_1.0.0_x64-setup.exe". A release asset with spaces is
+      # percent-encoded in its download URL, and the website's asset rules, the
+      # checksums and the updater manifest all expect the hyphenated form, so
+      # the artifact is collected under its canonical name. The assertion that
+      # follows fails loudly if this ever stops matching.
+      - name: Collect the installer under its canonical name
         shell: bash
         run: |
-          installer="src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/EXP-IP-Scanner_${{ steps.version.outputs.value }}_x64-setup.exe"
+          set -euo pipefail
+          mkdir -p artifacts
+          canonical="EXP-IP-Scanner_${{ steps.version.outputs.value }}_x64-setup.exe"
+          base="src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis"
+          built=$(find "$base" -maxdepth 1 -name '*_x64-setup.exe' -print -quit)
+          if [[ -z "$built" ]]; then
+            echo "No installer was produced in $base"
+            find src-tauri/target/x86_64-pc-windows-msvc/release/bundle -type f -print
+            exit 1
+          fi
+          cp "$built" "artifacts/$canonical"
+          # A signature has to follow the rename, or the updater would look for
+          # it under a name that does not exist.
+          if [[ -f "$built.sig" ]]; then
+            cp "$built.sig" "artifacts/$canonical.sig"
+          fi
+          ls -la artifacts
+
+      - name: The installer is present under the name a release publishes
+        shell: bash
+        run: |
+          installer="artifacts/EXP-IP-Scanner_${{ steps.version.outputs.value }}_x64-setup.exe"
           if [[ ! -f "$installer" ]]; then
             echo "Required installer missing: $installer"
-            find src-tauri/target/x86_64-pc-windows-msvc/release/bundle -type f -print
+            ls -la artifacts
             exit 1
           fi
           echo "Installer present: $installer ($(stat -c%s "$installer") bytes)"
@@ -215,9 +242,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: EXP-IP-Scanner-windows-x64-${{ github.sha }}
-          path: |
-            artifacts/*
-            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+          path: artifacts/*
           if-no-files-found: error
           retention-days: 14
 
