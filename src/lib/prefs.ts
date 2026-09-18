@@ -43,7 +43,8 @@ export interface Settings {
    * Whether the network summary looks up this network's public IP address.
    *
    * On by default, because it is one of the first things a technician wants
-   * from a site and the lookup sends nothing. It is a setting because it is the
+   * from a site and the lookup sends no scan results or discovered-device data.
+   * It is a setting because it is the
    * only request the application makes on its own, and somebody working on an
    * isolated network is entitled to switch it off.
    */
