@@ -14,6 +14,7 @@
 
 use std::collections::HashSet;
 use std::net::Ipv4Addr;
+use std::time::Duration;
 
 use serde::Serialize;
 
@@ -72,6 +73,11 @@ pub struct LocalNetwork {
     pub is_private: bool,
     /// True for the one interface picked as the default target.
     pub recommended: bool,
+    /// The default gateway reached through this interface, when the operating
+    /// system reports one. `None` is a real answer and is shown as such: plenty
+    /// of adapters -- a second NIC, a host-only switch -- genuinely have no
+    /// default route, and guessing `x.x.x.1` would be inventing a device.
+    pub gateway: Option<String>,
 }
 
 /// Prefix at or below which the interface's own network is too large to be a
@@ -203,13 +209,13 @@ fn suggest(ip: Ipv4Addr, prefix: u8) -> (String, u64) {
     )
 }
 
-/// Enumerate usable IPv4 interfaces, best default first.
+/// Enumerate usable IPv4 interfaces, best default first, without gateways.
 ///
 /// Loopback, link-local (169.254/16, i.e. a failed DHCP lease) and unspecified
 /// addresses are dropped: none of them is a network anyone can scan. Host-only
 /// prefixes (/31, /32) and /0 are dropped too, because there is no subnet there
 /// to sweep. Everything that survives is returned and is selectable.
-pub fn detect() -> Vec<LocalNetwork> {
+pub fn enumerate() -> Vec<LocalNetwork> {
     let ifaces = match if_addrs::get_if_addrs() {
         Ok(v) => v,
         Err(_) => return Vec::new(),
@@ -260,6 +266,7 @@ pub fn detect() -> Vec<LocalNetwork> {
                 kind_label: kind.label().to_string(),
                 is_private: ip.is_private(),
                 recommended: false,
+                gateway: None,
             },
         ));
     }
@@ -276,6 +283,159 @@ pub fn detect() -> Vec<LocalNetwork> {
         first.recommended = true;
     }
     out
+}
+
+/// Enumerate usable IPv4 interfaces and fill in each one's default gateway.
+///
+/// The gateway is the one fact in the network summary that neither `if_addrs`
+/// nor arithmetic can supply, so it comes from the routing table. Reading it is
+/// best effort by design: if the command is missing, slow or unparseable, every
+/// interface is still returned and simply has no gateway to show. Startup must
+/// not hinge on it.
+pub async fn detect() -> Vec<LocalNetwork> {
+    let mut nets = enumerate();
+    attach_gateways(&mut nets, &read_default_routes().await);
+    nets
+}
+
+/// One default route, as the operating system reports it.
+///
+/// Which of the two `via` fields is populated depends on the platform, not on
+/// the route: Windows names the interface by its address, Linux by its name. A
+/// route is matched to an interface by whichever one it has.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct DefaultRoute {
+    gateway: Ipv4Addr,
+    via_ip: Option<Ipv4Addr>,
+    via_name: Option<String>,
+}
+
+/// Give each interface the gateway of the default route that leaves by it.
+///
+/// A machine with a VPN up has more than one default route, which is exactly
+/// why routes are matched to the interface they leave by rather than the first
+/// one being handed to everybody.
+fn attach_gateways(nets: &mut [LocalNetwork], routes: &[DefaultRoute]) {
+    for net in nets.iter_mut() {
+        let ip: Option<Ipv4Addr> = net.ip.parse().ok();
+        let matched = routes.iter().find(|route| {
+            // The `is_some` guard is load-bearing: without it, a route that
+            // reports no interface address would match an interface whose
+            // address failed to parse, through `None == None`.
+            (ip.is_some() && route.via_ip == ip)
+                || route.via_name.as_deref() == Some(net.interface.as_str())
+        });
+        net.gateway = matched.map(|route| route.gateway.to_string());
+    }
+}
+
+/// How long the routing table is worth waiting for. It is a local table read;
+/// anything slower than this is a wedged command, and the summary can say the
+/// gateway is unknown rather than hold the window open.
+const ROUTE_TIMEOUT: Duration = Duration::from_millis(1_500);
+
+/// Ask the operating system for its IPv4 default routes.
+#[cfg(any(windows, target_os = "linux"))]
+async fn read_default_routes() -> Vec<DefaultRoute> {
+    #[cfg(windows)]
+    let (program, args): (&str, &[&str]) = ("route", &["print", "-4"]);
+    #[cfg(target_os = "linux")]
+    let (program, args): (&str, &[&str]) = ("ip", &["-4", "route", "show", "default"]);
+
+    let mut cmd = crate::scanner::quiet_command(program);
+    cmd.args(args);
+    let output = match tokio::time::timeout(ROUTE_TIMEOUT, cmd.output()).await {
+        Ok(Ok(output)) => output,
+        // No `ip`, no `route`, no permission, or too slow. Not an error worth
+        // reporting: the summary shows no gateway and everything else works.
+        _ => return Vec::new(),
+    };
+    let text = String::from_utf8_lossy(&output.stdout);
+
+    #[cfg(windows)]
+    return parse_windows_routes(&text);
+    #[cfg(target_os = "linux")]
+    return parse_iproute_routes(&text);
+}
+
+#[cfg(not(any(windows, target_os = "linux")))]
+async fn read_default_routes() -> Vec<DefaultRoute> {
+    // Windows is what ships. Linux is what the tests run on. Anything else
+    // reports no gateway rather than guessing at another platform's `route`
+    // output format on a platform nobody builds this for.
+    Vec::new()
+}
+
+/// Read the default routes out of `route print -4`.
+///
+/// The rows wanted are the ones whose destination and mask are both `0.0.0.0`:
+///
+/// ```text
+/// Network Destination        Netmask          Gateway       Interface  Metric
+///           0.0.0.0          0.0.0.0      192.168.1.1    192.168.1.42     35
+/// ```
+///
+/// Nothing is matched against the section headings, which are translated on a
+/// localised Windows. `On-link` rows and the four-column persistent-route rows
+/// both fail to parse as a gateway plus an interface address, and are skipped
+/// by that alone.
+#[cfg(any(windows, test))]
+fn parse_windows_routes(text: &str) -> Vec<DefaultRoute> {
+    let mut routes = Vec::new();
+    for line in text.lines() {
+        let fields: Vec<&str> = line.split_whitespace().collect();
+        let [dest, mask, gateway, via, ..] = fields.as_slice() else {
+            continue;
+        };
+        if *dest != "0.0.0.0" || *mask != "0.0.0.0" {
+            continue;
+        }
+        let (Ok(gateway), Ok(via_ip)) = (gateway.parse::<Ipv4Addr>(), via.parse::<Ipv4Addr>())
+        else {
+            continue;
+        };
+        routes.push(DefaultRoute {
+            gateway,
+            via_ip: Some(via_ip),
+            via_name: None,
+        });
+    }
+    routes
+}
+
+/// Read the default routes out of `ip -4 route show default`.
+///
+/// ```text
+/// default via 192.168.1.1 dev eth0 proto dhcp src 192.168.1.42 metric 100
+/// ```
+///
+/// `src` is taken when it is there as well as `dev`, so a route still matches
+/// an interface whose name the kernel and `if_addrs` spell differently.
+#[cfg(any(target_os = "linux", test))]
+fn parse_iproute_routes(text: &str) -> Vec<DefaultRoute> {
+    let mut routes = Vec::new();
+    for line in text.lines() {
+        let fields: Vec<&str> = line.split_whitespace().collect();
+        if fields.first() != Some(&"default") {
+            continue;
+        }
+        let after = |key: &str| {
+            fields
+                .iter()
+                .position(|f| *f == key)
+                .and_then(|i| fields.get(i + 1))
+                .copied()
+        };
+        let Some(Ok(gateway)) = after("via").map(str::parse::<Ipv4Addr>) else {
+            continue;
+        };
+        routes.push(DefaultRoute {
+            gateway,
+            via_ip: after("src").and_then(|s| s.parse().ok()),
+            via_name: after("dev").map(str::to_string),
+        });
+    }
+    routes
 }
 
 #[cfg(test)]
@@ -297,6 +457,7 @@ mod tests {
             kind_label: kind.label().to_string(),
             is_private: addr.is_private(),
             recommended: false,
+            gateway: None,
         }
     }
 
@@ -481,10 +642,103 @@ mod tests {
         }
     }
 
+    /// Real `route print -4` output from a Windows laptop with a NIC and a VPN.
+    const WINDOWS_ROUTE_PRINT: &str = "\
+===========================================================================
+Interface List
+ 12...00 1a 2b 3c 4d 5e ......Intel(R) Ethernet Connection
+===========================================================================
+
+IPv4 Route Table
+===========================================================================
+Active Routes:
+Network Destination        Netmask          Gateway       Interface  Metric
+          0.0.0.0          0.0.0.0      192.168.1.1    192.168.1.42     35
+          0.0.0.0          0.0.0.0       10.99.0.1       10.99.0.7     20
+        127.0.0.0        255.0.0.0         On-link         127.0.0.1    331
+      192.168.1.0    255.255.255.0         On-link      192.168.1.42    291
+===========================================================================
+Persistent Routes:
+  Network Address          Netmask  Gateway Address  Metric
+          0.0.0.0          0.0.0.0      192.168.1.1  Default
+===========================================================================
+";
+
     #[test]
-    fn detect_runs_and_reports_at_most_one_recommendation() {
+    fn the_windows_routing_table_yields_one_gateway_per_interface() {
+        let routes = parse_windows_routes(WINDOWS_ROUTE_PRINT);
+        assert_eq!(routes.len(), 2, "{routes:?}");
+        assert_eq!(routes[0].gateway, Ipv4Addr::new(192, 168, 1, 1));
+        assert_eq!(routes[0].via_ip, Some(Ipv4Addr::new(192, 168, 1, 42)));
+        assert_eq!(routes[1].gateway, Ipv4Addr::new(10, 99, 0, 1));
+        assert_eq!(routes[1].via_ip, Some(Ipv4Addr::new(10, 99, 0, 7)));
+    }
+
+    #[test]
+    fn on_link_rows_and_persistent_rows_are_not_gateways() {
+        // The persistent-route row repeats the same gateway with "Default"
+        // where the interface address belongs, and every On-link row has a word
+        // there instead of an address. Both are skipped by failing to parse,
+        // which is what keeps the count at two above.
+        let routes = parse_windows_routes(WINDOWS_ROUTE_PRINT);
+        assert!(routes.iter().all(|r| r.via_ip.is_some()));
+
+        assert!(parse_windows_routes("garbage\n\n   \n0.0.0.0\n").is_empty());
+        assert!(parse_windows_routes("").is_empty());
+    }
+
+    #[test]
+    fn the_linux_routing_table_names_the_interface_and_the_source_address() {
+        let routes = parse_iproute_routes(
+            "default via 192.168.1.1 dev eth0 proto dhcp src 192.168.1.42 metric 100\n\
+             default via 10.8.0.1 dev tun0\n\
+             10.0.0.0/24 dev eth1 proto kernel scope link src 10.0.0.5\n",
+        );
+        assert_eq!(routes.len(), 2, "{routes:?}");
+        assert_eq!(routes[0].gateway, Ipv4Addr::new(192, 168, 1, 1));
+        assert_eq!(routes[0].via_name.as_deref(), Some("eth0"));
+        assert_eq!(routes[0].via_ip, Some(Ipv4Addr::new(192, 168, 1, 42)));
+        // A tunnel route carries no source address, and is still usable.
+        assert_eq!(routes[1].via_name.as_deref(), Some("tun0"));
+        assert_eq!(routes[1].via_ip, None);
+
+        assert!(
+            parse_iproute_routes("default dev eth0\ndefault via nonsense dev eth0\n").is_empty()
+        );
+    }
+
+    #[test]
+    fn each_interface_gets_the_gateway_of_its_own_default_route() {
+        let mut nets = vec![
+            net("Ethernet", "192.168.1.42", 24),
+            net("Cisco AnyConnect VA", "10.99.0.7", 24),
+            net("vEthernet (WSL)", "172.28.0.1", 20),
+        ];
+        attach_gateways(&mut nets, &parse_windows_routes(WINDOWS_ROUTE_PRINT));
+
+        assert_eq!(nets[0].gateway.as_deref(), Some("192.168.1.1"));
+        // The VPN's own gateway, not the wired one: a laptop on a tunnel has
+        // two default routes, and handing the first to everybody would put the
+        // wrong device in front of the technician.
+        assert_eq!(nets[1].gateway.as_deref(), Some("10.99.0.1"));
+        // No default route leaves by the Hyper-V switch, and none is invented.
+        assert_eq!(nets[2].gateway, None);
+    }
+
+    #[test]
+    fn an_interface_is_matched_by_name_where_that_is_all_the_route_has() {
+        let mut nets = vec![net("tun0", "10.8.0.6", 24)];
+        attach_gateways(
+            &mut nets,
+            &parse_iproute_routes("default via 10.8.0.1 dev tun0\n"),
+        );
+        assert_eq!(nets[0].gateway.as_deref(), Some("10.8.0.1"));
+    }
+
+    #[tokio::test]
+    async fn detect_runs_and_reports_at_most_one_recommendation() {
         // Whatever this machine has, the invariants hold.
-        let nets = detect();
+        let nets = detect().await;
         assert!(nets.iter().filter(|n| n.recommended).count() <= 1);
         for n in &nets {
             assert!(n.prefix >= 1 && n.prefix <= 30, "{n:?}");
@@ -494,6 +748,10 @@ mod tests {
             );
             let ip: Ipv4Addr = n.ip.parse().expect("a reported address parses");
             assert!(!ip.is_loopback() && !ip.is_link_local());
+            // A gateway is optional, but a reported one is a real address.
+            if let Some(gateway) = &n.gateway {
+                assert!(gateway.parse::<Ipv4Addr>().is_ok(), "{gateway}");
+            }
         }
         if let Some(first) = nets.first() {
             assert!(first.recommended, "the first interface is the default");

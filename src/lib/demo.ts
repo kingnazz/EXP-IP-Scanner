@@ -23,6 +23,7 @@ import type {
 } from "../types";
 import { APP_VERSION } from "../version";
 import type { ScanListeners } from "./api";
+import type { PublicIpResult } from "./publicip";
 
 /** The interfaces a technician's laptop plausibly has, in the order the real
  * adapter ranking would produce. */
@@ -38,6 +39,7 @@ const NETWORKS: LocalNetwork[] = [
     kind_label: "Ethernet",
     is_private: true,
     recommended: true,
+    gateway: "192.168.50.1",
   },
   {
     interface: "Wi-Fi",
@@ -50,6 +52,7 @@ const NETWORKS: LocalNetwork[] = [
     kind_label: "Wi-Fi",
     is_private: true,
     recommended: false,
+    gateway: "10.20.30.1",
   },
   {
     interface: "Cisco AnyConnect VA",
@@ -62,6 +65,7 @@ const NETWORKS: LocalNetwork[] = [
     kind_label: "VPN",
     is_private: true,
     recommended: false,
+    gateway: "172.19.4.1",
   },
   {
     interface: "vEthernet (Default Switch)",
@@ -74,6 +78,9 @@ const NETWORKS: LocalNetwork[] = [
     kind_label: "Virtual",
     is_private: true,
     recommended: false,
+    // A Hyper-V switch really does have no default route, and the summary
+    // says so rather than inventing one.
+    gateway: null,
   },
 ];
 
@@ -523,6 +530,18 @@ export const demo = {
 
   detectNetworks(): LocalNetwork[] {
     return NETWORKS.map((n) => ({ ...n }));
+  },
+
+  /**
+   * The demo's public address.
+   *
+   * Fixed, and from the documentation range, so the screenshots and the
+   * interface checks are deterministic and no real address is ever published.
+   * The browser demo makes no outbound request of any kind.
+   */
+  async publicIp(): Promise<PublicIpResult | null> {
+    await sleep(320);
+    return { ip: "203.0.113.42", host: "api.ipify.org" };
   },
 
   serviceCatalog(): ServiceInfo[] {

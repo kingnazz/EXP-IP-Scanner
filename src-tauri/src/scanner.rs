@@ -620,7 +620,9 @@ pub async fn run(
 
     // Our own segments, up front: they decide whether ARP is authoritative for
     // this target and therefore whether the re-prime pass is worth running.
-    let locals = netinfo::detect();
+    // `enumerate` rather than `detect`, because only the addresses matter here
+    // and reading the routing table on every scan would buy nothing.
+    let locals = netinfo::enumerate();
     let own_ips: HashSet<Ipv4Addr> = locals.iter().filter_map(|n| n.ip.parse().ok()).collect();
     let local_ranges: Vec<(u32, u32)> = locals
         .iter()

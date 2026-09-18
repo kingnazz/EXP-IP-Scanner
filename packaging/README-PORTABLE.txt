@@ -100,6 +100,11 @@ Scanning happens on this computer. Results are not uploaded anywhere,
 there is no account, no telemetry and no analytics, and the portable
 edition makes no update check.
 
+One request does leave this computer: the network summary at the top of
+the window looks up the address this network appears as from outside, by
+asking a plain-text service what your address is. It sends nothing about
+you, your network or your scans, and it can be turned off in Settings.
+
 Full notes: https://kingnazz.github.io/EXP-IP-Scanner/privacy.html
 
 

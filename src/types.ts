@@ -25,6 +25,8 @@ export interface LocalNetwork {
   is_private: boolean;
   /** True for the single interface picked as the default. */
   recommended: boolean;
+  /** The default gateway reached through this adapter, if it has one. */
+  gateway: string | null;
 }
 
 /** One discovered device. Mirrors `scanner::HostResult`. */

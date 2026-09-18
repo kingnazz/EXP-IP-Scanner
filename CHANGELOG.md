@@ -6,6 +6,40 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.1.0
+
+### Added
+
+- A network summary strip under the scan bar: the adapter, this machine's
+  address, the default gateway, what is about to be swept, and this network's
+  public IP address. Every value copies to the clipboard when clicked.
+- Default gateway detection, read from the routing table and matched to the
+  adapter the route leaves by, so a laptop with a VPN up shows the tunnel's
+  gateway on the tunnel and the wired one on the NIC. An adapter with no default
+  route says so rather than being given an invented one.
+- Public IP lookup, so a technician on site can read the address the network
+  appears as from outside without opening a browser. It runs asynchronously and
+  never delays startup, falls back to a second service, says "Unavailable"
+  rather than failing loudly when neither can be reached, and can be looked up
+  again on demand. It is the only request the application makes on its own, it
+  sends nothing, and it can be turned off in Settings.
+
+### Changed
+
+- EXP IP Scanner now carries the EXP brand. The logo appears in the title bar
+  and in About, the accent colour throughout the interface is the EXP orange
+  that the website already used, and the application, executable, installer,
+  window and website icons are all derived from the same artwork.
+- The adapter selector in the scan bar shows just the adapter now. Its address
+  and subnet moved into the network summary below it rather than being printed
+  twice within 30 pixels.
+
+### Notes
+
+- No new permission, dependency or capability. The public IP lookup is made by
+  the window itself, and `connect-src` in the Tauri configuration names the only
+  two hosts it may reach.
+
 ## 1.0.0
 
 First release.

@@ -12,13 +12,14 @@ const KIND_ICON: Record<InterfaceKind, typeof Cable> = {
 };
 
 /**
- * The network context strip, and the interface selector behind it.
+ * Which adapter is being scanned, and the selector behind it.
  *
- * Reads as one line -- `Ethernet · 192.168.50.37 · /24` -- because that is all
- * a technician needs to confirm they are pointed at the right network. The
- * selector only appears when there is more than one viable interface, and it
- * lists every one of them: a technician sometimes really does mean the VPN
- * adapter or the Hyper-V switch, so those are ranked lower but never hidden.
+ * Just the adapter here: its address, its gateway and what is about to be swept
+ * are one line below in the network summary, and printing them twice within
+ * 30px would be noise. The selector only appears when there is more than one
+ * viable interface, and it lists every one of them -- a technician sometimes
+ * really does mean the VPN adapter or the Hyper-V switch, so those are ranked
+ * lower but never hidden.
  */
 export function InterfacePicker({
   networks,
@@ -68,7 +69,7 @@ export function InterfacePicker({
     <div ref={container} className="relative">
       <button
         type="button"
-        className={`flex h-[var(--control-lg)] max-w-[19rem] items-center gap-2 rounded-md px-2 text-left transition-colors ${
+        className={`flex h-[var(--control-lg)] max-w-[13rem] items-center gap-2 rounded-md px-2 text-left transition-colors ${
           only ? "cursor-default" : "hover:bg-surface-hover"
         }`}
         onClick={() => !only && setOpen((v) => !v)}
@@ -82,11 +83,8 @@ export function InterfacePicker({
         }
       >
         <Icon size={14} className="shrink-0 text-ink-muted" aria-hidden />
-        <span className="min-w-0 truncate text-[12.5px] leading-tight">
-          <span className="font-medium">{shortName(current)}</span>
-          <span className="text-ink-muted"> · </span>
-          <span className="mono text-[12px]">{current.ip}</span>
-          <span className="text-ink-muted"> · /{current.prefix}</span>
+        <span className="min-w-0 truncate text-[12.5px] font-medium leading-tight">
+          {shortName(current)}
         </span>
         {!only ? <ChevronDown size={13} className="shrink-0 text-ink-muted" aria-hidden /> : null}
       </button>
