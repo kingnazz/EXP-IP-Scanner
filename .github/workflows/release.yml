@@ -33,8 +33,45 @@ permissions:
   contents: read
 
 jobs:
+  release_gate:
+    name: Check whether the version changed
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.gate.outputs.should_release }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Compare package versions
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "Manual release requested."
+            exit 0
+          fi
+
+          current=$(node -p "require('./package.json').version")
+          before="${{ github.event.before }}"
+          previous=$(git show "$before:package.json" 2>/dev/null | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).version))" || true)
+
+          if [[ -z "$previous" || "$current" != "$previous" ]]; then
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "Version changed: ${previous:-unknown} -> $current"
+          else
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            echo "package.json changed, but version stayed at $current. No release will be published."
+          fi
+
   build:
     name: Build Windows x64
+    needs: release_gate
+    if: needs.release_gate.outputs.should_release == 'true'
     runs-on: windows-latest
     outputs:
       version: ${{ steps.version.outputs.value }}
@@ -184,7 +221,8 @@ jobs:
 
   publish:
     name: Publish the release
-    needs: build
+    needs: [release_gate, build]
+    if: needs.release_gate.outputs.should_release == 'true' && needs.build.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
