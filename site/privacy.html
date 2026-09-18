@@ -109,12 +109,13 @@
             reach anywhere else even if it tried.
           </p>
           <p>
-            <strong>The update check.</strong> The installed edition can check
-            <a href="https://github.com/kingnazz/EXP-IP-Scanner/releases">this project&rsquo;s GitHub releases</a>
-            for a newer version. That check runs only when you press &ldquo;Check now&rdquo; in the
-            About panel — never on its own and never in the background. Like any HTTPS request, it
-            tells GitHub your IP address and the application&rsquo;s version; it sends nothing
-            about your network or your scans.
+            <strong>The update check.</strong> The installed edition asks the
+            <a href="https://github.com/kingnazz/EXP-IP-Scanner/releases">GitHub Releases API</a>
+            which stable version is current when you press &ldquo;Check now&rdquo; in About. If a signed
+            in-app updater manifest is available, it can install that release in place; otherwise it
+            opens the normal download page. The check never runs on its own or in the background.
+            Like any HTTPS request, it tells GitHub your IP address; it sends nothing about your
+            network or your scans.
           </p>
           <p>
             The portable edition does not contain the updater at all. It is compiled without it,
