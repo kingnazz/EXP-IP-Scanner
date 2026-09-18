@@ -64,6 +64,18 @@ const targets = [
     pattern: /(<span data-field="version">)[^<]+(<\/span>)/g,
   },
   {
+    file: "site/index.html",
+    pattern: /(<span id="release-line-version">v)[^<]+(<\/span>)/,
+  },
+  {
+    file: "site/index.html",
+    pattern: /(id="release-notes-link" href="whats-new-)[^"]+(\.html")/,
+  },
+  {
+    file: "site/index.html",
+    pattern: /(id="release-notes-link" href="whats-new-[^"]+\.html">What changed in )[^<]+(<\/a>)/,
+  },
+  {
     file: "site/releases.html",
     pattern: /(<span id="current-version">v)[^<]+(<\/span>)/,
   },
