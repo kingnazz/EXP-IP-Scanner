@@ -80,7 +80,7 @@ export function SettingsDialog({
             (service) => service.host,
           ).join(
             " or ",
-          )} what address this network appears as from outside, and sends nothing about you, your network or your scans. Turning it off leaves the rest of the summary working.`}
+          )} what address this network appears as from outside. It sends no scan results, discovered-device data or application identifier; like any HTTPS request, the lookup service can see the public IP making the request. Turning it off leaves the rest of the summary working.`}
         />
       </section>
 
