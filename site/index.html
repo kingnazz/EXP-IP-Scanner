@@ -33,12 +33,11 @@
       <img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner" width="900" height="300" />
     </a>
     <nav aria-label="Site">
-      <a href="https://exptechnical.com/it-services/">IT Services</a>
-      <a href="https://exptechnical.com/exp-clients/">Our Clients</a>
-      <a href="https://exptechnical.com/about/">About</a>
-      <a href="https://exptechnical.com/resources/">Resources</a>
-      <a href="https://exptechnical.com/seattle-it-service-pricing/">Pricing</a>
-      <a class="header-cta" href="https://exptechnical.com/it-support-seattle/">Contact Us</a>
+      <a href="#features">Features</a>
+      <a href="#screenshots">Screenshots</a>
+      <a href="releases.html">Changelog</a>
+      <a href="privacy.html">Privacy</a>
+      <a class="header-cta" href="#download">Download</a>
     </nav>
   </div>
 </header>
@@ -47,14 +46,15 @@
   <section class="hero">
     <div class="wrap hero-grid">
       <div>
-        <p class="kicker">EXP Technical Field Tools</p>
+        <p class="kicker">EXP Technical | Field Utility</p>
         <h1>EXP IP Scanner</h1>
-        <p class="tagline">Find what&rsquo;s on the network. Fast.</p>
-        <p class="lede">A lightweight Windows network scanner built for everyday support work. Detect the active network, discover devices quickly, identify what is there, and jump straight into Remote Desktop, file shares, SSH, or a device web interface.</p>
+        <p class="tagline">Scan the network. Find the device. Get to work.</p>
+        <p class="lede">EXP IP Scanner is a fast Windows network scanner for technicians who need answers quickly. It detects the active subnet, finds devices as the scan runs, identifies vendors and common services, and puts the right connection tools one click away.</p>
         <div class="cta-row">
           <a class="btn btn-primary" id="hero-download" href="https://github.com/kingnazz/EXP-IP-Scanner/releases/latest">Download portable</a>
-          <a class="btn btn-secondary" href="#download">Installer and details</a>
+          <a class="btn btn-secondary" href="#screenshots">See the scanner</a>
         </div>
+        <p class="release-line"><span id="release-line-version">v1.0.0</span><span aria-hidden="true"> · </span><a id="release-notes-link" href="whats-new-1.0.0.html">What changed in 1.0.0</a><span aria-hidden="true"> · </span><a href="releases.html">All releases</a></p>
       </div>
       <div class="hero-visual">
         <img src="assets/shots/scan-dark.webp" alt="EXP IP Scanner results showing discovered devices" width="1180" height="780" />
@@ -65,9 +65,9 @@
 
   <div class="wrap facts-wrap">
     <ul class="facts">
-      <li><span class="fact-title">Built for technicians</span><span class="fact-text">Fast, practical network discovery without platform overhead.</span></li>
-      <li><span class="fact-title">No admin required</span><span class="fact-text">Ordinary Windows networking with no custom driver.</span></li>
-      <li><span class="fact-title">No account, no telemetry</span><span class="fact-text">Scan results stay on the machine running the tool.</span></li>
+      <li><span class="fact-title">Built for technicians</span><span class="fact-text">Built to get from unknown network to useful answer quickly.</span></li>
+      <li><span class="fact-title">No admin required</span><span class="fact-text">Scan normally without installing a driver or running elevated.</span></li>
+      <li><span class="fact-title">No account, no telemetry</span><span class="fact-text">No account, no analytics, and scan results stay local.</span></li>
       <li><span class="fact-title"><span id="version-fallback">v1.0.0</span><span id="release-meta"></span></span><span class="fact-text">Windows 10 and 11, x64.</span></li>
     </ul>
   </div>
@@ -75,15 +75,15 @@
   <section id="features" class="section-soft">
     <div class="wrap">
       <div class="section-head">
-        <p class="eyebrow">Expert IT Tools</p>
-        <h2>Precision network discovery for everyday IT work</h2>
-        <p class="section-lede">The same practical philosophy EXP brings to support engagements: clear information, less friction, and the tools needed to move the work forward.</p>
+        <p class="eyebrow">Built for the work</p>
+        <h2>Know what is on the network in seconds</h2>
+        <p class="section-lede">No dashboards to learn and no inventory system to maintain. Open it, scan, identify the device, and move on with the job.</p>
       </div>
       <div class="services-grid">
-        <article class="service-card"><span class="service-num">01</span><h3>Automatic network detection</h3><p>Starts with the network you are actually connected to and keeps every adapter available when you need to switch.</p></article>
-        <article class="service-card"><span class="service-num">02</span><h3>Fast device discovery</h3><p>Combines ICMP, TCP, and ARP so printers, cameras, servers, and hardened endpoints are easier to find.</p></article>
-        <article class="service-card"><span class="service-num">03</span><h3>Identify what you found</h3><p>Hostname, MAC address, manufacturer, latency, and useful service names appear directly in the results.</p></article>
-        <article class="service-card"><span class="service-num">04</span><h3>Connect in one click</h3><p>Open RDP, SMB, SSH, VNC, or a device web interface directly from the result that supports it.</p></article>
+        <article class="service-card"><span class="service-num">01</span><h3>Automatic network detection</h3><p>Starts with the active subnet already selected while keeping every adapter available when you need to switch.</p></article>
+        <article class="service-card"><span class="service-num">02</span><h3>Fast device discovery</h3><p>Uses more than ping alone, combining ICMP, TCP, and ARP to find the kinds of devices technicians actually run into.</p></article>
+        <article class="service-card"><span class="service-num">03</span><h3>Identify what you found</h3><p>See hostname, MAC address, manufacturer, latency, and common services without opening another tool.</p></article>
+        <article class="service-card"><span class="service-num">04</span><h3>Connect in one click</h3><p>When a device exposes RDP, SMB, SSH, VNC, or web management, the matching action is ready from the result.</p></article>
       </div>
     </div>
   </section>
@@ -94,14 +94,14 @@
         <img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner product logo" width="900" height="300" />
       </div>
       <div class="exp-way-copy">
-        <p class="eyebrow">Built the EXP Way</p>
-        <h2>A focused tool, not another management platform</h2>
-        <p>EXP IP Scanner is intentionally small. It is designed to answer the questions technicians ask at the start of a network visit without turning the scan into an inventory system, monitoring platform, or security product.</p>
+        <p class="eyebrow">Focused by design</p>
+        <h2>Built for the job in front of you</h2>
+        <p>EXP IP Scanner stays intentionally focused. It gives you the network context and device details you need right now, without turning a quick scan into a monitoring platform, asset database, or security suite.</p>
         <div class="exp-way-list">
-          <div class="exp-way-item"><b>01</b><div><strong>Launch and scan</strong><span>The active subnet is already filled in.</span></div></div>
-          <div class="exp-way-item"><b>02</b><div><strong>Identify the device</strong><span>See names, vendors, latency, and common services.</span></div></div>
-          <div class="exp-way-item"><b>03</b><div><strong>Take action</strong><span>Right-click and connect with the tool the device supports.</span></div></div>
-          <div class="exp-way-item"><b>04</b><div><strong>Close and move on</strong><span>No customer inventory or scan history is left behind.</span></div></div>
+          <div class="exp-way-item"><b>01</b><div><strong>Launch and scan</strong><span>The active subnet is detected and ready.</span></div></div>
+          <div class="exp-way-item"><b>02</b><div><strong>Identify the device</strong><span>See the details that help you recognize the device.</span></div></div>
+          <div class="exp-way-item"><b>03</b><div><strong>Take action</strong><span>Use the action that matches the service you found.</span></div></div>
+          <div class="exp-way-item"><b>04</b><div><strong>Close and move on</strong><span>Results disappear when the session ends unless you export them.</span></div></div>
         </div>
       </div>
     </div>
@@ -110,9 +110,9 @@
   <section class="section-dark">
     <div class="wrap">
       <div class="section-head">
-        <p class="eyebrow">Designed for support teams</p>
-        <h2>Useful information, without the noise</h2>
-        <p class="section-lede">The scanner focuses on the details that help a technician identify and reach a device quickly.</p>
+        <p class="eyebrow">Fast without being shallow</p>
+        <h2>Fast enough for everyday use. Detailed enough to be useful.</h2>
+        <p class="section-lede">The default scan checks the services that matter on business networks and streams results as devices are found.</p>
       </div>
       <div class="stats">
         <div class="stat"><strong>32</strong><span>Common business-network services checked by default</span></div>
@@ -123,11 +123,11 @@
     </div>
   </section>
 
-  <section>
+  <section id="screenshots">
     <div class="wrap">
       <div class="section-head">
         <p class="eyebrow">See it in action</p>
-        <h2>One scanner. The views technicians actually need.</h2>
+        <h2>Everything important stays close to the scan</h2>
       </div>
       <div class="shot">
         <div class="shot-tabs" role="tablist" aria-label="Screenshots">
@@ -148,15 +148,15 @@
   <section id="download" class="section-soft">
     <div class="wrap">
       <div class="section-head">
-        <p class="eyebrow">Download EXP IP Scanner</p>
-        <h2>Choose the version that fits your workflow</h2>
-        <p class="section-lede">Windows 10 and Windows 11, x64. Both editions use the same scanner.</p>
+        <p class="eyebrow">Download</p>
+        <h2>Pick it up and scan</h2>
+        <p class="section-lede">Portable is the easiest option for field work. The installer is there for a workstation you use every day.</p>
       </div>
       <div class="downloads">
         <article class="dl" data-kind="portable" data-recommended="true">
           <div class="dl-head"><h3>Portable</h3><span class="tag">Recommended</span></div>
           <div class="dl-price">Free</div>
-          <p>For field work, support folders, and one-off scans. Extract it and run it.</p>
+          <p>Best for field work and shared technician toolkits. Extract it, run it, and keep moving.</p>
           <ul><li>No installation</li><li>No administrator rights</li><li>Runs from Downloads, a tools folder, or USB media</li><li>Update by downloading the next ZIP</li></ul>
           <a class="btn btn-primary" data-field="link" href="https://github.com/kingnazz/EXP-IP-Scanner/releases/latest">Download portable ZIP</a>
           <dl class="dl-meta"><div><dt hidden>Version</dt><dd>v<span data-field="version">1.0.0</span></dd></div><div><dt hidden>Size</dt><dd><span data-field="size">see release page</span></dd></div><div><dt hidden>Notes</dt><dd><a data-field="notes" href="https://github.com/kingnazz/EXP-IP-Scanner/releases/latest">Release notes</a></dd></div></dl>
@@ -164,7 +164,7 @@
         <article class="dl" data-kind="installer">
           <div class="dl-head"><h3>Installer</h3></div>
           <div class="dl-price">Free</div>
-          <p>For a workstation where you want EXP IP Scanner available every day.</p>
+          <p>Best for a workstation where you want the scanner installed and ready every day.</p>
           <ul><li>Windows installer</li><li>Start Menu entry</li><li>Checks GitHub for updates when you ask</li><li>Standard Windows uninstaller</li></ul>
           <a class="btn btn-secondary" data-field="link" href="https://github.com/kingnazz/EXP-IP-Scanner/releases/latest">Download installer</a>
           <dl class="dl-meta"><div><dt hidden>Version</dt><dd>v<span data-field="version">1.0.0</span></dd></div><div><dt hidden>Size</dt><dd><span data-field="size">see release page</span></dd></div><div><dt hidden>Notes</dt><dd><a data-field="notes" href="https://github.com/kingnazz/EXP-IP-Scanner/releases/latest">Release notes</a></dd></div></dl>
@@ -199,14 +199,14 @@
   <section class="section-soft">
     <div class="wrap">
       <div class="section-head">
-        <p class="eyebrow">You&rsquo;ve got questions, we have answers</p>
-        <h2>Built to be simple on purpose</h2>
+        <p class="eyebrow">Questions</p>
+        <h2>Simple on purpose</h2>
       </div>
       <div class="faq-grid">
-        <article class="faq-item"><h3>Does it upload scan results?</h3><p>No. Scanning happens on your computer, and scan results are not uploaded. There is no account, telemetry, or analytics.</p></article>
-        <article class="faq-item"><h3>Does it need administrator rights?</h3><p>No for normal scanning. The portable edition can be extracted and run without installation.</p></article>
-        <article class="faq-item"><h3>Is this a vulnerability scanner?</h3><p>No. It is a read-only discovery and administration utility. It does not test credentials or exploit devices.</p></article>
-        <article class="faq-item"><h3>Why no inventory history?</h3><p>The tool is designed for technicians moving between unrelated environments. One customer&rsquo;s scan should not follow you into the next visit.</p></article>
+        <article class="faq-item"><h3>Does it upload scan results?</h3><p>No. Scans run on your computer. Results are not uploaded, and there is no account, telemetry, or analytics.</p></article>
+        <article class="faq-item"><h3>Does it need administrator rights?</h3><p>No for normal scanning. The portable edition can be extracted and run without installation or elevation.</p></article>
+        <article class="faq-item"><h3>Is this a vulnerability scanner?</h3><p>No. It performs read-only discovery. It does not test passwords, attempt exploits, or make vulnerability claims.</p></article>
+        <article class="faq-item"><h3>Why no inventory history?</h3><p>Because this is a field scanner, not an inventory system. One environment&rsquo;s device list should not follow you into the next job.</p></article>
       </div>
     </div>
   </section>
@@ -214,29 +214,32 @@
   <section class="section-orange">
     <div class="wrap cta-panel">
       <div>
-        <p class="eyebrow">EXP Technical</p>
-        <h2>People-focused IT tools for people doing the work.</h2>
-        <p>EXP IP Scanner is a practical field utility from EXP Technical.</p>
+        <p class="eyebrow">Ready when you are</p>
+        <h2>Open it. Scan the network. Get the answer.</h2>
+        <p>EXP IP Scanner is free, local-first, and built for everyday technician work.</p>
       </div>
-      <a class="btn" href="https://exptechnical.com/">Visit EXP Technical</a>
+      <a class="btn" href="#download">Download EXP IP Scanner</a>
     </div>
   </section>
 </main>
 
 <footer class="site-footer">
   <div class="wrap">
-    <div class="footer-top">
-      <div class="footer-brand">
+    <div class="product-footer">
+      <div class="product-footer-brand">
         <img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner" width="900" height="300" />
-        <p>A lightweight network discovery tool built for everyday technician workflows.</p>
+        <p>Fast, local network discovery for technicians.</p>
       </div>
-      <div class="footer-col"><h3>EXP Technical</h3><a href="https://exptechnical.com/it-services/">IT Services</a><a href="https://exptechnical.com/exp-clients/">Our Clients</a><a href="https://exptechnical.com/about/">About</a><a href="https://exptechnical.com/resources/">Resources</a></div>
-      <div class="footer-col"><h3>EXP IP Scanner</h3><a href="#download">Download</a><a href="releases.html">What&rsquo;s new</a><a href="privacy.html">Privacy</a><a href="https://github.com/kingnazz/EXP-IP-Scanner">GitHub</a></div>
-      <div class="footer-col"><h3>Seattle Office</h3><span>1325 4th Ave, Suite 1540</span><span>Seattle, WA 98101</span><a href="mailto:info@exptechnical.com">info@exptechnical.com</a><span>Support Desk: Mon-Fri | 7am - 6pm</span><span class="footer-phone">206-264-2784</span></div>
+      <nav aria-label="Footer">
+        <a href="#download">Download</a>
+        <a href="releases.html">Changelog</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="https://github.com/kingnazz/EXP-IP-Scanner">GitHub</a>
+      </nav>
     </div>
     <div class="footer-bottom">
-      <span>EXP IP Scanner &middot; MIT licensed</span>
-      <nav aria-label="Footer"><a href="privacy.html">Privacy</a><a href="releases.html">Release history</a><a href="https://exptechnical.com/">EXPTechnical.com</a></nav>
+      <span>EXP IP Scanner · MIT licensed</span>
+      <span>Built by <a href="https://exptechnical.com/">EXP Technical</a></span>
     </div>
   </div>
 </footer>

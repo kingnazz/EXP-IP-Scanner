@@ -21,7 +21,8 @@
     "package-portable": "node scripts/package-portable.mjs",
     "verify-ui": "node scripts/verify-ui.mjs",
     "verify-site": "node scripts/verify-site.mjs",
-    "screenshots": "node scripts/capture-screenshots.mjs && python3 scripts/optimize-shots.py"
+    "screenshots": "node scripts/capture-screenshots.mjs && python3 scripts/optimize-shots.py",
+    "check-release-page": "node scripts/check-release-page.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.11.1",

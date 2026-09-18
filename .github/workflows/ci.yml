@@ -30,6 +30,9 @@ jobs:
       - name: The version is consistent everywhere
         run: npm run check-version
 
+      - name: The current release has readable website notes
+        run: npm run check-release-page
+
       - name: Typecheck
         run: npm run typecheck
       - name: Test

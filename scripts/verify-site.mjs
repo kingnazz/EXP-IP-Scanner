@@ -53,7 +53,7 @@ await step("the home page leads with the product and its promise", async () => {
   const h1 = await page.locator("h1").innerText();
   if (h1 !== "EXP IP Scanner") throw new Error(`unexpected h1: ${h1}`);
   const tagline = await page.locator(".tagline").innerText();
-  if (!/Find what/.test(tagline)) throw new Error(`unexpected tagline: ${tagline}`);
+  if (!/Scan the network/.test(tagline)) throw new Error(`unexpected tagline: ${tagline}`);
   return `${h1} — ${tagline}`;
 });
 
@@ -145,6 +145,19 @@ await step("the release history names the current version", async () => {
   const text = await releases.text();
   if (!text.includes(VERSION)) throw new Error(`releases.html does not mention ${VERSION}`);
   return `names ${VERSION}`;
+});
+
+await step("the current version has a readable what-is-new page", async () => {
+  const expected = `whats-new-${VERSION}.html`;
+  const href = await page.getAttribute("#release-notes-link", "href");
+  if (href !== expected) throw new Error(`release-notes-link points at ${href}, expected ${expected}`);
+  const response = await page.request.get(`${BASE}/${expected}`);
+  if (!response.ok()) throw new Error(`${expected} is missing (${response.status()})`);
+  const text = await response.text();
+  if (!text.includes(`EXP IP Scanner ${VERSION}`)) {
+    throw new Error(`${expected} does not identify EXP IP Scanner ${VERSION}`);
+  }
+  return expected;
 });
 
 await step("every internal link resolves", async () => {
