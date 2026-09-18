@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy — EXP IP Scanner</title>
+    <meta
+      name="description"
+      content="What EXP IP Scanner does and does not do with your data: scans run locally, results are not uploaded, there is no account, no telemetry and no analytics."
+    />
+    <link rel="canonical" href="https://kingnazz.github.io/EXP-IP-Scanner/privacy.html" />
+    <link rel="icon" href="assets/favicon.png" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0c1117" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'"
+    />
+    <link rel="stylesheet" href="exp.v1.css" />
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <div class="wrap bar">
+        <a class="brand" href="./">
+          <img src="assets/favicon.png" alt="" width="26" height="26" />
+          EXP IP Scanner
+        </a>
+        <nav aria-label="Site">
+          <a href="./#features">Features</a>
+          <a href="./#download">Download</a>
+          <a href="releases.html">What&rsquo;s new</a>
+          <a href="privacy.html" aria-current="page">Privacy</a>
+          <a href="https://github.com/kingnazz/EXP-IP-Scanner">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="wrap hero">
+        <h1>Privacy</h1>
+        <p class="lede">
+          What EXP IP Scanner does with your data, stated precisely rather than reassuringly.
+          Applies to <span id="privacy-version">v1.0.0</span>.
+        </p>
+      </div>
+
+      <section>
+        <div class="wrap prose">
+          <h2>Scanning happens on your computer</h2>
+          <p>
+            A scan is sent from the machine running the application to the addresses you pointed it
+            at, and nowhere else. It uses ordinary operating-system networking — the same ping and
+            TCP connections any program makes — so it needs no administrator rights and no driver.
+          </p>
+
+          <h2>Scan results are not uploaded</h2>
+          <p>
+            Discovered devices, their addresses, hostnames, MAC addresses, manufacturers and open
+            ports are held in memory for as long as the window is open. They are written to disk
+            only when you export a CSV yourself, to the location you choose.
+          </p>
+          <p>
+            There is no inventory database and no scan history, in either edition. Closing the
+            application ends the session. That is deliberate: the same copy of this tool gets
+            pointed at many unrelated customer networks, and one customer&rsquo;s device list has
+            no business surviving into the next site visit.
+          </p>
+
+          <h2>No account, no telemetry, no analytics</h2>
+          <ul>
+            <li>There is no sign-in, no licence key and no account of any kind.</li>
+            <li>No usage data, crash report, device identifier or scan statistic is collected.</li>
+            <li>There is no analytics service, and no advertising or tracking code.</li>
+            <li>There is no cloud database and no server operated for this application.</li>
+          </ul>
+
+          <h2>What is stored between launches</h2>
+          <p>
+            Only your own interface preferences: theme, row height, which columns are shown, their
+            widths, your scan settings, the adapter you last chose and the last few targets you
+            typed. Nothing about the devices found on any network is stored.
+          </p>
+          <p>
+            The installed edition keeps these in its ordinary Windows per-user application-data
+            folder. The portable edition keeps them in a separate folder alongside it, so a
+            portable copy and an installed copy never share preferences. Neither edition writes to
+            the folder the executable sits in.
+          </p>
+
+          <h2>The one network request the application makes</h2>
+          <p>
+            The installed edition can check
+            <a href="https://github.com/kingnazz/EXP-IP-Scanner/releases">this project&rsquo;s GitHub releases</a>
+            for a newer version. That check runs only when you press &ldquo;Check now&rdquo; in the
+            About panel — never on its own and never in the background. Like any HTTPS request, it
+            tells GitHub your IP address and the application&rsquo;s version; it sends nothing
+            about your network or your scans.
+          </p>
+          <p>
+            The portable edition does not contain the updater at all. It is compiled without it,
+            rather than having the button hidden, so there is no update check to make.
+          </p>
+          <p>
+            The buttons that open this website, the releases page or a discovered device&rsquo;s
+            own web interface hand a URL to your default browser. What happens after that is
+            between you and that address.
+          </p>
+
+          <h2>This website</h2>
+          <p>
+            This site is static files on GitHub Pages. It loads no web fonts, no analytics and no
+            third-party scripts, which its Content-Security-Policy enforces rather than promises.
+            It makes one request of its own, to the GitHub API, to fill in the current
+            version&rsquo;s download links and file sizes; if that request is blocked the page
+            still works and the buttons point at the releases page. GitHub operates the hosting and
+            that API, and keeps its own server logs.
+          </p>
+
+          <h2>Scope</h2>
+          <p>
+            EXP IP Scanner is a read-only discovery and administration utility. It does not attempt
+            authentication, does not test credentials, does not exploit anything and does not
+            change any device it finds. Scan only networks you are authorised to inspect.
+          </p>
+
+          <h2>Changes to this notice</h2>
+          <p>
+            This page describes the version named above. If a future version changes what is
+            stored or what is sent, this page changes with it, and the
+            <a href="releases.html">release notes</a> say so.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-row">
+        <span>EXP IP Scanner &middot; MIT licensed</span>
+        <nav aria-label="Footer">
+          <a href="./">Home</a>
+          <a href="releases.html">What&rsquo;s new</a>
+          <a href="https://github.com/kingnazz/EXP-IP-Scanner">Source</a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>

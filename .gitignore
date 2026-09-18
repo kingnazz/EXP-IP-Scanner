@@ -22,5 +22,7 @@ Thumbs.db
 *.log
 npm-debug.log*
 
-# Generated screenshots are committed under site/assets/shots; scratch output is not
-site/assets/shots/*.tmp.png
+# Scratch output from the verification scripts. The screenshots under
+# site/assets/shots are generated but committed: the website serves them.
+.tmp-verify/
+artifacts/

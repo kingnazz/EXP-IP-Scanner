@@ -1,0 +1,696 @@
+@import "tailwindcss";
+
+/* Dark mode is driven by a class on <html>, set before first paint by
+   public/theme-init.js, so the window never flashes the wrong theme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+ * Design tokens
+ *
+ * Every colour, size, radius and duration resolves to a token declared here.
+ * Components never hardcode a hex value, so the two themes cannot drift apart
+ * and a token change lands everywhere at once.
+ *
+ * Neutrals are layered rather than flat -- sunken < canvas < surface < raised
+ * -- which is what gives the window depth without shadows, glass or gradients.
+ * Neither theme uses pure black or pure white over large areas: a technician
+ * has this open all day.
+ * ------------------------------------------------------------------------- */
+@theme {
+  --color-canvas: #f2f4f6;
+  --color-surface: #ffffff;
+  --color-surface-raised: #fafbfc;
+  --color-surface-sunken: #e9ecef;
+  --color-surface-hover: #f2f5f7;
+  --color-surface-active: #e7ebef;
+
+  --color-line: #dce0e6;
+  --color-line-strong: #c3c9d1;
+
+  --color-ink: #10151b;
+  --color-ink-soft: #49525c;
+  --color-ink-muted: #5f6873;
+
+  /* One accent, matching the application icon, used sparingly. */
+  --color-accent: #0d7490;
+  --color-accent-hover: #0a6078;
+  --color-accent-active: #084d60;
+  --color-accent-ink: #ffffff;
+  --color-accent-text: #0a5c73;
+
+  /* Status. Every one of these is paired with a word or an icon in the
+     interface -- never colour alone. */
+  --color-ok: #157f3d;
+  --color-warn: #96590a;
+  --color-danger: #a82c23;
+  /* A device found only through ARP: present, but it answered nothing. */
+  --color-quiet: #6a7481;
+
+  --font-sans:
+    ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Inter,
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    ui-monospace, "Cascadia Mono", "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono",
+    monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+}
+
+/* Unlayered, and doubly specific, so it wins over the token defaults above
+   however Tailwind chooses to layer them. */
+:root.dark {
+  --color-canvas: #0e1218;
+  --color-surface: #151b22;
+  --color-surface-raised: #1b222b;
+  --color-surface-sunken: #0a0e13;
+  --color-surface-hover: #1f2731;
+  --color-surface-active: #263039;
+
+  --color-line: #252d36;
+  --color-line-strong: #374049;
+
+  --color-ink: #e6ecf3;
+  --color-ink-soft: #a4afbb;
+  --color-ink-muted: #8a939d;
+
+  --color-accent: #1c8ea8;
+  --color-accent-hover: #28a6c3;
+  --color-accent-active: #16788f;
+  --color-accent-ink: #eaf6fa;
+  --color-accent-text: #54cde8;
+
+  --color-ok: #45c46e;
+  --color-warn: #e0b055;
+  --color-danger: #f08b81;
+  --color-quiet: #8a939d;
+}
+
+:root {
+  --accent-soft: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  --accent-ring: color-mix(in srgb, var(--color-accent) 38%, transparent);
+  --row-stripe: color-mix(in srgb, var(--color-ink) 3%, var(--color-surface));
+  --row-selected: color-mix(in srgb, var(--color-accent) 12%, transparent);
+
+  --shadow-sm: 0 1px 2px rgb(16 22 30 / 0.06);
+  --shadow-md:
+    0 4px 12px -2px rgb(16 22 30 / 0.12), 0 1px 3px rgb(16 22 30 / 0.08);
+  --shadow-lg:
+    0 14px 34px -10px rgb(16 22 30 / 0.24), 0 2px 6px rgb(16 22 30 / 0.1);
+
+  /* Fixed control heights, so a row of mixed controls lines up exactly. */
+  --control-sm: 26px;
+  --control-md: 30px;
+  --control-lg: 36px;
+
+  --duration-fast: 100ms;
+  --duration-base: 150ms;
+
+  color-scheme: light;
+}
+
+:root.dark {
+  --accent-soft: color-mix(in srgb, var(--color-accent) 16%, transparent);
+  --accent-ring: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  --row-stripe: color-mix(in srgb, #ffffff 3.5%, var(--color-surface));
+  --row-selected: color-mix(in srgb, var(--color-accent) 18%, transparent);
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 14px -2px rgb(0 0 0 / 0.55), 0 1px 3px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 18px 42px -12px rgb(0 0 0 / 0.7), 0 2px 8px rgb(0 0 0 / 0.45);
+
+  color-scheme: dark;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    /* The window is a fixed frame; the table scrolls inside it. */
+    overflow: hidden;
+    /* Addresses, latencies and counts line up column-wise without every cell
+       having to remember a utility class. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+  }
+
+  /* One focus treatment for the whole app, so a keyboard user always knows
+     where they are and no component invents its own. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Motion is a garnish. Anyone who asks for less gets none. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-ink-muted) 40%, transparent);
+    border-radius: 6px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--color-ink-muted) 65%, transparent);
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+@layer components {
+  /* --- Buttons ----------------------------------------------------------- */
+
+  .btn {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    white-space: nowrap;
+    user-select: none;
+    height: var(--control-md);
+    padding-inline: 0.625rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    transition: background-color var(--duration-fast), border-color var(--duration-fast),
+      color var(--duration-fast);
+  }
+  .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  .btn-sm {
+    height: var(--control-sm);
+    gap: 0.25rem;
+    padding-inline: 0.5rem;
+    font-size: 12px;
+  }
+
+  .btn-lg {
+    height: var(--control-lg);
+    gap: 0.5rem;
+    padding-inline: 1.125rem;
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+
+  .btn-primary {
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-accent-hover);
+  }
+  .btn-primary:active:not(:disabled) {
+    background: var(--color-accent-active);
+  }
+
+  .btn-secondary {
+    background: var(--color-surface);
+    border-color: var(--color-line);
+    color: var(--color-ink);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+    border-color: var(--color-line-strong);
+  }
+  .btn-secondary:active:not(:disabled) {
+    background: var(--color-surface-active);
+  }
+
+  .btn-ghost {
+    color: var(--color-ink-soft);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+    color: var(--color-ink);
+  }
+
+  .btn-stop {
+    background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-danger) 42%, transparent);
+    color: var(--color-danger);
+  }
+  .btn-stop:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-danger) 20%, transparent);
+  }
+
+  .icon-btn {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: var(--control-md);
+    height: var(--control-md);
+    border-radius: var(--radius-md);
+    color: var(--color-ink-soft);
+    transition: background-color var(--duration-fast), color var(--duration-fast);
+  }
+  .icon-btn:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+    color: var(--color-ink);
+  }
+  .icon-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+  .icon-btn-sm {
+    width: var(--control-sm);
+    height: var(--control-sm);
+  }
+
+  /* --- Fields ------------------------------------------------------------ */
+
+  .field {
+    width: 100%;
+    height: var(--control-md);
+    padding-inline: 0.625rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    color: var(--color-ink);
+    font-size: 13px;
+    line-height: 1;
+    transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+  }
+  .field::placeholder {
+    color: var(--color-ink-muted);
+  }
+  .field:hover:not(:focus) {
+    border-color: var(--color-line-strong);
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+  }
+  .field-lg {
+    height: var(--control-lg);
+    padding-inline: 0.75rem;
+    font-size: 14px;
+  }
+  .field-invalid,
+  .field-invalid:focus {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 28%, transparent);
+  }
+
+  .field-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+  }
+
+  /* --- Surfaces ---------------------------------------------------------- */
+
+  .panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .popover {
+    background: var(--color-surface-raised);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    z-index: 50;
+  }
+
+  .divider-v {
+    width: 1px;
+    flex-shrink: 0;
+    align-self: stretch;
+    background: var(--color-line);
+  }
+
+  /* --- Badges ------------------------------------------------------------ */
+
+  .badge {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 1px 0.375rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.5;
+  }
+  .badge-neutral {
+    background: var(--color-surface-sunken);
+    border-color: var(--color-line);
+    color: var(--color-ink-soft);
+  }
+  .badge-accent {
+    background: var(--accent-soft);
+    border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
+    color: var(--color-accent-text);
+  }
+  .badge-warn {
+    background: color-mix(in srgb, var(--color-warn) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-warn) 35%, transparent);
+    color: var(--color-warn);
+  }
+
+  /* A service chip in the Open Ports column: the port and its service word.
+     Not a pill, not rounded to a capsule -- a dense label. */
+  .service-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    padding: 0 0.3rem;
+    border-radius: 3px;
+    background: var(--color-surface-sunken);
+    color: var(--color-ink-soft);
+    font-size: 11.5px;
+    line-height: 17px;
+    white-space: nowrap;
+  }
+  .service-chip-port {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+  /* The services a technician acts on, emphasised so a server or a printer is
+     recognisable at a glance across a full table. */
+  .service-chip-actionable {
+    background: var(--accent-soft);
+    color: var(--color-accent-text);
+  }
+  .service-chip-actionable .service-chip-port {
+    color: var(--color-accent-text);
+  }
+
+  /* --- Segmented control ------------------------------------------------- */
+
+  .segmented {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    background: var(--color-surface-sunken);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+  }
+  .segmented-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: calc(var(--control-md) - 6px);
+    padding-inline: 0.5rem;
+    border-radius: var(--radius-sm);
+    color: var(--color-ink-soft);
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 1;
+    transition: background-color var(--duration-fast), color var(--duration-fast);
+  }
+  .segmented-item:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-ink);
+  }
+  .segmented-item[aria-pressed="true"] {
+    background: var(--color-surface);
+    color: var(--color-ink);
+    box-shadow: var(--shadow-sm);
+  }
+  .segmented-item[aria-pressed="true"]:hover {
+    background: var(--color-surface);
+  }
+
+  .count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.15rem;
+    height: 1.05rem;
+    padding-inline: 0.25rem;
+    border-radius: 3px;
+    background: var(--accent-soft);
+    color: var(--color-accent-text);
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  /* --- Results table ----------------------------------------------------- */
+
+  .results-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+    font-size: 13px;
+  }
+
+  .results-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    height: 28px;
+    padding: 0 0.625rem;
+    background: var(--color-surface-sunken);
+    border-bottom: 1px solid var(--color-line);
+    color: var(--color-ink-muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .results-table tbody {
+    /* An opaque background, so the virtualisation spacer rows are invisible
+       and the scroller's canvas colour shows only below the last row. */
+    background: var(--color-surface);
+  }
+
+  .results-table tbody td {
+    height: 28px;
+    padding: 0 0.625rem;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-line);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .results-table.density-comfortable tbody td,
+  .results-table.density-comfortable thead th {
+    height: 34px;
+  }
+
+  .results-table tbody tr:nth-child(even) td {
+    background: var(--row-stripe);
+  }
+
+  /* --- Results toolbar --------------------------------------------------- */
+
+  /*
+   * A container query rather than a viewport one, because what matters is how
+   * much room the toolbar itself has -- and that halves the moment the details
+   * drawer opens, regardless of the window size.
+   */
+  .results-toolbar {
+    container-type: inline-size;
+  }
+
+  @container (max-width: 62rem) {
+    .toolbar-text {
+      display: none;
+    }
+  }
+
+  @container (max-width: 48rem) {
+    .results-toolbar .count-badge {
+      display: none;
+    }
+  }
+  .results-table tbody tr:hover td {
+    background: var(--color-surface-hover);
+  }
+  .results-table tbody tr[aria-selected="true"] td {
+    background: var(--row-selected);
+  }
+  /* The selected row's tint lifts the background enough that muted text on it
+     drops below 4.5:1. Muted is a de-emphasis, not licence to be unreadable,
+     so inside a selected row it steps up one level. */
+  .results-table tbody tr[aria-selected="true"] .text-ink-muted {
+    color: var(--color-ink-soft);
+  }
+  .results-table tbody tr:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+
+  /* The drag handle between two column headers. */
+  .col-resizer {
+    position: absolute;
+    top: 0;
+    right: -3px;
+    width: 7px;
+    height: 100%;
+    cursor: col-resize;
+    touch-action: none;
+  }
+  .col-resizer::after {
+    content: "";
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    left: 3px;
+    width: 1px;
+    background: transparent;
+    transition: background-color var(--duration-fast);
+  }
+  .col-resizer:hover::after,
+  .col-resizer[data-dragging="true"]::after {
+    background: var(--color-accent);
+  }
+
+  .mono {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* A dash carries "no value" everywhere, so a genuinely blank cell always
+     means a bug rather than an absence. */
+  .no-value {
+    color: var(--color-ink-muted);
+  }
+
+  /* --- Progress ---------------------------------------------------------- */
+
+  .progress-track {
+    position: relative;
+    height: 2px;
+    overflow: hidden;
+    background: var(--color-surface-sunken);
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--color-accent);
+    transition: width var(--duration-base) linear;
+  }
+  .progress-indeterminate::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 28%;
+    background: var(--color-accent);
+    animation: sweep 1.15s ease-in-out infinite;
+  }
+
+  @keyframes sweep {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(460%);
+    }
+  }
+
+  .menu-item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.5rem;
+    height: var(--control-sm);
+    padding-inline: 0.625rem;
+    border-radius: var(--radius-sm);
+    color: var(--color-ink);
+    font-size: 13px;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .menu-item:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+  }
+  .menu-item:disabled {
+    color: var(--color-ink-muted);
+    cursor: not-allowed;
+  }
+  .menu-label {
+    padding: 0.375rem 0.625rem 0.25rem;
+    color: var(--color-ink-muted);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in var(--duration-base) ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 180ms ease-out;
+}

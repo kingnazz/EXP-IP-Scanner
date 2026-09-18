@@ -1,0 +1,74 @@
+[package]
+name = "exp-ip-scanner"
+version = "1.0.0"
+description = "A fast, lightweight Windows network scanner for everyday IT work"
+authors = ["EXP"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.82"
+
+[lib]
+# The `_lib` suffix avoids a name collision with the binary on Windows.
+name = "exp_ip_scanner_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Bounded async networking. `process` is needed because ICMP goes through the
+# OS `ping` binary rather than a raw socket, which is what keeps the scanner
+# usable without administrator rights.
+tokio = { version = "1", features = ["rt-multi-thread", "net", "time", "sync", "macros", "process"] }
+futures = "0.3"
+
+dns-lookup = "2"
+chrono = { version = "0.4", features = ["serde"] }
+if-addrs = "0.13"
+
+# Desktop auto-updater for the installed edition (checks the public GitHub
+# feed, verifies the signature, installs and relaunches). Deliberately not
+# compiled into the portable edition -- see the `portable` feature below.
+[target."cfg(not(any(target_os = \"android\", target_os = \"ios\")))".dependencies]
+tauri-plugin-updater = { version = "2", optional = true }
+tauri-plugin-process = { version = "2", optional = true }
+
+[features]
+default = ["installed-updater"]
+
+# Set by the Tauri CLI for production builds.
+custom-protocol = ["tauri/custom-protocol"]
+
+# The installed edition's auto-updater: check the signed feed, download,
+# install, relaunch.
+installed-updater = ["dep:tauri-plugin-updater", "dep:tauri-plugin-process"]
+
+# The Windows portable edition.
+#
+# Two effects, and both matter. It gives the process its own WebView profile
+# under the user's local application data, so the folder the executable was
+# extracted into is never written to and a portable copy can run from a
+# read-only share, a USB stick or OneDrive. And it takes the installer updater
+# out of the binary rather than only hiding its button: built with
+# `--no-default-features --features portable` there is no updater plugin
+# linked, so no install-and-relaunch path exists to be reached by a bug or by a
+# stale build of the frontend.
+#
+# The edition is compiled in on purpose. Inferring it at runtime from the
+# folder the executable sits in would be a silent data-location change waiting
+# to happen.
+portable = []
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true
