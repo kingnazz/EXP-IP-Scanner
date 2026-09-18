@@ -1,0 +1,32 @@
+name: Notify EXP work mirror
+
+# The personal repository remains the development source while Nazar is at EXP.
+# The EXP-owned repository receives a repository_dispatch and then pulls the
+# public source using its own GITHUB_TOKEN. The token here is used only to send
+# that dispatch; it is never used to push code or publish releases.
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    if: github.repository == 'kingnazz/EXP-IP-Scanner'
+    runs-on: ubuntu-latest
+    env:
+      EXP_MIRROR_TOKEN: ${{ secrets.EXP_MIRROR_TOKEN }}
+    steps:
+      - name: Mirror token is not configured yet
+        if: env.EXP_MIRROR_TOKEN == ''
+        run: echo "EXP_MIRROR_TOKEN is not configured; skipping the work-repo notification."
+
+      - name: Ask the EXP-owned repository to sync
+        if: env.EXP_MIRROR_TOKEN != ''
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          curl --fail-with-body             --request POST             --header "Accept: application/vnd.github+json"             --header "Authorization: Bearer $EXP_MIRROR_TOKEN"             --header "X-GitHub-Api-Version: 2022-11-28"             https://api.github.com/repos/nazar-exp/EXP-IP-Scanner/dispatches             --data "{"event_type":"sync_from_personal","client_payload":{"source_sha":"$SOURCE_SHA"}}"
