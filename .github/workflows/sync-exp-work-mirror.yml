@@ -54,7 +54,6 @@ jobs:
           # origin. Force is intentional: this repository is a managed mirror
           # while the sync workflow is enabled.
           git push origin main --force
-          git push origin --tags --force
 
       - name: Copy missing releases and their exact assets
         env:
@@ -74,6 +73,7 @@ jobs:
             name=$(printf '%s' "$release_json" | jq -r '.name // .tag_name')
             prerelease=$(printf '%s' "$release_json" | jq -r '.prerelease')
             body=$(printf '%s' "$release_json" | jq -r '.body // ""')
+            target_sha=$(gh api "repos/$SOURCE_REPO/commits/$tag" --jq '.sha')
 
             if gh release view "$tag" --repo "$DEST_REPO" >/dev/null 2>&1; then
               echo "$tag already exists in $DEST_REPO"
@@ -88,7 +88,7 @@ jobs:
             notes="$dir/RELEASE_NOTES.md"
             printf '%s\n' "$body" > "$notes"
 
-            args=(release create "$tag" --repo "$DEST_REPO" --title "$name" --notes-file "$notes")
+            args=(release create "$tag" --repo "$DEST_REPO" --target "$target_sha" --title "$name" --notes-file "$notes")
             if [[ "$prerelease" == "true" ]]; then
               args+=(--prerelease)
             fi
