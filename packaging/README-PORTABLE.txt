@@ -107,7 +107,7 @@ discovered-device data or application identifier; like any HTTPS request, the
 lookup service can see the public IP making the request. It can be turned off
 in Settings.
 
-Full notes: https://kingnazz.github.io/EXP-IP-Scanner/privacy.html
+Full notes: https://nazar-exp.github.io/EXP-IP-Scanner/privacy.html
 
 
 SCOPE
@@ -120,7 +120,7 @@ only networks you are authorised to inspect.
 MORE
 ----
 
-Downloads and documentation: https://kingnazz.github.io/EXP-IP-Scanner/
-Source and releases:         https://github.com/kingnazz/EXP-IP-Scanner
+Downloads and documentation: https://nazar-exp.github.io/EXP-IP-Scanner/
+Source and releases:         https://github.com/nazar-exp/EXP-IP-Scanner
 
 MIT licensed.
