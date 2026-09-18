@@ -209,17 +209,17 @@ export const api = {
 
   async openSite(): Promise<void> {
     if (isTauri()) return invoke<void>("open_site");
-    window.open("https://kingnazz.github.io/EXP-IP-Scanner/", "_blank");
+    window.open("https://nazar-exp.github.io/EXP-IP-Scanner/", "_blank");
   },
 
   async openReleases(): Promise<void> {
     if (isTauri()) return invoke<void>("open_releases");
-    window.open("https://github.com/kingnazz/EXP-IP-Scanner/releases", "_blank");
+    window.open("https://github.com/nazar-exp/EXP-IP-Scanner/releases", "_blank");
   },
 
   async openPrivacy(): Promise<void> {
     if (isTauri()) return invoke<void>("open_privacy");
-    window.open("https://kingnazz.github.io/EXP-IP-Scanner/privacy.html", "_blank");
+    window.open("https://nazar-exp.github.io/EXP-IP-Scanner/privacy.html", "_blank");
   },
 
   /**
