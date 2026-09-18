@@ -1,0 +1,64 @@
+name: Deploy website
+
+# Publish the static download site in /site to GitHub Pages.
+#
+# One-time setup: repository Settings -> Pages -> Source: "GitHub Actions".
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "site/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The stylesheet and the script are hand-written and stay readable in the
+      # repository; minification happens here, on a copy, so the deployed bytes
+      # are small without anyone maintaining a minified file.
+      #
+      # The assets are discovered rather than named, because they carry a
+      # version in the filename (exp.v1.css) that changes whenever the markup
+      # changes enough that an older cached file must not be paired with it.
+      # Naming them here would mean a rename silently deploys an unminified
+      # site long after the rename looked complete. Finding nothing is an
+      # error, not a no-op.
+      - name: Minify the stylesheet and the script
+        run: |
+          set -euo pipefail
+          cp -r site _site
+          shopt -s failglob
+          for css in _site/exp.*.css; do
+            npx --yes esbuild@0.24 "$css" --minify --outfile="$css" --allow-overwrite
+          done
+          for js in _site/exp.*.js; do
+            npx --yes esbuild@0.24 "$js" --minify --target=es2018 --outfile="$js" --allow-overwrite
+          done
+          ls -l _site/exp.*.css _site/exp.*.js
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,240 @@
+name: Publish release
+
+# Build, package and publish a release: the Windows x64 installer and the
+# Windows x64 portable ZIP, with checksums, plus the signed updater manifest
+# when this repository has been configured for updates.
+#
+# A version bump in package.json on main publishes automatically. The version
+# and tag are read from package.json, so they always match the built app.
+# workflow_dispatch stays available for a re-run.
+#
+# One-time setup for auto-update (see scripts/check-updater-config.mjs):
+#   npm run tauri signer generate -- -w ~/.tauri/exp-ip-scanner.key
+#   paste the public key into src-tauri/tauri.conf.json plugins.updater.pubkey
+#   set the repository secrets:
+#     TAURI_SIGNING_PRIVATE_KEY           the generated private key
+#     TAURI_SIGNING_PRIVATE_KEY_PASSWORD  its password, or "" if none
+#
+# Until that is done the release still publishes both downloads; it simply
+# carries no updater manifest, so a first release is not blocked on a key.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - package.json
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Windows x64
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.version.outputs.value }}
+      updater: ${{ steps.updater.outputs.configured }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: release-windows-x64
+      - run: npm ci
+
+      - name: Read the version from package.json
+        id: version
+        shell: bash
+        run: echo "value=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      # Nothing is built before the version is known to be consistent: a
+      # release whose installer and website disagree is worse than a late one.
+      - name: The version is consistent everywhere
+        run: npm run check-version
+
+      - name: Can this release sign updater artifacts?
+        id: updater
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: node scripts/check-updater-config.mjs
+
+      # --------------------------------------------------------- installer
+
+      - name: Build the installer with signed updater artifacts
+        if: steps.updater.outputs.configured == 'true'
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: >
+          npm run tauri:build --
+          --target x86_64-pc-windows-msvc
+          --bundles nsis
+          --config src-tauri/updater.conf.json
+
+      - name: Build the installer
+        if: steps.updater.outputs.configured != 'true'
+        run: npm run tauri:build -- --target x86_64-pc-windows-msvc --bundles nsis
+
+      # Tauri names the bundle after productName, which carries spaces:
+      # "EXP IP Scanner_1.0.0_x64-setup.exe". A release asset with spaces is
+      # percent-encoded in its download URL, and the website's asset rules, the
+      # checksums and the updater manifest all expect the hyphenated form, so
+      # the artifact is collected under its canonical name. The assertion that
+      # follows fails loudly if this ever stops matching.
+      - name: Collect the installer under its canonical name
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          canonical="EXP-IP-Scanner_${{ steps.version.outputs.value }}_x64-setup.exe"
+          base="src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis"
+          built=$(find "$base" -maxdepth 1 -name '*_x64-setup.exe' -print -quit)
+          if [[ -z "$built" ]]; then
+            echo "No installer was produced in $base"
+            find src-tauri/target/x86_64-pc-windows-msvc/release/bundle -type f -print
+            exit 1
+          fi
+          cp "$built" "artifacts/$canonical"
+          # A signature has to follow the rename, or the updater would look for
+          # it under a name that does not exist.
+          if [[ -f "$built.sig" ]]; then
+            cp "$built.sig" "artifacts/$canonical.sig"
+          fi
+          ls -la artifacts
+
+      - name: The installer was produced
+        shell: bash
+        run: |
+          installer="artifacts/EXP-IP-Scanner_${{ steps.version.outputs.value }}_x64-setup.exe"
+          if [[ ! -f "$installer" ]]; then
+            echo "Required installer missing: $installer"
+            ls -la artifacts
+            exit 1
+          fi
+          if [[ "${{ steps.updater.outputs.configured }}" == "true" && ! -f "$installer.sig" ]]; then
+            echo "Updater artifacts were requested but $installer.sig is missing."
+            exit 1
+          fi
+          echo "Installer present: $installer"
+
+      # --------------------------------------------------------- portable
+
+      # A second, separate build. The portable edition is a different binary --
+      # different Cargo features, no updater plugin linked -- so it cannot be
+      # produced by repackaging the installed one, and putting the installed
+      # executable in a ZIP is exactly what the portable edition exists not to
+      # do. Its own target directory keeps both binaries on disk at once.
+      - name: Build the portable executable
+        working-directory: src-tauri
+        env:
+          CARGO_TARGET_DIR: target-portable
+        run: >
+          cargo build --release
+          --target x86_64-pc-windows-msvc
+          --no-default-features
+          --features portable,custom-protocol
+
+      - name: Package the portable ZIP
+        run: >
+          node scripts/package-portable.mjs
+          --version ${{ steps.version.outputs.value }}
+          --target x86_64-pc-windows-msvc
+          --binary src-tauri/target-portable/x86_64-pc-windows-msvc/release/exp-ip-scanner.exe
+          --out artifacts
+
+      - name: Verify the portable ZIP
+        run: >
+          node scripts/verify-portable-zip.mjs
+          --zip "artifacts/EXP-IP-Scanner_${{ steps.version.outputs.value }}_windows-x64-portable.zip"
+          --architecture x64
+          --version ${{ steps.version.outputs.value }}
+
+      # --------------------------------------------------------- checksums
+
+      - name: Generate checksums
+        shell: bash
+        working-directory: artifacts
+        run: |
+          # Every asset a person downloads, so a technician on a locked-down
+          # site can verify what they were given. Signatures and the manifest
+          # are machinery and are excluded.
+          sha256sum *-setup.exe *-portable.zip > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-windows-x64
+          path: artifacts/*
+          if-no-files-found: error
+
+  publish:
+    name: Publish the release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Download the built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-windows-x64
+          path: dist
+
+      - name: List what is about to be published
+        run: ls -la dist
+
+      - name: Generate the updater manifest
+        if: needs.build.outputs.updater == 'true'
+        run: node scripts/gen-latest-json.mjs "v${{ needs.build.outputs.version }}" "${{ github.repository }}" dist
+
+      # latest.json tells every installed copy what it may download and install.
+      # A portable ZIP in it would be an update that cannot be applied, so this
+      # asserts on the real manifest rather than trusting that the generator's
+      # rules held.
+      - name: Check the updater manifest
+        if: needs.build.outputs.updater == 'true'
+        run: node scripts/check-latest-json.mjs dist/latest.json "v${{ needs.build.outputs.version }}"
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.build.outputs.version }}
+          name: EXP IP Scanner ${{ needs.build.outputs.version }}
+          files: dist/*
+          draft: false
+          make_latest: "true"
+          generate_release_notes: true
+          body: |
+            ## Downloads
+
+            **Portable** — `EXP-IP-Scanner_${{ needs.build.outputs.version }}_windows-x64-portable.zip`
+            Recommended for technicians. Extract it and run it: no installation, no
+            administrator rights, and it never writes to the folder you extracted it into.
+
+            **Installer** — `EXP-IP-Scanner_${{ needs.build.outputs.version }}_x64-setup.exe`
+            For a workstation you use every day. Adds a Start Menu entry and can check for
+            updates.
+
+            Windows 10 and Windows 11, x64. Both need the Microsoft Edge WebView2 Runtime,
+            which ships with Windows 11 and with current Windows 10.
+
+            `SHA256SUMS.txt` carries a checksum for each download.
+
+            Full details: https://kingnazz.github.io/EXP-IP-Scanner/

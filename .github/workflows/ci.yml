@@ -1,0 +1,273 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+# A pull request that supersedes another cancels its run rather than queueing.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      # The version lives in package.json and is propagated by
+      # scripts/sync-version.mjs. This fails the build when a bump missed a
+      # file, so the installer, the in-app version and the website cannot
+      # disagree with each other.
+      - name: The version is consistent everywhere
+        run: npm run check-version
+
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Test
+        run: npm test
+      - name: Build
+        run: npm run build
+
+  rust:
+    name: Rust
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Install the Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev librsvg2-dev libsoup-3.0-dev
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Format
+        working-directory: src-tauri
+        run: cargo fmt --check
+      - name: Test
+        working-directory: src-tauri
+        run: cargo test
+      - name: Clippy
+        working-directory: src-tauri
+        run: cargo clippy --all-targets -- -D warnings
+
+      # The portable edition is a different binary: no updater plugin, a
+      # different capability set, and the portable profile path compiled in. It
+      # has to be tested in its own right, or "it compiles" would only ever
+      # have been checked for the installed half.
+      #
+      # Its own target directory, so this does not evict the installed build's
+      # cache on every run.
+      - name: Test the portable edition
+        working-directory: src-tauri
+        env:
+          CARGO_TARGET_DIR: target-portable
+        run: cargo test --no-default-features --features portable
+      - name: Clippy the portable edition
+        working-directory: src-tauri
+        env:
+          CARGO_TARGET_DIR: target-portable
+        run: cargo clippy --all-targets --no-default-features --features portable -- -D warnings
+
+      # Enabling both edition features would compile a binary that reports
+      # itself portable while carrying the installer updater. Cargo.toml makes
+      # that a compile error; this checks the guard is actually wired, because
+      # a guard nobody tests is a comment.
+      - name: The two editions cannot be combined
+        working-directory: src-tauri
+        env:
+          CARGO_TARGET_DIR: target-portable
+        run: |
+          if cargo check --features portable 2>err.log; then
+            echo "expected a compile error when both editions are enabled"
+            exit 1
+          fi
+          grep -q "mutually exclusive" err.log || {
+            echo "the build failed, but not with the mutual-exclusion error:"
+            cat err.log
+            exit 1
+          }
+          echo "Enabling both editions fails to compile, as intended."
+
+  browser:
+    name: Interface and website
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Playwright Chromium
+        run: npx --yes playwright install --with-deps chromium
+      - name: Install the browser-test helper
+        run: npm i --no-save playwright
+
+      - name: Build
+        run: npm run build
+
+      # The demo backend runs entirely in the browser, so the preview server is
+      # all the suite needs: no Rust build and no real network access.
+      - name: Serve the built interface
+        run: npm run preview &
+      - name: Wait for the preview server
+        run: npx --yes wait-on http://localhost:4173/ --timeout 60000
+      - name: Verify the interface
+        run: node scripts/verify-ui.mjs
+
+      # The website is plain static files with no build step, so it only needs
+      # a static server. It carries the version, the download logic and the
+      # product claims, none of which the unit tests reach.
+      - name: Serve the website
+        run: npx --yes serve site -l 4174 > /dev/null 2>&1 &
+      - name: Wait for the site server
+        run: npx --yes wait-on http://localhost:4174/ --timeout 60000
+      - name: Verify the website
+        run: node scripts/verify-site.mjs
+
+  windows:
+    name: Windows build and packaging
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: windows-x64
+      - run: npm ci
+
+      - name: Read the version from package.json
+        id: version
+        shell: bash
+        run: echo "value=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      # The installed edition, bundled the way a release bundles it. No updater
+      # artifacts and no signing here: that is the release workflow's job, and
+      # it needs a secret this one deliberately does not have.
+      - name: Build the installer
+        run: npm run tauri:build -- --target x86_64-pc-windows-msvc --bundles nsis
+
+      # Tauri names the bundle after productName, which carries spaces:
+      # "EXP IP Scanner_1.0.0_x64-setup.exe". A release asset with spaces is
+      # percent-encoded in its download URL, and the website's asset rules, the
+      # checksums and the updater manifest all expect the hyphenated form, so
+      # the artifact is collected under its canonical name. The assertion that
+      # follows fails loudly if this ever stops matching.
+      - name: Collect the installer under its canonical name
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          canonical="EXP-IP-Scanner_${{ steps.version.outputs.value }}_x64-setup.exe"
+          base="src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis"
+          built=$(find "$base" -maxdepth 1 -name '*_x64-setup.exe' -print -quit)
+          if [[ -z "$built" ]]; then
+            echo "No installer was produced in $base"
+            find src-tauri/target/x86_64-pc-windows-msvc/release/bundle -type f -print
+            exit 1
+          fi
+          cp "$built" "artifacts/$canonical"
+          # A signature has to follow the rename, or the updater would look for
+          # it under a name that does not exist.
+          if [[ -f "$built.sig" ]]; then
+            cp "$built.sig" "artifacts/$canonical.sig"
+          fi
+          ls -la artifacts
+
+      - name: The installer is present under the name a release publishes
+        shell: bash
+        run: |
+          installer="artifacts/EXP-IP-Scanner_${{ steps.version.outputs.value }}_x64-setup.exe"
+          if [[ ! -f "$installer" ]]; then
+            echo "Required installer missing: $installer"
+            ls -la artifacts
+            exit 1
+          fi
+          echo "Installer present: $installer ($(stat -c%s "$installer") bytes)"
+
+      # The portable edition is a second, separate build into its own target
+      # directory. Built with cargo rather than the Tauri CLI because the CLI
+      # has no --no-default-features, and turning the default features *off* is
+      # the whole point: `installed-updater` is a default, and leaving it on
+      # would produce a binary that reports portable while carrying an
+      # install-and-relaunch path. `custom-protocol` is what the CLI would have
+      # added, and is what embeds the frontend rather than pointing at a dev
+      # server.
+      - name: Build the portable executable
+        working-directory: src-tauri
+        env:
+          CARGO_TARGET_DIR: target-portable
+        run: >
+          cargo build --release
+          --target x86_64-pc-windows-msvc
+          --no-default-features
+          --features portable,custom-protocol
+
+      - name: Package the portable ZIP
+        run: >
+          node scripts/package-portable.mjs
+          --version ${{ steps.version.outputs.value }}
+          --target x86_64-pc-windows-msvc
+          --binary src-tauri/target-portable/x86_64-pc-windows-msvc/release/exp-ip-scanner.exe
+          --out artifacts
+
+      - name: Verify the portable ZIP
+        run: >
+          node scripts/verify-portable-zip.mjs
+          --zip "artifacts/EXP-IP-Scanner_${{ steps.version.outputs.value }}_windows-x64-portable.zip"
+          --architecture x64
+          --version ${{ steps.version.outputs.value }}
+
+      - name: Keep the build for inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: EXP-IP-Scanner-windows-x64-${{ github.sha }}
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 14
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    # High and critical advisories are release blockers. `cargo audit` leaves
+    # its informational categories informational; only actionable security
+    # advisories fail its default run.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: npm audit
+        run: npm audit --audit-level=high
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+      - name: cargo audit
+        working-directory: src-tauri
+        run: cargo audit

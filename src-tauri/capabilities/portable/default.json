@@ -1,0 +1,7 @@
+{
+  "$schema": "../../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Least-privilege capability set for the portable EXP IP Scanner window. Identical to the installed set with the updater and its restart permission removed: a portable build does not link the updater plugin at all, so there is no install-and-relaunch path for the webview to be granted access to. External URLs, launchers and file writes all go through dedicated Rust commands that validate their input.",
+  "windows": ["main"],
+  "permissions": ["core:default", "dialog:allow-save"]
+}
