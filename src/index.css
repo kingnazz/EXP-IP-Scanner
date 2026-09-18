@@ -31,17 +31,23 @@
   --color-ink-soft: #49525c;
   --color-ink-muted: #5f6873;
 
-  /* One accent, matching the application icon, used sparingly. */
-  --color-accent: #0d7490;
-  --color-accent-hover: #0a6078;
-  --color-accent-active: #084d60;
-  --color-accent-ink: #ffffff;
-  --color-accent-text: #0a5c73;
+  /* One accent: the EXP brand orange, the same value the logo, the icons and
+     the website use. A filled accent surface carries near-black text rather
+     than white, because that is what the brand does -- the wordmark is black
+     letters inside an orange oval -- and because white on this orange would
+     not clear 4.5:1. `accent-text` is the deeper burnt orange used where the
+     accent has to be readable *as text* on a pale surface. */
+  --color-accent: #f58f31;
+  --color-accent-hover: #ed7e1e;
+  --color-accent-active: #d96f16;
+  --color-accent-ink: #171717;
+  --color-accent-text: #a8540a;
 
   /* Status. Every one of these is paired with a word or an icon in the
-     interface -- never colour alone. */
+     interface -- never colour alone. Warn is a gold rather than the amber it
+     would naturally be, so that it does not read as a shade of the accent. */
   --color-ok: #157f3d;
-  --color-warn: #96590a;
+  --color-warn: #7d5a00;
   --color-danger: #a82c23;
   /* A device found only through ARP: present, but it answered nothing. */
   --color-quiet: #6a7481;
@@ -75,14 +81,14 @@
   --color-ink-soft: #a4afbb;
   --color-ink-muted: #8a939d;
 
-  --color-accent: #1c8ea8;
-  --color-accent-hover: #28a6c3;
-  --color-accent-active: #16788f;
-  --color-accent-ink: #eaf6fa;
-  --color-accent-text: #54cde8;
+  --color-accent: #f58f31;
+  --color-accent-hover: #f79c48;
+  --color-accent-active: #e07f22;
+  --color-accent-ink: #14100a;
+  --color-accent-text: #f9a85b;
 
   --color-ok: #45c46e;
-  --color-warn: #e0b055;
+  --color-warn: #e7c15f;
   --color-danger: #f08b81;
   --color-quiet: #8a939d;
 }
@@ -549,6 +555,26 @@
 
   @container (max-width: 48rem) {
     .results-toolbar .count-badge {
+      display: none;
+    }
+  }
+
+  /* --- Network summary --------------------------------------------------- */
+
+  /*
+   * Five facts on one line, on a window whose minimum width is 860px. The
+   * addresses are the point of the strip and none of them may be ellipsised,
+   * so what gives way as the window narrows is chosen here rather than left to
+   * the flex algorithm: first the address count, which is arithmetic the
+   * technician can do, then the adapter name, which truncates and keeps its
+   * full value in a tooltip.
+   */
+  .network-summary {
+    container-type: inline-size;
+  }
+
+  @container (max-width: 64rem) {
+    .network-summary .summary-aside {
       display: none;
     }
   }

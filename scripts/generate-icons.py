@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 """Render the EXP IP Scanner application icon at every size it ships in.
 
-One master is drawn at 1024px and downscaled with a high-quality filter, so the
-32px icon in the Windows taskbar is a sharpened version of the same artwork
-rather than a separately hand-drawn one that drifts out of step.
+The icon is the brand mark reduced to the two things that survive being 16
+pixels wide: the EXP orange, and the "exp" letters. The letters are lifted
+straight out of `brand/exp-ip-scanner-logo.webp` rather than set in a typeface
+that approximates them, so the icon and the logo are the same artwork.
 
-The mark is a scan sweep: a node, and three arcs radiating from it. It is
-deliberately plain -- flat colour, one accent, no gradient mesh, no glow --
-because it sits next to File Explorer and Notepad in a technician's taskbar and
-should look like it belongs there.
+Two things are deliberately left out. The oval, because filling the tile with
+the orange *is* the oval -- keeping the outline would only shrink the letters
+inside it, and at 24px, which is what the Windows taskbar actually asks for,
+that is the difference between reading "exp" and seeing a smudge. And the
+signal arcs from the logo's P, which are lovely at 512px and illegible below
+64, and which would have meant shipping two different-looking icons for the
+same application.
+
+One master is drawn at 1024px and downscaled with a high-quality filter, so
+every size is the same artwork rather than a set that drifts apart.
 
 Usage:
   python3 scripts/generate-icons.py
@@ -19,20 +26,49 @@ Writes:
   site/assets/favicon.png             (the website icon)
   site/assets/icon-512.png            (the website's product mark)
 """
-import math
 import os
 
+import numpy as np
 from PIL import Image, ImageDraw
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+SOURCE = os.path.join(ROOT, "brand", "exp-ip-scanner-logo.webp")
 
 MASTER = 1024
-# The tile: a deep slate, a touch blue, so the accent reads as a signal on it.
-TILE_TOP = (22, 30, 41)
-TILE_BOTTOM = (13, 18, 26)
-# The one accent, matching --accent in the application's dark theme.
-ACCENT = (45, 183, 214)
-ACCENT_DIM = (24, 121, 145)
+
+# The EXP brand orange, and the near-black of the wordmark. The tile carries a
+# barely-there gradient -- eight points of lightness top to bottom -- which
+# reads as depth next to File Explorer without looking like a 2010 gel button.
+TILE_TOP = (249, 150, 60)
+TILE_BOTTOM = (238, 131, 30)
+LETTERS = (26, 28, 32)
+
+# How much of the tile's width the wordmark spans. Enough to be the icon rather
+# than a label on it, with the remainder as the margin the shell expects.
+LETTER_WIDTH = 0.78
+
+# Where in the source the "exp" wordmark ends and "IP Scanner" begins. The same
+# split `scripts/trace-logo.py` uses; the source has a clean 130px gap there.
+WORDMARK_SPLIT_X = 790
+
+
+def wordmark():
+    """The "exp" letters from the logo, as an alpha mask cropped to their box.
+
+    Taken from inside the orange oval, which is why the mask wanted here is the
+    *dark* one: those pixels are the letterforms themselves.
+    """
+    rgba = np.array(Image.open(SOURCE).convert("RGBA")).astype(float)
+    rgb, alpha = rgba[..., :3], rgba[..., 3:4] / 255.0
+    composited = rgb * alpha + 255 * (1 - alpha)
+    r, g, b = composited[..., 0], composited[..., 1], composited[..., 2]
+
+    dark = (r < 130) & (g < 130) & (b < 150)
+    dark[:, WORDMARK_SPLIT_X:] = False
+
+    ys, xs = np.where(dark)
+    mask = Image.fromarray((dark * 255).astype("uint8"), mode="L")
+    return mask.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
 
 
 def rounded_mask(size, radius):
@@ -56,49 +92,23 @@ def draw_master():
     """The 1024px master, drawn at 4x and downscaled for clean edges."""
     scale = 4
     size = MASTER * scale
-    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
 
+    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     tile = vertical_gradient(size, TILE_TOP, TILE_BOTTOM).convert("RGBA")
     tile.putalpha(rounded_mask(size, round(size * 0.215)))
     canvas.alpha_composite(tile)
 
-    draw = ImageDraw.Draw(canvas)
+    letters = wordmark()
+    width = round(size * LETTER_WIDTH)
+    height = round(width * letters.height / letters.width)
+    letters = letters.resize((width, height), Image.Resampling.LANCZOS)
 
-    # The node the sweep radiates from, set low-left so the arcs have room.
-    origin = (round(size * 0.30), round(size * 0.715))
-    node_r = round(size * 0.052)
-    draw.ellipse(
-        [origin[0] - node_r, origin[1] - node_r, origin[0] + node_r, origin[1] + node_r],
-        fill=ACCENT,
-    )
-
-    # Three arcs, each thinner and dimmer than the last: a signal fading as it
-    # travels, which is the honest metaphor for a network sweep.
-    arcs = [
-        (0.215, 0.040, ACCENT),
-        (0.360, 0.034, ACCENT),
-        (0.505, 0.028, ACCENT_DIM),
-    ]
-    for radius_f, width_f, colour in arcs:
-        r = round(size * radius_f)
-        w = round(size * width_f)
-        box = [origin[0] - r, origin[1] - r, origin[0] + r, origin[1] + r]
-        # Swept from due north round to due east: the quadrant pointing away
-        # from the node into the rest of the tile.
-        draw.arc(box, start=-96, end=-2, fill=colour, width=w)
-
-    # A single found device out at the edge of the sweep: the point of the tool.
-    far = round(size * 0.505)
-    angle = math.radians(-49)
-    dot = (
-        round(origin[0] + far * math.cos(angle)),
-        round(origin[1] + far * math.sin(angle)),
-    )
-    dot_r = round(size * 0.055)
-    draw.ellipse(
-        [dot[0] - dot_r, dot[1] - dot_r, dot[0] + dot_r, dot[1] + dot_r],
-        fill=(255, 255, 255, 255),
-    )
+    # Optically centred rather than measured-centred: the "p" descender hangs
+    # below the other two letters, so centring the bounding box would leave the
+    # word sitting visibly low.
+    ink = Image.new("RGBA", (width, height), (*LETTERS, 255))
+    ink.putalpha(letters)
+    canvas.alpha_composite(ink, ((size - width) // 2, round(size * 0.46) - height // 2))
 
     return canvas.resize((MASTER, MASTER), Image.Resampling.LANCZOS)
 

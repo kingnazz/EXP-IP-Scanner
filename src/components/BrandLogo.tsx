@@ -1,7 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1874 347" role="img" aria-label="EXP IP Scanner">
-  <title>EXP IP Scanner</title>
-  <g transform="translate(0.000000,347.000000) scale(0.100000,-0.100000)" fill="#f58f31">
-    <path d="M3451 3458 c-842 -29 -1640 -191 -2261 -461 -381 -165 -639 -334
+// The EXP IP Scanner logo, traced from `brand/exp-ip-scanner-logo.webp` by
+// `scripts/trace-logo.py`. Do not edit the path data by hand: re-run the script.
+//
+// Three groups, because three different rules apply. The oval, the signal arcs
+// and the dot in the P are always the brand orange. The "exp" letters sit
+// inside the orange oval, so they stay dark in both themes. "IP Scanner" is the
+// only part that follows the theme, and it does so through `currentColor`
+// rather than a token of its own, so it is simply the colour of the text it
+// sits next to.
+
+/** The full logo. Width follows from the height; the artwork is 5.401:1 wide. */
+export function BrandLogo({ height = 20, className }: { height?: number; className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 1874 347"
+      height={height}
+      width={Math.round(height * 5.4006)}
+      role="img"
+      aria-label="EXP IP Scanner"
+      className={className}
+    >
+      <title>EXP IP Scanner</title>
+      <g transform="translate(0.000000,347.000000) scale(0.100000,-0.100000)" fill="#f58f31">
+        <path d="M3451 3458 c-842 -29 -1640 -191 -2261 -461 -381 -165 -639 -334
 -855 -559 -164 -170 -255 -324 -306 -514 -31 -114 -31 -288 -1 -409 60 -239
 219 -462 487 -682 94 -76 300 -204 465 -288 587 -296 1341 -480 2190 -534 208
 -14 759 -14 950 -1 169 12 597 57 655 70 22 4 68 11 103 15 l62 7 0 1119 0
@@ -35,10 +55,10 @@ l0 -130 -27 -19 c-345 -245 -914 -262 -1252 -38 -113 75 -220 203 -271 321
 -58 79 -97 151 -119 94 -28 211 23 264 117 36 63 35 157 -2 220 -27 46 -79 89
 -131 108 -39 15 -126 13 -163 -3z M5612 2035 c-62 -17 -92 -32 -149 -74 l-43 -31 0 -314 0 -314 31 -26
 c74 -62 222 -104 325 -92 87 10 163 44 220 97 92 88 134 193 134 341 0 187
--81 329 -228 396 -70 32 -208 40 -290 17z"/>
-  </g>
-  <g transform="translate(0.000000,347.000000) scale(0.100000,-0.100000)" fill="#1a1c20">
-    <path d="M2260 2361 c-268 -50 -485 -206 -589 -425 -55 -115 -66 -170 -65
+-81 329 -228 396 -70 32 -208 40 -290 17z" />
+      </g>
+      <g transform="translate(0.000000,347.000000) scale(0.100000,-0.100000)" fill="#1a1c20">
+        <path d="M2260 2361 c-268 -50 -485 -206 -589 -425 -55 -115 -66 -170 -65
 -321 1 -111 5 -142 28 -210 35 -109 88 -195 171 -280 155 -157 363 -239 640
 -251 249 -12 475 39 657 146 101 61 98 53 96 191 -1 66 -4 121 -7 124 -4 2
 -42 -18 -85 -45 -246 -152 -586 -188 -796 -84 -50 24 -128 102 -155 153 -24
@@ -59,10 +79,10 @@ c78 54 156 77 258 78 47 0 107 -7 134 -15z M3130 2335 c0 -4 117 -144 130 -155 3 -
 3 4 -344 413 -247 290 -258 305 -245 327 8 12 77 95 154 185 121 140 303 353
 398 466 l28 33 -268 0 -268 0 -168 -210 c-92 -116 -171 -210 -175 -209 -4 0
 -57 64 -119 142 -62 78 -137 172 -168 210 l-55 67 -265 0 c-146 0 -265 -2
--265 -5z"/>
-  </g>
-  <g transform="translate(0.000000,347.000000) scale(0.100000,-0.100000)" fill="#1a1c20">
-    <path d="M11360 2545 c-169 -27 -320 -102 -414 -205 -92 -102 -142 -280 -117
+-265 -5z" />
+      </g>
+      <g transform="translate(0.000000,347.000000) scale(0.100000,-0.100000)" fill="currentColor">
+        <path d="M11360 2545 c-169 -27 -320 -102 -414 -205 -92 -102 -142 -280 -117
 -419 26 -145 106 -254 243 -329 92 -51 167 -79 366 -138 187 -55 250 -83 291
 -130 55 -63 38 -150 -38 -192 -146 -82 -463 -20 -698 136 -31 20 -57 31 -62
 26 -8 -10 -181 -313 -181 -318 0 -7 110 -76 166 -104 190 -96 331 -132 549
@@ -104,6 +124,8 @@ c-200 19 -337 2 -452 -55 -98 -49 -148 -116 -170 -228 -30 -153 57 -305 209
 111 116 133 48 22 125 24 179 5z M18583 1822 c-58 -21 -113 -59 -145 -103 -12 -16 -25 -29 -30 -29 -4
 0 -8 27 -8 60 0 55 -2 60 -25 66 -14 3 -84 4 -157 1 l-133 -5 -3 -525 -2 -525
 102 -3 c57 -2 131 -2 166 -1 l62 4 0 257 c0 281 8 338 56 411 35 52 110 89
-201 98 l68 7 0 150 0 150 -50 2 c-29 2 -72 -5 -102 -15z"/>
-  </g>
-</svg>
+201 98 l68 7 0 150 0 150 -50 2 c-29 2 -72 -5 -102 -15z" />
+      </g>
+    </svg>
+  );
+}
