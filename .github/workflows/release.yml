@@ -280,3 +280,11 @@ jobs:
 
             What changed: https://kingnazz.github.io/EXP-IP-Scanner/whats-new-${{ needs.build.outputs.version }}.html
             All releases: https://kingnazz.github.io/EXP-IP-Scanner/releases.html
+
+      - name: Notify EXP work mirror after publishing
+        env:
+          EXP_MIRROR_TOKEN: ${{ secrets.EXP_MIRROR_TOKEN }}
+        if: env.EXP_MIRROR_TOKEN != ''
+        run: |
+          set -euo pipefail
+          curl --fail-with-body             --request POST             --header "Accept: application/vnd.github+json"             --header "Authorization: Bearer $EXP_MIRROR_TOKEN"             --header "X-GitHub-Api-Version: 2022-11-28"             https://api.github.com/repos/nazar-exp/EXP-IP-Scanner/dispatches             --data '{"event_type":"sync_from_personal","client_payload":{"reason":"release_published","source_sha":"${{ github.sha }}"}}'
