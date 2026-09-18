@@ -1,0 +1,26 @@
+# Node
+node_modules/
+dist/
+dist-portable/
+.vite/
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/target-portable/
+src-tauri/gen/
+
+# Editors and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Local env / logs
+.env
+.env.local
+*.log
+npm-debug.log*
+
+# Generated screenshots are committed under site/assets/shots; scratch output is not
+site/assets/shots/*.tmp.png
