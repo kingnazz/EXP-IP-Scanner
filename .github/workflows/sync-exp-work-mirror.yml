@@ -66,7 +66,8 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/exp-release-sync
 
-          gh api --paginate "repos/$SOURCE_REPO/releases?per_page=100"             --jq '.[] | select(.draft == false) | @base64' |
+          gh api "repos/$SOURCE_REPO/releases?per_page=100" \
+            --jq 'reverse[] | select(.draft == false) | @base64' |
           while IFS= read -r encoded; do
             release_json=$(printf '%s' "$encoded" | base64 --decode)
             tag=$(printf '%s' "$release_json" | jq -r '.tag_name')
@@ -96,6 +97,11 @@ jobs:
             gh "${args[@]}" "${assets[@]}"
             echo "Copied $tag to $DEST_REPO"
           done
+
+          latest_tag=$(gh api "repos/$SOURCE_REPO/releases/latest" --jq '.tag_name')
+          latest_id=$(gh api "repos/$DEST_REPO/releases/tags/$latest_tag" --jq '.id')
+          gh api --method PATCH "repos/$DEST_REPO/releases/$latest_id" -f make_latest=true >/dev/null
+          echo "Latest release in $DEST_REPO is $latest_tag"
 
       - uses: actions/setup-node@v4
         with:
