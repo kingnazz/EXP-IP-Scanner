@@ -105,8 +105,8 @@
     <main id="main">
       <div class="wrap hero">
         <p class="eyebrow">EXP Technical Field Tools</p>
-        <h1>Find what&rsquo;s on the network. Fast.</h1>
-        <p class="tagline">EXP IP Scanner</p>
+        <h1>EXP IP Scanner</h1>
+        <p class="tagline">Find what&rsquo;s on the network. Fast.</p>
         <p class="lede">
           A lightweight Windows network scanner built for the way IT engineers actually work.
           Detect the active network, find devices quickly, identify what is there, and jump directly
@@ -182,7 +182,7 @@
               id="tab-scan-dark"
               type="button"
               role="tab"
-              aria-selected="false"
+              aria-selected="true"
               aria-controls="shot-panel"
               data-shot="scan-dark"
               data-caption="A finished scan of a small business network, in dark mode."
@@ -194,7 +194,7 @@
               id="tab-scan-light"
               type="button"
               role="tab"
-              aria-selected="true"
+              aria-selected="false"
               aria-controls="shot-panel"
               data-shot="scan-light"
               data-caption="The same scan in light mode."
@@ -239,16 +239,16 @@
             </button>
           </div>
 
-          <figure id="shot-panel" role="tabpanel" aria-labelledby="tab-scan-light">
+          <figure id="shot-panel" role="tabpanel" aria-labelledby="tab-scan-dark">
             <img
               id="shot-image"
-              src="assets/shots/scan-light.webp"
-              alt="A finished scan of a small business network, in light mode."
+              src="assets/shots/scan-dark.webp"
+              alt="A finished scan of a small business network, in dark mode."
               width="1180"
               height="780"
             />
             <figcaption id="shot-caption">
-              A finished scan of a small business network in the default light presentation.
+              A finished scan of a small business network, in dark mode.
             </figcaption>
           </figure>
         </div>
