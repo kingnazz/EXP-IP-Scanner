@@ -64,6 +64,9 @@ jobs:
       - name: The version is consistent everywhere
         run: npm run check-version
 
+      - name: The current release has readable website notes
+        run: npm run check-release-page
+
       - name: Can this release sign updater artifacts?
         id: updater
         env:
@@ -237,4 +240,5 @@ jobs:
 
             `SHA256SUMS.txt` carries a checksum for each download.
 
-            Full details: https://kingnazz.github.io/EXP-IP-Scanner/
+            What changed: https://kingnazz.github.io/EXP-IP-Scanner/whats-new-${{ needs.build.outputs.version }}.html
+            All releases: https://kingnazz.github.io/EXP-IP-Scanner/releases.html
