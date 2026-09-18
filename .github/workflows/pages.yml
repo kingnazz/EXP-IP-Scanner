@@ -1,7 +1,7 @@
 name: Deploy website
 
 # Publish the static download site in /site to GitHub Pages.
-# configure-pages enables Pages for the repository on first deploy.
+# GitHub Pages is configured to deploy from GitHub Actions.
 
 on:
   push:
@@ -56,8 +56,6 @@ jobs:
           ls -l _site/exp.*.css _site/exp.*.js
 
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
