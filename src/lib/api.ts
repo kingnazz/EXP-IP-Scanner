@@ -21,6 +21,8 @@ import type {
 } from "../types";
 import { demo } from "./demo";
 import { fetchPublicIp, type PublicIpResult } from "./publicip";
+import { fetchLatestRelease, isNewerVersion, type UpdateCheckResult } from "./update";
+import { APP_VERSION } from "../version";
 
 /** True when running inside the packaged desktop application. */
 export function isTauri(): boolean {
@@ -227,11 +229,40 @@ export const api = {
    * the portable build does not link the updater plugin at all, so there is
    * nothing here for it to reach.
    */
-  async checkForUpdate(): Promise<{ available: boolean; version?: string }> {
+  async checkForUpdate(): Promise<UpdateCheckResult> {
     if (!isTauri()) return { available: false };
-    const { check } = await import("@tauri-apps/plugin-updater");
-    const update = await check();
-    return update ? { available: true, version: update.version } : { available: false };
+
+    // GitHub Releases answers the user-facing question first: is there a newer
+    // version? The signed Tauri manifest answers a different question: can this
+    // installed build apply it in-place? Keeping those separate means update
+    // checking still works before updater signing is configured.
+    const latest = await fetchLatestRelease();
+    if (!isNewerVersion(latest.version, APP_VERSION)) {
+      return { available: false };
+    }
+
+    try {
+      const { check } = await import("@tauri-apps/plugin-updater");
+      const update = await check();
+      if (update && update.version === latest.version) {
+        return {
+          available: true,
+          version: latest.version,
+          installable: true,
+          releaseUrl: latest.url,
+        };
+      }
+    } catch {
+      // A missing/unsigned latest.json is not a failed update check. We still
+      // know a newer GitHub release exists, so offer its download instead.
+    }
+
+    return {
+      available: true,
+      version: latest.version,
+      installable: false,
+      releaseUrl: latest.url,
+    };
   },
 
   /** Download and install the update found by `checkForUpdate`, then relaunch. */

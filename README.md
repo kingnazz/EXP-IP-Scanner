@@ -77,9 +77,11 @@ results or discovered-device data:
   and when you press refresh, it is listed in the application's
   Content-Security-Policy so the window cannot reach anywhere else, and it can
   be turned off in Settings.
-- **The update check**, in the installed edition only, runs against GitHub when
-  you press "Check now". The portable edition does not contain the updater at
-  all.
+- **The update check**, in the installed edition only, asks GitHub Releases
+  which stable version is current when you press "Check now". If a signed
+  updater manifest is available the app can install it in place; otherwise it
+  opens the normal download page. The portable edition does not contain the
+  updater at all.
 
 The full notes are on the
 [privacy page](https://kingnazz.github.io/EXP-IP-Scanner/privacy.html).
@@ -146,11 +148,11 @@ cd src-tauri
 CARGO_TARGET_DIR=target-portable cargo build --release \
   --target x86_64-pc-windows-msvc --no-default-features --features portable,custom-protocol
 cd ..
-node scripts/package-portable.mjs --version 1.1.0 --target x86_64-pc-windows-msvc \
+node scripts/package-portable.mjs --version 1.1.1 --target x86_64-pc-windows-msvc \
   --binary src-tauri/target-portable/x86_64-pc-windows-msvc/release/exp-ip-scanner.exe \
   --out artifacts
-node scripts/verify-portable-zip.mjs --zip artifacts/EXP-IP-Scanner_1.1.0_windows-x64-portable.zip \
-  --architecture x64 --version 1.1.0
+node scripts/verify-portable-zip.mjs --zip artifacts/EXP-IP-Scanner_1.1.1_windows-x64-portable.zip \
+  --architecture x64 --version 1.1.1
 ```
 
 ### Regenerating assets

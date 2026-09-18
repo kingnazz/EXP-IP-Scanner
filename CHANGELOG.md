@@ -6,6 +6,25 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.1.1
+
+### Fixed
+
+- The installed edition's **Check now** button no longer treats a missing signed
+  Tauri updater manifest as a failed update check. It now asks GitHub Releases
+  which stable version is current first.
+- When a newer release exists but no signed in-app updater manifest is available,
+  About offers **Open download** instead of showing an invalid-release-JSON
+  error. If signing is configured later, the same flow automatically keeps the
+  **Install and restart** path.
+- The application Content-Security-Policy now explicitly allows the GitHub API
+  used by the manual update check.
+
+### Notes
+
+- Update checking still runs only when the technician presses **Check now**.
+  It does not run at startup or in the background.
+
 ## 1.1.0
 
 ### Added

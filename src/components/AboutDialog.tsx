@@ -25,7 +25,9 @@ export function AboutDialog({
 }) {
   const [checking, setChecking] = useState(false);
   const [updateState, setUpdateState] = useState<
-    { kind: "current" } | { kind: "available"; version: string } | null
+    | { kind: "current" }
+    | { kind: "available"; version: string; installable: boolean }
+    | null
   >(null);
   const [installing, setInstalling] = useState(false);
 
@@ -38,7 +40,11 @@ export function AboutDialog({
       const result = await api.checkForUpdate();
       setUpdateState(
         result.available && result.version
-          ? { kind: "available", version: result.version }
+          ? {
+              kind: "available",
+              version: result.version,
+              installable: result.installable === true,
+            }
           : { kind: "current" },
       );
     } catch (error) {
@@ -111,18 +117,36 @@ export function AboutDialog({
             ) : null}
             {updateState?.kind === "available" ? (
               <div className="mt-2 flex items-center justify-between gap-3">
-                <p className="text-[12px] text-accent-text">
-                  Version {updateState.version} is available.
-                </p>
-                <button
-                  type="button"
-                  className="btn btn-sm btn-primary shrink-0"
-                  onClick={install}
-                  disabled={installing}
-                >
-                  {installing ? <Loader2 size={12} className="animate-spin" aria-hidden /> : null}
-                  {installing ? "Installing…" : "Install and restart"}
-                </button>
+                <div>
+                  <p className="text-[12px] text-accent-text">
+                    Version {updateState.version} is available.
+                  </p>
+                  {!updateState.installable ? (
+                    <p className="mt-0.5 text-[11px] text-ink-muted">
+                      Download this release manually.
+                    </p>
+                  ) : null}
+                </div>
+                {updateState.installable ? (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-primary shrink-0"
+                    onClick={install}
+                    disabled={installing}
+                  >
+                    {installing ? <Loader2 size={12} className="animate-spin" aria-hidden /> : null}
+                    {installing ? "Installing…" : "Install and restart"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-primary shrink-0"
+                    onClick={() => void api.openReleases()}
+                  >
+                    <ExternalLink size={12} aria-hidden />
+                    Open download
+                  </button>
+                )}
               </div>
             ) : null}
           </>
