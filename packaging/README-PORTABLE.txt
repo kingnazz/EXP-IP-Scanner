@@ -102,8 +102,10 @@ edition makes no update check.
 
 One request does leave this computer: the network summary at the top of
 the window looks up the address this network appears as from outside, by
-asking a plain-text service what your address is. It sends nothing about
-you, your network or your scans, and it can be turned off in Settings.
+asking a plain-text service what your address is. It sends no scan results,
+discovered-device data or application identifier; like any HTTPS request, the
+lookup service can see the public IP making the request. It can be turned off
+in Settings.
 
 Full notes: https://kingnazz.github.io/EXP-IP-Scanner/privacy.html
 
