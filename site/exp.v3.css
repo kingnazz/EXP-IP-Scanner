@@ -69,7 +69,7 @@ code,.mono{font-family:ui-monospace,"Cascadia Mono","SF Mono",Menlo,Consolas,mon
 section{padding:82px 0}
 .section-soft{background:var(--soft)}
 .section-dark{background:#1f2122;color:#fff}
-.section-orange{background:var(--orange)}
+.section-orange{background:var(--orange)}\n.section-orange .eyebrow{color:#6d3812}
 .section-head{max-width:760px;margin-bottom:42px}
 .section-head h2,h2{margin:0;font-size:clamp(35px,4.5vw,56px);line-height:1.03;letter-spacing:-.045em;font-weight:800}
 .section-lede{margin:18px 0 0;color:var(--gray);font-size:17px;line-height:1.7}
