@@ -40,8 +40,9 @@ This project uses [semantic versioning](https://semver.org/).
   appears as from outside without opening a browser. It runs asynchronously and
   never delays startup, falls back to a second service, says "Unavailable"
   rather than failing loudly when neither can be reached, and can be looked up
-  again on demand. It is the only request the application makes on its own, it
-  sends nothing, and it can be turned off in Settings.
+  again on demand. It is the only request the application makes on its own; it
+  sends no scan results or discovered-device data, and it can be turned off in
+  Settings.
 
 ### Changed
 

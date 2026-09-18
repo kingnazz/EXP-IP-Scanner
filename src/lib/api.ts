@@ -127,8 +127,9 @@ export const api = {
    * deliberately: `connect-src` in `tauri.conf.json` names the two hosts it may
    * reach, which is a stronger and more auditable limit than a constant in
    * Rust, and it keeps an HTTP client and a TLS stack out of the portable
-   * binary, which has neither and is 1.9 MB because of it. Nothing is sent, and
-   * the reply is validated as an address before it is shown.
+   * binary, which has neither and is 1.9 MB because of it. No scan result or
+   * discovered-device data is sent, and the reply is validated as an address
+   * before it is shown.
    */
   async publicIp(): Promise<PublicIpResult | null> {
     if (isTauri()) return fetchPublicIp();
