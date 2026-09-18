@@ -27,6 +27,7 @@ jobs:
         if: env.EXP_MIRROR_TOKEN != ''
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Push main and tags to the EXP-owned repository
         if: env.EXP_MIRROR_TOKEN != ''
