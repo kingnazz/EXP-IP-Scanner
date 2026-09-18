@@ -1,0 +1,90 @@
+name: Sync EXP work releases
+
+on:
+  push:
+    branches: ["main"]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync-releases:
+    if: github.repository == 'kingnazz/EXP-IP-Scanner'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.EXP_MIRROR_TOKEN }}
+      SOURCE_REPO: kingnazz/EXP-IP-Scanner
+      DEST_REPO: nazar-exp/EXP-IP-Scanner
+    steps:
+      - name: Mirror token is not configured yet
+        if: env.GH_TOKEN == ''
+        run: echo "EXP_MIRROR_TOKEN is not configured; skipping release sync."
+
+      - name: Copy missing releases and exact assets
+        if: env.GH_TOKEN != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/exp-release-sync
+
+          gh api "repos/$SOURCE_REPO/releases?per_page=100" \
+            --jq 'reverse[] | select(.draft == false) | @base64' |
+          while IFS= read -r encoded; do
+            release_json=$(printf '%s' "$encoded" | base64 --decode)
+            tag=$(printf '%s' "$release_json" | jq -r '.tag_name')
+            name=$(printf '%s' "$release_json" | jq -r '.name // .tag_name')
+            prerelease=$(printf '%s' "$release_json" | jq -r '.prerelease')
+            body=$(printf '%s' "$release_json" | jq -r '.body // ""')
+            target_sha=$(gh api "repos/$SOURCE_REPO/commits/$tag" --jq '.sha')
+
+            # A release may be published seconds after main changes. Give the
+            # work mirror a short window to receive the target commit first.
+            target_ready=false
+            for attempt in {1..12}; do
+              if gh api "repos/$DEST_REPO/commits/$target_sha" >/dev/null 2>&1; then
+                target_ready=true
+                break
+              fi
+              sleep 5
+            done
+            if [[ "$target_ready" != "true" ]]; then
+              echo "Destination is missing $target_sha for $tag; a later sync will retry it."
+              continue
+            fi
+
+            if gh release view "$tag" --repo "$DEST_REPO" >/dev/null 2>&1; then
+              echo "$tag already exists in $DEST_REPO"
+              continue
+            fi
+
+            dir="/tmp/exp-release-sync/$tag"
+            rm -rf "$dir"
+            mkdir -p "$dir"
+            gh release download "$tag" --repo "$SOURCE_REPO" --dir "$dir"
+
+            notes="$dir/RELEASE_NOTES.md"
+            printf '%s\n' "$body" > "$notes"
+
+            args=(release create "$tag" --repo "$DEST_REPO" --target "$target_sha" --title "$name" --notes-file "$notes")
+            if [[ "$prerelease" == "true" ]]; then
+              args+=(--prerelease)
+            fi
+
+            mapfile -t assets < <(find "$dir" -maxdepth 1 -type f ! -name RELEASE_NOTES.md -print | sort)
+            if (( ${#assets[@]} > 0 )); then
+              gh "${args[@]}" "${assets[@]}"
+            else
+              gh "${args[@]}"
+            fi
+            echo "Copied $tag to $DEST_REPO"
+          done
+
+          latest_tag=$(gh api "repos/$SOURCE_REPO/releases/latest" --jq '.tag_name')
+          if gh release view "$latest_tag" --repo "$DEST_REPO" >/dev/null 2>&1; then
+            latest_id=$(gh api "repos/$DEST_REPO/releases/tags/$latest_tag" --jq '.id')
+            gh api --method PATCH "repos/$DEST_REPO/releases/$latest_id" -f make_latest=true >/dev/null
+            echo "Latest release in $DEST_REPO is $latest_tag"
+          fi

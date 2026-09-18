@@ -3,14 +3,13 @@ name: Sync EXP work mirror
 # This workflow is intentionally present in both repositories, but only runs in
 # the EXP-owned copy. The source repository sends a repository_dispatch after
 # main changes. The work repository then:
-#   1. makes its main branch and tags match the public source,
-#   2. copies any missing GitHub Releases and their exact assets,
-#   3. deploys its own GitHub Pages site.
+#   1. makes its main branch match the public source,
+#   2. deploys its own GitHub Pages site.
 #
-# Because the code push below uses this repository's GITHUB_TOKEN, GitHub does
-# not recursively start CI/release workflows. That is deliberate: source CI has
-# already verified the commit, and releases are copied byte-for-byte instead of
-# rebuilding a second set of binaries.
+# Release/tag mirroring runs from the personal source repository using the
+# dedicated EXP_MIRROR_TOKEN. The work repo's built-in GitHub App token is
+# intentionally not used for release creation because GitHub restricts that
+# token around refs that contain workflow files.
 on:
   repository_dispatch:
     types: [sync_from_personal]
@@ -38,7 +37,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Mirror main and tags from the development source
+      - name: Mirror main from the development source
         env:
           SOURCE_REPO: kingnazz/EXP-IP-Scanner
         run: |
@@ -54,54 +53,6 @@ jobs:
           # origin. Force is intentional: this repository is a managed mirror
           # while the sync workflow is enabled.
           git push origin main --force
-
-      - name: Copy missing releases and their exact assets
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SOURCE_REPO: kingnazz/EXP-IP-Scanner
-          DEST_REPO: ${{ github.repository }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/exp-release-sync
-
-          gh api "repos/$SOURCE_REPO/releases?per_page=100" \
-            --jq 'reverse[] | select(.draft == false) | @base64' |
-          while IFS= read -r encoded; do
-            release_json=$(printf '%s' "$encoded" | base64 --decode)
-            tag=$(printf '%s' "$release_json" | jq -r '.tag_name')
-            name=$(printf '%s' "$release_json" | jq -r '.name // .tag_name')
-            prerelease=$(printf '%s' "$release_json" | jq -r '.prerelease')
-            body=$(printf '%s' "$release_json" | jq -r '.body // ""')
-            target_sha=$(gh api "repos/$SOURCE_REPO/commits/$tag" --jq '.sha')
-
-            if gh release view "$tag" --repo "$DEST_REPO" >/dev/null 2>&1; then
-              echo "$tag already exists in $DEST_REPO"
-              continue
-            fi
-
-            dir="/tmp/exp-release-sync/$tag"
-            rm -rf "$dir"
-            mkdir -p "$dir"
-            gh release download "$tag" --repo "$SOURCE_REPO" --dir "$dir"
-
-            notes="$dir/RELEASE_NOTES.md"
-            printf '%s\n' "$body" > "$notes"
-
-            args=(release create "$tag" --repo "$DEST_REPO" --target "$target_sha" --title "$name" --notes-file "$notes")
-            if [[ "$prerelease" == "true" ]]; then
-              args+=(--prerelease)
-            fi
-
-            mapfile -t assets < <(find "$dir" -maxdepth 1 -type f ! -name RELEASE_NOTES.md -print | sort)
-            gh "${args[@]}" "${assets[@]}"
-            echo "Copied $tag to $DEST_REPO"
-          done
-
-          latest_tag=$(gh api "repos/$SOURCE_REPO/releases/latest" --jq '.tag_name')
-          latest_id=$(gh api "repos/$DEST_REPO/releases/tags/$latest_tag" --jq '.id')
-          gh api --method PATCH "repos/$DEST_REPO/releases/$latest_id" -f make_latest=true >/dev/null
-          echo "Latest release in $DEST_REPO is $latest_tag"
 
       - uses: actions/setup-node@v4
         with:
