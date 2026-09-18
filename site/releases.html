@@ -3,118 +3,72 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>What&rsquo;s new — EXP IP Scanner</title>
-    <meta
-      name="description"
-      content="Release history for EXP IP Scanner: what changed in each version, with the date and the downloads."
-    />
+    <title>Changelog | EXP IP Scanner</title>
+    <meta name="description" content="EXP IP Scanner release history, with readable notes for every version." />
     <link rel="canonical" href="https://kingnazz.github.io/EXP-IP-Scanner/releases.html" />
     <link rel="icon" href="assets/favicon.png" />
     <meta name="color-scheme" content="light" />
     <meta name="theme-color" content="#ffffff" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'"
-    />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'" />
     <link rel="stylesheet" href="exp.v3.css" />
   </head>
-
   <body>
     <a class="skip" href="#main">Skip to content</a>
-
     <header class="site-header">
       <div class="wrap bar">
         <a class="brand" href="./" aria-label="EXP IP Scanner home">
           <img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner" width="900" height="300" />
         </a>
         <nav aria-label="Site">
-          <a href="https://exptechnical.com/it-services/">IT Services</a>
-          <a href="https://exptechnical.com/exp-clients/">Our Clients</a>
-          <a href="https://exptechnical.com/about/">About</a>
-          <a href="https://exptechnical.com/resources/">Resources</a>
-          <a href="./#download">Download</a>
-          <a class="header-cta" href="https://exptechnical.com/it-support-seattle/">Contact Us</a>
+          <a href="./#features">Features</a>
+          <a href="./#screenshots">Screenshots</a>
+          <a href="releases.html">Changelog</a>
+          <a href="privacy.html">Privacy</a>
+          <a class="header-cta" href="./#download">Download</a>
         </nav>
       </div>
     </header>
-
     <main id="main">
-      <div class="wrap hero"><p class="kicker">EXP Technical Field Tools</p>
-        <h1>What&rsquo;s new</h1>
-        <p class="lede">
-          Every release, newest first. The current version is
-          <span id="current-version">v1.0.0</span>. Each version&rsquo;s downloads and full notes
-          are on its
-          <a href="https://github.com/kingnazz/EXP-IP-Scanner/releases">GitHub release page</a>.
-        </p>
+      <div class="wrap hero">
+        <p class="kicker">EXP IP Scanner releases</p>
+        <h1>Changelog</h1>
+        <p class="lede">What changed, why it matters, and which version introduced it. The current version is <span id="current-version">v1.0.0</span>.</p>
       </div>
-
       <section>
         <div class="wrap">
-          <!--
-            One entry per release, kept in this file. The repository CHANGELOG
-            is the same content in Markdown; both are short enough that keeping
-            them in step by hand is less work than a generator to maintain, and
-            CI checks that this page names the current version.
-          -->
-          <article class="release">
-            <div class="release-head">
-              <h3>1.0.0</h3>
-              <span class="release-date">First release</span>
-            </div>
-            <ul>
-              <li>
-                Automatic detection of the network you are on, with the target already filled in.
-                Adapter ranking prefers a wired or wireless NIC over a Hyper-V switch, a Docker
-                bridge or a VPN tunnel, and every adapter stays selectable.
-              </li>
-              <li>
-                Device discovery over ICMP, TCP and the ARP cache, with a second ARP pass so a
-                device that was slow or lossy on the first sweep does not disappear between scans.
-                No administrator rights needed.
-              </li>
-              <li>
-                Hostname resolution, MAC addresses and manufacturer names from the full embedded
-                IEEE registry, all resolved without a network connection of their own.
-              </li>
-              <li>
-                Detection of 32 services that matter on a business network, shown with their names
-                rather than as bare port numbers.
-              </li>
-              <li>
-                Remote Desktop, file share, SSH, VNC and web-interface shortcuts, plus ping and
-                traceroute, enabled only where a device&rsquo;s open ports support them.
-              </li>
-              <li>
-                Results table with numeric address sorting, resizable and optional columns,
-                instant search across every field, multi-select and a right-click menu.
-              </li>
-              <li>CSV export that opens cleanly in Excel, and tab-separated copy for tickets.</li>
-              <li>Light and dark themes, following Windows by default.</li>
-              <li>
-                A portable edition that needs no installation and never writes to the folder it was
-                extracted into, and an installer edition that can check GitHub for updates.
-              </li>
-            </ul>
-          </article>
+          <div class="release-list">
+            <article class="release-card">
+              <div class="release-version">1.0.0</div>
+              <div class="release-summary">
+                <h3>The first production release</h3>
+                <p>Fast subnet discovery, live device results, vendor and service identification, technician actions, CSV export, and separate portable and installed editions.</p>
+              </div>
+              <div class="release-actions">
+                <a href="whats-new-1.0.0.html">Read what changed</a>
+                <a href="https://github.com/kingnazz/EXP-IP-Scanner/releases/tag/v1.0.0">Downloads</a>
+              </div>
+            </article>
+          </div>
         </div>
       </section>
     </main>
-
     <footer class="site-footer">
       <div class="wrap">
-        <div class="footer-top">
-          <div class="footer-brand">
+        <div class="product-footer">
+          <div class="product-footer-brand">
             <img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner" width="900" height="300" />
-            <p>A lightweight network discovery tool built for everyday technician workflows.</p>
+            <p>Fast, local network discovery for technicians.</p>
           </div>
-          <div class="footer-col"><h3>EXP Technical</h3><a href="https://exptechnical.com/it-services/">IT Services</a><a href="https://exptechnical.com/exp-clients/">Our Clients</a><a href="https://exptechnical.com/about/">About</a><a href="https://exptechnical.com/resources/">Resources</a></div>
-          <div class="footer-col"><h3>EXP IP Scanner</h3><a href="./#download">Download</a><a href="releases.html">What&rsquo;s new</a><a href="privacy.html">Privacy</a><a href="https://github.com/kingnazz/EXP-IP-Scanner">GitHub</a></div>
-          <div class="footer-col"><h3>Seattle Office</h3><span>1325 4th Ave, Suite 1540</span><span>Seattle, WA 98101</span><a href="mailto:info@exptechnical.com">info@exptechnical.com</a><span>Support Desk: Mon-Fri | 7am - 6pm</span><span class="footer-phone">206-264-2784</span></div>
+          <nav aria-label="Footer">
+            <a href="./#download">Download</a>
+            <a href="releases.html">Changelog</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="https://github.com/kingnazz/EXP-IP-Scanner">GitHub</a>
+          </nav>
         </div>
         <div class="footer-bottom">
-          <span>EXP IP Scanner &middot; MIT licensed</span>
-          <nav aria-label="Footer"><a href="./">Home</a><a href="privacy.html">Privacy</a><a href="releases.html">Release history</a><a href="https://exptechnical.com/">EXPTechnical.com</a></nav>
+          <span>EXP IP Scanner · MIT licensed</span>
+          <span>Built by <a href="https://exptechnical.com/">EXP Technical</a></span>
         </div>
       </div>
     </footer>
