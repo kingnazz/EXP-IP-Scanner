@@ -17,7 +17,7 @@
 (function () {
   "use strict";
 
-  var REPO = "kingnazz/EXP-IP-Scanner";
+  var REPO = "nazar-exp/EXP-IP-Scanner";
   var RELEASES = "https://github.com/" + REPO + "/releases";
 
   // ----------------------------------------------------- screenshot switcher

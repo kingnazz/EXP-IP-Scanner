@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>What’s new in EXP IP Scanner 1.1.1</title>
-    <meta name="description" content="EXP IP Scanner 1.1.1 fixes update checking when signed in-app updater artifacts are not available." />
-    <link rel="canonical" href="https://nazar-exp.github.io/EXP-IP-Scanner/whats-new-1.1.1.html" />
+    <title>What’s new in EXP IP Scanner 1.1.2</title>
+    <meta name="description" content="EXP IP Scanner 1.1.2 moves update checks, downloads and the future updater feed to EXP's company-owned GitHub repository." />
+    <link rel="canonical" href="https://nazar-exp.github.io/EXP-IP-Scanner/whats-new-1.1.2.html" />
     <link rel="icon" href="assets/favicon.png" />
     <meta name="color-scheme" content="light" />
     <meta name="theme-color" content="#ffffff" />
@@ -31,26 +31,26 @@
     <main id="main">
       <section>
         <div class="wrap whats-new">
-          <p class="kicker">EXP IP Scanner 1.1.1</p>
-          <h1>Update checking now works even before in-app signing is configured.</h1>
-          <p class="lede">Version 1.1.1 fixes the error shown by the installed edition when you pressed <strong>Check now</strong> and the release did not include a signed Tauri updater manifest.</p>
+          <p class="kicker">EXP IP Scanner 1.1.2</p>
+          <h1>EXP now owns the update channel.</h1>
+          <p class="lede">Version 1.1.2 moves the app’s update checks, downloads, release links and future signed updater feed to the EXP-owned GitHub repository.</p>
 
-          <h2>GitHub Releases answers the first question</h2>
-          <p>The app now asks GitHub which stable EXP IP Scanner release is current and compares that version with the one you are running. That works independently of the signed updater feed.</p>
+          <h2>The update source belongs to EXP</h2>
+          <p>The installed edition now checks <code>nazar-exp/EXP-IP-Scanner</code> for the latest stable release. The same company-owned repository is also the target for the signed Tauri updater feed when in-app signing is enabled.</p>
 
-          <h2>Install in place when possible, download when not</h2>
-          <p>If the latest release also has a valid signed updater manifest, the existing <strong>Install and restart</strong> path is used. If it does not, About still reports the newer version and offers <strong>Open download</strong> instead of throwing an error.</p>
+          <h2>Downloads and links follow the same authority</h2>
+          <p>Website, Releases, Downloads and Privacy links now open the EXP-owned GitHub Pages site and repository, so technicians are not sent through a personal account to find the product.</p>
 
-          <h2>No background update traffic</h2>
-          <p>Nothing about the timing changes. The installed edition checks only when you press <strong>Check now</strong>. The portable edition still contains no updater at all.</p>
+          <h2>The development workflow stays simple</h2>
+          <p>Development can continue from the existing source repository. Automation mirrors the exact code, tags, release notes, installer, portable ZIP and checksums into the EXP-owned repository, so both copies distribute the same release artifacts.</p>
 
           <div class="notice">
-            <strong>Why this happened</strong>
-            Version 1.1.0 published the installer and portable ZIP correctly, but updater signing is optional and was not configured, so no <code>latest.json</code> signed manifest was attached. The old button treated that missing manifest as though GitHub itself were broken.
+            <strong>Upgrade path from 1.1.1</strong>
+            Version 1.1.1 still checks the previous personal release channel, which will publish and mirror 1.1.2. Once 1.1.2 is installed, all later update checks use the EXP-owned repository.
           </div>
 
           <div class="cta-row">
-            <a class="btn btn-primary" href="./#download">Download 1.1.1</a>
+            <a class="btn btn-primary" href="./#download">Download 1.1.2</a>
             <a class="btn btn-secondary" href="releases.html">All releases</a>
           </div>
         </div>

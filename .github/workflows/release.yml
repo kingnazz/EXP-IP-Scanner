@@ -244,7 +244,7 @@ jobs:
 
       - name: Generate the updater manifest
         if: needs.build.outputs.updater == 'true'
-        run: node scripts/gen-latest-json.mjs "v${{ needs.build.outputs.version }}" "${{ github.repository }}" dist
+        run: node scripts/gen-latest-json.mjs "v${{ needs.build.outputs.version }}" "nazar-exp/EXP-IP-Scanner" dist
 
       # latest.json tells every installed copy what it may download and install.
       # A portable ZIP in it would be an update that cannot be applied, so this
@@ -279,8 +279,8 @@ jobs:
 
             `SHA256SUMS.txt` carries a checksum for each download.
 
-            What changed: https://kingnazz.github.io/EXP-IP-Scanner/whats-new-${{ needs.build.outputs.version }}.html
-            All releases: https://kingnazz.github.io/EXP-IP-Scanner/releases.html
+            What changed: https://nazar-exp.github.io/EXP-IP-Scanner/whats-new-${{ needs.build.outputs.version }}.html
+            All releases: https://nazar-exp.github.io/EXP-IP-Scanner/releases.html
 
       - name: Notify EXP work mirror after publishing
         env:
