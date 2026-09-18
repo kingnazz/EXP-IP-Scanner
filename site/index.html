@@ -13,8 +13,8 @@
     />
     <link rel="canonical" href="https://kingnazz.github.io/EXP-IP-Scanner/" />
     <link rel="icon" href="assets/favicon.png" />
-    <meta name="color-scheme" content="dark" />
-    <meta name="theme-color" content="#0c1117" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#ffffff" />
 
     <!--
       The page fetches release metadata from the GitHub API and nothing else.
@@ -29,7 +29,7 @@
 
     <link rel="stylesheet" href="exp.v1.css" />
     <!-- The screenshot is the largest paint on the page, so it is preloaded. -->
-    <link rel="preload" as="image" href="assets/shots/scan-dark.webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="assets/shots/scan-light.webp" fetchpriority="high" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="EXP IP Scanner" />
@@ -85,15 +85,18 @@
 
     <header class="site-header">
       <div class="wrap bar">
-        <a class="brand" href="./">
-          <img src="assets/favicon.png" alt="" width="26" height="26" />
-          EXP IP Scanner
+        <a class="brand" href="./" aria-label="EXP Technical IP Scanner home">
+          <img src="assets/favicon.png" alt="" width="30" height="30" />
+          <span class="brand-company">EXP Technical</span>
+          <span class="brand-divider" aria-hidden="true">/</span>
+          <span class="brand-product">IP Scanner</span>
         </a>
         <nav aria-label="Site">
           <a href="#features">Features</a>
           <a href="#download">Download</a>
           <a href="releases.html">What&rsquo;s new</a>
           <a href="privacy.html">Privacy</a>
+          <a href="https://exptechnical.com/">EXP Technical</a>
           <a href="https://github.com/kingnazz/EXP-IP-Scanner">GitHub</a>
         </nav>
       </div>
@@ -101,12 +104,13 @@
 
     <main id="main">
       <div class="wrap hero">
+        <p class="eyebrow">EXP Technical Field Tools</p>
         <h1>EXP IP Scanner</h1>
         <p class="tagline">Find what&rsquo;s on the network. Fast.</p>
         <p class="lede">
-          A lightweight Windows network scanner built for everyday IT work. It detects the network
-          you are on, sweeps it in seconds, and lets you open Remote Desktop, a file share, SSH or
-          a device&rsquo;s web interface straight from the results.
+          A lightweight Windows network scanner built for the way IT engineers actually work.
+          Detect the active network, find devices quickly, identify what is there, and jump directly
+          into Remote Desktop, file shares, SSH, or a device web interface.
         </p>
 
         <div class="cta-row">
@@ -252,7 +256,8 @@
 
       <section id="features">
         <div class="wrap">
-          <h2>What it does</h2>
+          <p class="eyebrow">Built for real support work</p>
+          <h2>Everything a technician needs, without the overhead.</h2>
           <p class="section-lede">
             One screen, no training needed. Launch it, and the network you are plugged into is
             already in the target field.
@@ -330,7 +335,8 @@
 
       <section id="download">
         <div class="wrap">
-          <h2>Download</h2>
+          <p class="eyebrow">Get EXP IP Scanner</p>
+          <h2>Choose the version that fits your workflow.</h2>
           <p class="section-lede">Windows 10 and Windows 11, x64. Both editions are the same application.</p>
 
           <div class="downloads">
@@ -427,6 +433,7 @@
 
       <section id="comparison">
         <div class="wrap">
+          <p class="eyebrow">Deployment options</p>
           <h2>Portable or installer</h2>
           <div class="table-scroll">
             <table>
@@ -476,6 +483,7 @@
 
       <section id="scope">
         <div class="wrap">
+          <p class="eyebrow">Intentionally focused</p>
           <h2>What it is not</h2>
           <p class="section-lede">
             EXP IP Scanner is a read-only discovery and administration utility, and intentionally
@@ -489,7 +497,7 @@
 
     <footer class="site-footer">
       <div class="wrap footer-row">
-        <span>EXP IP Scanner &middot; MIT licensed</span>
+        <span>EXP Technical &middot; EXP IP Scanner &middot; MIT licensed</span>
         <nav aria-label="Footer">
           <a href="releases.html">What&rsquo;s new</a>
           <a href="privacy.html">Privacy</a>
