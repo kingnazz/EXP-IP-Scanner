@@ -147,6 +147,19 @@ await step("the release history names the current version", async () => {
   return `names ${VERSION}`;
 });
 
+await step("the current version has a readable what-is-new page", async () => {
+  const expected = `whats-new-${VERSION}.html`;
+  const href = await page.getAttribute("#release-notes-link", "href");
+  if (href !== expected) throw new Error(`release-notes-link points at ${href}, expected ${expected}`);
+  const response = await page.request.get(`${BASE}/${expected}`);
+  if (!response.ok()) throw new Error(`${expected} is missing (${response.status()})`);
+  const text = await response.text();
+  if (!text.includes(`EXP IP Scanner ${VERSION}`)) {
+    throw new Error(`${expected} does not identify EXP IP Scanner ${VERSION}`);
+  }
+  return expected;
+});
+
 await step("every internal link resolves", async () => {
   const hrefs = await page.$$eval("a[href]", (links) =>
     links.map((a) => a.getAttribute("href")).filter((h) => h && !/^(https?:|mailto:|#)/.test(h)),
