@@ -17,9 +17,9 @@ use crate::scanner::{self, ScanEvent, ScanOptions, ScanResult};
 /// Where the project lives, for the links in the About panel. Fixed
 /// destinations: the interface cannot pass a URL, so these surfaces cannot be
 /// pointed anywhere else.
-const SITE_URL: &str = "https://kingnazz.github.io/EXP-IP-Scanner/";
-const RELEASES_URL: &str = "https://github.com/kingnazz/EXP-IP-Scanner/releases";
-const PRIVACY_URL: &str = "https://kingnazz.github.io/EXP-IP-Scanner/privacy.html";
+const SITE_URL: &str = "https://nazar-exp.github.io/EXP-IP-Scanner/";
+const RELEASES_URL: &str = "https://github.com/nazar-exp/EXP-IP-Scanner/releases";
+const PRIVACY_URL: &str = "https://nazar-exp.github.io/EXP-IP-Scanner/privacy.html";
 
 /// Which edition this is, its version, and how it updates.
 #[tauri::command]
