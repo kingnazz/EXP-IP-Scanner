@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>What’s new in EXP IP Scanner 1.0.0</title>
+    <meta name="description" content="EXP IP Scanner 1.0.0 is the first production release, built for fast everyday network discovery on Windows." />
+    <link rel="canonical" href="https://kingnazz.github.io/EXP-IP-Scanner/whats-new-1.0.0.html" />
+    <link rel="icon" href="assets/favicon.png" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'none'; connect-src 'self'; base-uri 'none'; form-action 'none'" />
+    <link rel="stylesheet" href="exp.v3.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap bar">
+        <a class="brand" href="./" aria-label="EXP IP Scanner home">
+          <img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner" width="900" height="300" />
+        </a>
+        <nav aria-label="Site">
+          <a href="./#features">Features</a>
+          <a href="./#screenshots">Screenshots</a>
+          <a href="releases.html">Changelog</a>
+          <a href="privacy.html">Privacy</a>
+          <a class="header-cta" href="./#download">Download</a>
+        </nav>
+      </div>
+    </header>
+    <main id="main">
+      <section>
+        <div class="wrap whats-new">
+          <p class="kicker">EXP IP Scanner 1.0.0</p>
+          <h1>Fast network discovery without the platform overhead.</h1>
+          <p class="lede">Version 1.0.0 is the first production release of EXP IP Scanner. It is built for the everyday moment when a technician needs to know what is on a network, identify the device, and connect to it without opening three different utilities.</p>
+
+          <h2>Start on the right network</h2>
+          <p>The scanner detects the active subnet at launch and fills the target automatically. Physical Ethernet, Wi-Fi, and USB adapters are preferred over virtual switches and tunnels, while every detected adapter remains available when you need to choose manually.</p>
+
+          <h2>Find devices while the scan is still running</h2>
+          <p>Discovery combines ICMP, TCP probing, and the ARP cache instead of relying on ping alone. Results stream into the table as devices are found, and hostname resolution runs alongside the sweep so useful names appear without waiting for the scan to finish.</p>
+
+          <h2>See the details that help you recognize the device</h2>
+          <p>Each result can include the IP address, hostname, MAC address, manufacturer, latency, and common open services. Manufacturer lookup uses an embedded IEEE registry, so it does not need an external lookup service.</p>
+
+          <h2>Go straight from discovery to action</h2>
+          <p>When the scan finds a service that supports it, EXP IP Scanner can open Remote Desktop, file shares, SSH, VNC, or the device web interface. Ping and traceroute are available for quick follow-up troubleshooting.</p>
+
+          <h2>A results table built for technician workflows</h2>
+          <p>Version 1.0.0 includes numeric IP sorting, resizable and optional columns, search across every device field, filters, multi-select, keyboard navigation, a right-click menu, CSV export, and tab-separated copy for tickets or spreadsheets.</p>
+
+          <h2>Portable and installed editions</h2>
+          <p>The portable edition is built for field use. Extract it and run it without installation, and it contains no updater code. The installed edition adds a normal Start Menu entry and can check GitHub for a newer version when you ask.</p>
+
+          <div class="notice">
+            <strong>Deliberately not included</strong>
+            No inventory database, no historical scan tracking, no monitoring, no vulnerability scanning, and no cloud account. Results live in the current session unless you export them.
+          </div>
+
+          <div class="cta-row">
+            <a class="btn btn-primary" href="./#download">Download 1.0.0</a>
+            <a class="btn btn-secondary" href="releases.html">All releases</a>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <div class="product-footer">
+          <div class="product-footer-brand">
+            <img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner" width="900" height="300" />
+            <p>Fast, local network discovery for technicians.</p>
+          </div>
+          <nav aria-label="Footer">
+            <a href="./#download">Download</a>
+            <a href="releases.html">Changelog</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="https://github.com/kingnazz/EXP-IP-Scanner">GitHub</a>
+          </nav>
+        </div>
+        <div class="footer-bottom">
+          <span>EXP IP Scanner · MIT licensed</span>
+          <span>Built by <a href="https://exptechnical.com/">EXP Technical</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
