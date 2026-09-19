@@ -31,9 +31,9 @@ file share, SSH or a device's web interface straight from the results.
   customer network.
 - **Detects the services that matter.** 32 curated ports, shown as words:
   `445 SMB`, `3389 RDP`, `9100 Print`.
-- **Connects in one click.** Right-click for Remote Desktop, file shares, SSH,
-  VNC or a web interface — only the ones a device's open ports support. Plus
-  ping in the details panel and traceroute in a command prompt.
+- **Opens the useful stuff fast.** Double-click any device for its full details
+  drawer, or right-click for Remote Desktop, file shares, SSH, VNC, a web
+  interface, ping, traceroute, and copy actions where they apply.
 - **Gets the data out.** CSV that opens cleanly in Excel, or tab-separated rows
   that paste straight into a ticket.
 - **Leaves nothing behind.** No inventory database, no scan history. Results
@@ -148,11 +148,11 @@ cd src-tauri
 CARGO_TARGET_DIR=target-portable cargo build --release \
   --target x86_64-pc-windows-msvc --no-default-features --features portable,custom-protocol
 cd ..
-node scripts/package-portable.mjs --version 1.1.5 --target x86_64-pc-windows-msvc \
+node scripts/package-portable.mjs --version 1.1.6 --target x86_64-pc-windows-msvc \
   --binary src-tauri/target-portable/x86_64-pc-windows-msvc/release/exp-ip-scanner.exe \
   --out artifacts
-node scripts/verify-portable-zip.mjs --zip artifacts/EXP-IP-Scanner_1.1.5_windows-x64-portable.zip \
-  --architecture x64 --version 1.1.5
+node scripts/verify-portable-zip.mjs --zip artifacts/EXP-IP-Scanner_1.1.6_windows-x64-portable.zip \
+  --architecture x64 --version 1.1.6
 ```
 
 ### Regenerating assets

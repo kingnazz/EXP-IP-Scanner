@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
-import { Check, Columns3, Copy, Download, List, Search, Trash2, X } from "lucide-react";
+import { Check, Columns3, Copy, Download, Info, List, Search, Trash2, X } from "lucide-react";
 import { FILTER_MODES, TOGGLEABLE_COLUMNS, type ColumnKey, type FilterMode } from "../lib/table";
 import { formatCount } from "../lib/format";
 
@@ -102,6 +102,7 @@ export const ResultsToolbar = forwardRef<
             className="icon-btn icon-btn-sm absolute right-0.5 top-1/2 -translate-y-1/2"
             onClick={() => onQueryChange("")}
             aria-label="Clear search"
+            title="Clear search"
           >
             <X size={12} />
           </button>
@@ -123,6 +124,14 @@ export const ResultsToolbar = forwardRef<
           </button>
         ))}
       </div>
+
+      <span
+        className="results-interaction-hint shrink-0 items-center gap-1.5 text-[11px] text-ink-muted"
+        title="Double-click a device to open its details. Right-click for quick actions."
+      >
+        <Info size={12} aria-hidden />
+        Double-click for details · Right-click for actions
+      </span>
 
       <div className="flex-1" />
 

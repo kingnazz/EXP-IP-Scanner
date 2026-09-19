@@ -273,6 +273,7 @@ const Row = memo(
         onClick={(event) => onClick(row, index, event)}
         onDoubleClick={() => onActivate(row)}
         onContextMenu={(event) => onContextMenu(event, row, columnFromEvent(event, columns))}
+        title="Double-click for device details · Right-click for actions"
         className="cursor-default"
         style={
           focused

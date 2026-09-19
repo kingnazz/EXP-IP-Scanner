@@ -162,6 +162,14 @@ describe("selection and sorting", () => {
     expect(document.getElementById("device-192-168-50-10")).toBeTruthy();
   });
 
+  it("makes the hidden row interactions discoverable", () => {
+    renderTable();
+    const server = bodyRows().find((tr) => tr.cells[1]?.textContent === WINDOWS_SERVER.ip);
+    expect(server?.getAttribute("title")).toBe(
+      "Double-click for device details · Right-click for actions",
+    );
+  });
+
   it("opens a device on double-click", () => {
     const { spies } = renderTable();
     const server = bodyRows().find((tr) => tr.cells[1]?.textContent === WINDOWS_SERVER.ip);
