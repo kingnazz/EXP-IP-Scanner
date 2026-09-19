@@ -31,9 +31,9 @@ file share, SSH or a device's web interface straight from the results.
   customer network.
 - **Detects the services that matter.** 32 curated ports, shown as words:
   `445 SMB`, `3389 RDP`, `9100 Print`.
-- **Connects in one click.** Right-click for Remote Desktop, file shares, SSH,
-  VNC or a web interface — only the ones a device's open ports support. Plus
-  ping in the details panel and traceroute in a command prompt.
+- **Opens the useful stuff fast.** Double-click any device for its full details
+  drawer, or right-click for Remote Desktop, file shares, SSH, VNC, a web
+  interface, ping, traceroute, and copy actions where they apply.
 - **Gets the data out.** CSV that opens cleanly in Excel, or tab-separated rows
   that paste straight into a ticket.
 - **Leaves nothing behind.** No inventory database, no scan history. Results
