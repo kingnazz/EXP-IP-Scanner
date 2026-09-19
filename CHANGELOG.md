@@ -6,6 +6,24 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.1.5
+
+### Added
+
+- The installed edition now makes one quiet update check shortly after launch.
+  When a newer version exists, a compact **Update available** indicator appears
+  in the title bar with the available version.
+- Clicking the update indicator opens About with the known update already
+  loaded, so a signed release can go straight to **Install and restart**
+  without making the technician run a second check.
+
+### Changed
+
+- Startup update discovery is intentionally silent when the app is current or
+  when GitHub is temporarily unreachable. Manual **Check now** remains the
+  explicit path that reports update-check errors.
+- The portable edition still performs no update checks and contains no updater.
+
 ## 1.1.4
 
 ### Added

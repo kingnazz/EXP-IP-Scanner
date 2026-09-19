@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ExternalLink, Loader2 } from "lucide-react";
 import { BrandLogo } from "./BrandLogo";
 import { Modal } from "../ui/Modal";
 import { api } from "../lib/api";
 import type { RuntimeInfo } from "../types";
 import { APP_VERSION } from "../version";
+import type { UpdateCheckResult } from "../lib/update";
 
 /**
  * About, and the update check for the installed edition.
@@ -16,10 +17,12 @@ import { APP_VERSION } from "../version";
  */
 export function AboutDialog({
   runtime,
+  knownUpdate,
   onClose,
   onError,
 }: {
   runtime: RuntimeInfo | null;
+  knownUpdate: UpdateCheckResult | null;
   onClose: () => void;
   onError: (message: string) => void;
 }) {
@@ -32,6 +35,16 @@ export function AboutDialog({
   const [installing, setInstalling] = useState(false);
 
   const canSelfUpdate = api.native && runtime?.update_mode === "installer";
+
+  useEffect(() => {
+    if (knownUpdate?.available && knownUpdate.version) {
+      setUpdateState({
+        kind: "available",
+        version: knownUpdate.version,
+        installable: knownUpdate.installable === true,
+      });
+    }
+  }, [knownUpdate]);
 
   const check = async () => {
     setChecking(true);
@@ -88,8 +101,9 @@ export function AboutDialog({
       <p className="mb-4 text-[12.5px] leading-relaxed text-ink-soft">
         A network scanner for everyday IT work. Scans happen on this computer, results stay in
         memory until you export them, and there is no account, no telemetry and no cloud service
-        behind it. The only thing it sends out on its own is the public IP lookup in the network
-        summary, which you can turn off in Settings.
+        behind it. The installed edition makes one quiet GitHub release check after launch, and
+        the network summary can look up your public IP, which you can turn off in Settings. Neither
+        request sends scan results or discovered-device data.
       </p>
 
       <div className="mb-4 rounded-md border border-line px-3 py-2.5">

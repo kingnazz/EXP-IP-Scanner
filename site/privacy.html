@@ -42,7 +42,7 @@
         <h1>Privacy</h1>
         <p class="lede">
           What EXP IP Scanner stores, sends, and leaves behind. No vague privacy language.
-          Applies to <span id="privacy-version">v1.1.4</span>.
+          Applies to <span id="privacy-version">v1.1.5</span>.
         </p>
       </div>
 
@@ -111,11 +111,12 @@
           <p>
             <strong>The update check.</strong> The installed edition asks the
             <a href="https://github.com/nazar-exp/EXP-IP-Scanner/releases">GitHub Releases API</a>
-            which stable version is current when you press &ldquo;Check now&rdquo; in About. If a signed
-            in-app updater manifest is available, it can install that release in place; otherwise it
-            opens the normal download page. The check never runs on its own or in the background.
-            Like any HTTPS request, it tells GitHub your IP address; it sends nothing about your
-            network or your scans.
+            which stable version is current once shortly after the installed edition opens, and
+            again when you press &ldquo;Check now&rdquo; in About. The startup check is quiet: it only
+            shows an Update available indicator when a newer release exists. If a signed in-app
+            updater manifest is available, it can install that release in place. Like any HTTPS
+            request, it tells GitHub your IP address; it sends nothing about your network or your
+            scans.
           </p>
           <p>
             The portable edition does not contain the updater at all. It is compiled without it,

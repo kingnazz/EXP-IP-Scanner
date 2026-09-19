@@ -26,6 +26,7 @@ import { useSettings } from "./hooks/useSettings";
 import { useTheme } from "./hooks/useTheme";
 import type { DeviceAction } from "./lib/actions";
 import { api } from "./lib/api";
+import type { UpdateCheckResult } from "./lib/update";
 import {
   buildClipboardTable,
   buildCsv,
@@ -72,6 +73,7 @@ export default function App() {
   const [drawerIp, setDrawerIp] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [availableUpdate, setAvailableUpdate] = useState<UpdateCheckResult | null>(null);
   const [pingResult, setPingResult] = useState<PingOutcome | null>(null);
   const [pinging, setPinging] = useState(false);
   const [menuColumn, setMenuColumn] = useState<ColumnKey | null>(null);
@@ -126,6 +128,33 @@ export default function App() {
     // Startup runs once; the settings read here is the value it had at mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // The installed edition makes one quiet update check after startup. A newer
+  // release is surfaced in the title bar instead of interrupting the scan with
+  // a modal or toast. Portable builds never enter this path.
+  useEffect(() => {
+    if (!api.native || runtime?.update_mode !== "installer") return;
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void api
+        .checkForUpdate()
+        .then((result) => {
+          if (cancelled) return;
+          setAvailableUpdate(result.available ? result : null);
+        })
+        .catch(() => {
+          // Startup update discovery is advisory. A transient GitHub/network
+          // failure should not make launching a field tool feel broken; the
+          // explicit Check now action in About still reports errors.
+        });
+    }, 1200);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [runtime?.update_mode]);
 
   // --- Target validation and preview ---------------------------------------
 
@@ -509,6 +538,7 @@ export default function App() {
         onOpenAbout={() => setAboutOpen(true)}
         version={runtime?.version ?? APP_VERSION}
         edition={runtime && runtime.edition === "portable" ? runtime.edition_label : null}
+        updateVersion={availableUpdate?.version ?? null}
       />
 
       <ScanBar
@@ -645,6 +675,7 @@ export default function App() {
       {aboutOpen ? (
         <AboutDialog
           runtime={runtime}
+          knownUpdate={availableUpdate}
           onClose={() => setAboutOpen(false)}
           onError={(message) => toasts.error(message)}
         />
