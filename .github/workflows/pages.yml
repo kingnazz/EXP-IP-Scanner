@@ -8,6 +8,12 @@ on:
     branches: ["main"]
     paths:
       - "site/**"
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.ts"
+      - "scripts/capture-screenshots.mjs"
+      - "scripts/optimize-shots.py"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -31,6 +37,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+
+      # Capture the product screenshots from the current interface immediately
+      # before deployment. The demo network is fictional, so no customer data
+      # reaches the site, and deployed screenshots cannot lag behind the app.
+      - name: Capture current product screenshots
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build
+          npm run preview > /tmp/exp-preview.log 2>&1 &
+          npx --yes wait-on http://localhost:4173/ --timeout 60000
+          npm i --no-save playwright
+          npx --yes playwright install --with-deps chromium
+          python3 -m pip install --user Pillow
+          npm run screenshots
 
       # The stylesheet and the script are hand-written and stay readable in the
       # repository; minification happens here, on a copy, so the deployed bytes

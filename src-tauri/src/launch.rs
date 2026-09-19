@@ -268,34 +268,66 @@ pub struct PingOutcome {
     pub summary: String,
 }
 
-/// Ping one device once and report what came back.
-pub async fn ping_once(ip: &str, timeout_ms: u64) -> Result<PingOutcome, String> {
+/// Run a short four-ping health check and summarise packet loss and timing.
+///
+/// Four probes match the familiar Windows ping default and avoid treating one
+/// lucky reply as the whole story. The separate command-prompt action remains
+/// continuous for technicians watching a device reboot.
+const QUICK_PING_COUNT: usize = 4;
+
+pub async fn ping_quick(ip: &str, timeout_ms: u64) -> Result<PingOutcome, String> {
     let ip = validated_ipv4(ip)?;
     let ms = timeout_ms.clamp(100, 10_000);
-    let reply = crate::scanner::ping_for_action(ip, Duration::from_millis(ms)).await;
+    let mut replies = Vec::with_capacity(QUICK_PING_COUNT);
+    let mut ttl = None;
 
-    Ok(match reply {
-        Some((rtt_ms, ttl)) => PingOutcome {
-            ip: ip.to_string(),
-            replied: true,
-            rtt_ms: Some(rtt_ms),
-            ttl,
-            summary: match ttl {
-                Some(ttl) => format!("Reply from {ip} in {rtt_ms:.2} ms, TTL {ttl}"),
-                None => format!("Reply from {ip} in {rtt_ms:.2} ms"),
-            },
-        },
-        None => PingOutcome {
+    for attempt in 0..QUICK_PING_COUNT {
+        if let Some((rtt_ms, reply_ttl)) =
+            crate::scanner::ping_for_action(ip, Duration::from_millis(ms)).await
+        {
+            replies.push(rtt_ms);
+            if ttl.is_none() {
+                ttl = reply_ttl;
+            }
+        }
+
+        if attempt + 1 < QUICK_PING_COUNT {
+            tokio::time::sleep(Duration::from_millis(125)).await;
+        }
+    }
+
+    Ok(summarize_ping(ip, ms, &replies, ttl))
+}
+
+fn summarize_ping(ip: Ipv4Addr, timeout_ms: u64, replies: &[f64], ttl: Option<u8>) -> PingOutcome {
+    let received = replies.len();
+    if received == 0 {
+        return PingOutcome {
             ip: ip.to_string(),
             replied: false,
             rtt_ms: None,
             ttl: None,
             summary: format!(
-                "No reply from {ip} within {ms} ms. The device may be off, or may be \
-                 configured not to answer ping."
+                "{QUICK_PING_COUNT} sent · 0 received · 100% loss · No replies from {ip} within {timeout_ms} ms each. The device may be off or block ping."
             ),
-        },
-    })
+        };
+    }
+
+    let min_ms = replies.iter().copied().fold(f64::INFINITY, f64::min);
+    let max_ms = replies.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    let avg_ms = replies.iter().sum::<f64>() / received as f64;
+    let loss_percent = ((QUICK_PING_COUNT - received) * 100) / QUICK_PING_COUNT;
+    let ttl_text = ttl.map_or_else(String::new, |value| format!(" · TTL {value}"));
+
+    PingOutcome {
+        ip: ip.to_string(),
+        replied: true,
+        rtt_ms: Some(avg_ms),
+        ttl,
+        summary: format!(
+            "{QUICK_PING_COUNT} sent · {received} received · {loss_percent}% loss · min {min_ms:.2} ms · avg {avg_ms:.2} ms · max {max_ms:.2} ms{ttl_text}"
+        ),
+    }
 }
 
 #[cfg(test)]
@@ -357,8 +389,19 @@ mod tests {
             .enable_all()
             .build()
             .unwrap()
-            .block_on(ping_once("not-an-ip", 500));
+            .block_on(ping_quick("not-an-ip", 500));
         assert!(outcome.is_err());
+    }
+
+    #[test]
+    fn four_ping_summary_reports_loss_and_timing() {
+        let ip: Ipv4Addr = "192.0.2.10".parse().unwrap();
+        let outcome = summarize_ping(ip, 1_500, &[0.8, 1.0, 1.2], Some(64));
+        assert!(outcome.replied);
+        assert_eq!(
+            outcome.summary,
+            "4 sent · 3 received · 25% loss · min 0.80 ms · avg 1.00 ms · max 1.20 ms · TTL 64"
+        );
     }
 
     #[test]
@@ -369,15 +412,15 @@ mod tests {
             .enable_all()
             .build()
             .unwrap()
-            .block_on(ping_once("203.0.113.7", 300))
+            .block_on(ping_quick("203.0.113.7", 300))
             .unwrap();
         assert_eq!(outcome.ip, "203.0.113.7");
         assert!(!outcome.summary.is_empty());
         if outcome.replied {
             assert!(outcome.rtt_ms.is_some());
-            assert!(outcome.summary.contains("Reply from"));
+            assert!(outcome.summary.contains("received"));
         } else {
-            assert!(outcome.summary.contains("No reply"));
+            assert!(outcome.summary.contains("No replies"));
             assert!(outcome.summary.contains("203.0.113.7"));
         }
     }

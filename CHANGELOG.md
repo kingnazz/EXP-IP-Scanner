@@ -6,6 +6,18 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.1.7
+
+### Changed
+
+- The in-app **Ping** diagnostic now sends four probes instead of one and
+  reports sent/received counts, packet loss, minimum, average, and maximum
+  latency, plus TTL when available. **Ping in a command prompt** remains the
+  continuous option for watching a device reboot.
+- Website deployments now rebuild the current application UI and regenerate
+  the product screenshots automatically before publishing. The website can no
+  longer drift back to screenshots from an older release.
+
 ## 1.1.6
 
 ### Added
