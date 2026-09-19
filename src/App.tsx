@@ -36,6 +36,7 @@ import {
 import { parsePorts, setServiceCatalog } from "./lib/format";
 import type { DeviceRow } from "./lib/live";
 import { loadRecentTargets, pushRecentTarget } from "./lib/prefs";
+import type { UpdateCheckResult } from "./lib/update";
 import {
   cellText,
   filterRows,
@@ -72,6 +73,7 @@ export default function App() {
   const [drawerIp, setDrawerIp] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [availableUpdate, setAvailableUpdate] = useState<UpdateCheckResult | null>(null);
   const [pingResult, setPingResult] = useState<PingOutcome | null>(null);
   const [pinging, setPinging] = useState(false);
   const [menuColumn, setMenuColumn] = useState<ColumnKey | null>(null);
@@ -126,6 +128,30 @@ export default function App() {
     // Startup runs once; the settings read here is the value it had at mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // The installed edition checks quietly after startup so an available update
+  // can be surfaced without interrupting a scan. Failures stay silent: a
+  // temporary GitHub outage should never turn app launch into an error state.
+  useEffect(() => {
+    if (!api.native || runtime?.update_mode !== "installer") return;
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void api
+        .checkForUpdate()
+        .then((result) => {
+          if (!cancelled) setAvailableUpdate(result.available ? result : null);
+        })
+        .catch(() => {
+          // Manual "Check now" still reports errors in About. Startup does not.
+        });
+    }, 1_200);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [runtime?.update_mode]);
 
   // --- Target validation and preview ---------------------------------------
 
@@ -507,6 +533,7 @@ export default function App() {
         onThemeChange={(theme) => update({ theme })}
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenAbout={() => setAboutOpen(true)}
+        updateVersion={availableUpdate?.version ?? null}
         version={runtime?.version ?? APP_VERSION}
         edition={runtime && runtime.edition === "portable" ? runtime.edition_label : null}
       />
@@ -645,6 +672,8 @@ export default function App() {
       {aboutOpen ? (
         <AboutDialog
           runtime={runtime}
+          initialUpdate={availableUpdate}
+          onUpdateResult={(result) => setAvailableUpdate(result.available ? result : null)}
           onClose={() => setAboutOpen(false)}
           onError={(message) => toasts.error(message)}
         />
