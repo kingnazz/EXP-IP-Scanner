@@ -79,7 +79,7 @@ const targets = [
     file: "site/index.html",
     // Screenshot URLs carry the app version as a cache key so GitHub Pages or
     // a browser cannot keep showing an older capture after a release.
-    pattern: /(assets\/shots\/[^"?]+\.webp\?v=)[^"&<]+/g,
+    pattern: /(assets\/shots\/[^"?]+\.webp\?v=)[^"&<]+(["&<])/g,
   },
   {
     file: "site/exp.v3.js",
