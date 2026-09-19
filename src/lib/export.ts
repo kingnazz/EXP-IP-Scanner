@@ -10,6 +10,7 @@
 
 import { portWithService } from "./format";
 import type { DeviceRow } from "./live";
+import type { LocalNetwork } from "../types";
 import { cellText } from "./table";
 
 /** What one device contributes to an export, in column order. */
@@ -79,6 +80,31 @@ export function buildClipboardTable(rows: readonly DeviceRow[]): string {
   const headers = COLUMNS.map((c) => c.header).join("\t");
   const lines = rows.map((row) => COLUMNS.map((c) => cell(c.value(row))).join("\t"));
   return [headers, ...lines].join("\n");
+}
+
+export interface NetworkSummaryContext {
+  network: LocalNetwork | null;
+  target: string;
+  addressCount: number | null;
+  /** Human-readable public IP state, e.g. an address, Unavailable, or Off. */
+  publicIp: string;
+}
+
+/** A compact network snapshot for pasting into a ticket or work note. */
+export function buildNetworkSummary(ctx: NetworkSummaryContext): string {
+  const range = ctx.target.trim() || "Not set";
+  const rangeWithCount =
+    ctx.addressCount == null
+      ? range
+      : `${range} (${ctx.addressCount} ${ctx.addressCount === 1 ? "address" : "addresses"})`;
+
+  return [
+    `Adapter      ${ctx.network?.interface ?? "Not detected"}`,
+    `Local IP     ${ctx.network?.ip ?? "Unavailable"}`,
+    `Gateway      ${ctx.network?.gateway ?? "None"}`,
+    `Scan range   ${rangeWithCount}`,
+    `Public IP    ${ctx.publicIp}`,
+  ].join("\n");
 }
 
 /** One device as a readable block, for Copy all details. */
