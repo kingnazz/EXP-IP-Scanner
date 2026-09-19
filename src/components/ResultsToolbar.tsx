@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
-import { Check, Columns3, Copy, Download, Search, Trash2, X } from "lucide-react";
+import { Check, Columns3, Copy, Download, List, Search, Trash2, X } from "lucide-react";
 import { FILTER_MODES, TOGGLEABLE_COLUMNS, type ColumnKey, type FilterMode } from "../lib/table";
 import { formatCount } from "../lib/format";
 
@@ -26,6 +26,7 @@ export const ResultsToolbar = forwardRef<
     onResetColumns: () => void;
     onExport: () => void;
     onCopy: () => void;
+    onCopyIps: () => void;
     onClear: () => void;
   }
 >(function ResultsToolbar(
@@ -42,6 +43,7 @@ export const ResultsToolbar = forwardRef<
     onResetColumns,
     onExport,
     onCopy,
+    onCopyIps,
     onClear,
   },
   ref,
@@ -185,6 +187,21 @@ export const ResultsToolbar = forwardRef<
         <span className="toolbar-text">
           {selectedCount > 0 ? `Copy ${formatCount(selectedCount)}` : "Copy"}
         </span>
+      </button>
+
+      <button
+        type="button"
+        className="btn btn-sm btn-secondary shrink-0"
+        onClick={onCopyIps}
+        disabled={!hasRows}
+        title={
+          selectedCount > 0
+            ? `Copy IP addresses for ${formatCount(selectedCount)} selected ${selectedCount === 1 ? "device" : "devices"}`
+            : "Copy IP addresses for every row shown, one per line"
+        }
+      >
+        <List size={13} aria-hidden />
+        <span className="toolbar-text">Copy IPs</span>
       </button>
 
       <button
