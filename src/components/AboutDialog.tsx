@@ -101,8 +101,9 @@ export function AboutDialog({
       <p className="mb-4 text-[12.5px] leading-relaxed text-ink-soft">
         A network scanner for everyday IT work. Scans happen on this computer, results stay in
         memory until you export them, and there is no account, no telemetry and no cloud service
-        behind it. The only thing it sends out on its own is the public IP lookup in the network
-        summary, which you can turn off in Settings.
+        behind it. The installed edition makes one quiet GitHub release check after launch, and
+        the network summary can look up your public IP, which you can turn off in Settings. Neither
+        request sends scan results or discovered-device data.
       </p>
 
       <div className="mb-4 rounded-md border border-line px-3 py-2.5">
