@@ -1,6 +1,6 @@
 [package]
 name = "exp-ip-scanner"
-version = "1.1.4"
+version = "1.1.5"
 description = "A fast, lightweight Windows network scanner for everyday IT work"
 authors = ["EXP"]
 license = "MIT"

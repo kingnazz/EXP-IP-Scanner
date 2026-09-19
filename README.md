@@ -48,7 +48,7 @@ Windows 10 and Windows 11, x64. Both editions are the same application.
 | Installation | None — extract and run | Windows installer, all users |
 | Administrator rights | Not needed | Needed to install |
 | Scanning | Identical | Identical |
-| Updates | Download the next ZIP | Checks GitHub when you ask |
+| Updates | Download the next ZIP | Quiet startup check + manual check |
 | Start Menu entry | No | Yes |
 | Scan data kept on disk | None | None |
 
@@ -78,9 +78,9 @@ results or discovered-device data:
   Content-Security-Policy so the window cannot reach anywhere else, and it can
   be turned off in Settings.
 - **The update check**, in the installed edition only, asks GitHub Releases
-  which stable version is current when you press "Check now". If a signed
-  updater manifest is available the app can install it in place; otherwise it
-  opens the normal download page. The portable edition does not contain the
+  which stable version is current shortly after startup and when you press
+  "Check now". If a signed updater manifest is available the app can install it
+  in place; otherwise it opens the normal download page. The portable edition does not contain the
   updater at all.
 
 The full notes are on the
@@ -148,11 +148,11 @@ cd src-tauri
 CARGO_TARGET_DIR=target-portable cargo build --release \
   --target x86_64-pc-windows-msvc --no-default-features --features portable,custom-protocol
 cd ..
-node scripts/package-portable.mjs --version 1.1.4 --target x86_64-pc-windows-msvc \
+node scripts/package-portable.mjs --version 1.1.5 --target x86_64-pc-windows-msvc \
   --binary src-tauri/target-portable/x86_64-pc-windows-msvc/release/exp-ip-scanner.exe \
   --out artifacts
-node scripts/verify-portable-zip.mjs --zip artifacts/EXP-IP-Scanner_1.1.4_windows-x64-portable.zip \
-  --architecture x64 --version 1.1.4
+node scripts/verify-portable-zip.mjs --zip artifacts/EXP-IP-Scanner_1.1.5_windows-x64-portable.zip \
+  --architecture x64 --version 1.1.5
 ```
 
 ### Regenerating assets
