@@ -420,7 +420,7 @@ mod tests {
             assert!(outcome.rtt_ms.is_some());
             assert!(outcome.summary.contains("received"));
         } else {
-            assert!(outcome.summary.contains("No reply"));
+            assert!(outcome.summary.contains("No replies"));
             assert!(outcome.summary.contains("203.0.113.7"));
         }
     }
