@@ -7,7 +7,7 @@
 // refuses a payload whose signature does not verify against the public key
 // compiled into the application.
 //
-//   node scripts/gen-latest-json.mjs v1.0.0 kingnazz/EXP-IP-Scanner dist
+//   node scripts/gen-latest-json.mjs v1.0.0 nazar-exp/EXP-IP-Scanner dist
 //
 // Reads <dir>, writes <dir>/latest.json.
 //
