@@ -126,7 +126,7 @@ export const ResultsToolbar = forwardRef<
       </div>
 
       <span
-        className="results-interaction-hint hidden shrink-0 items-center gap-1.5 text-[11px] text-ink-muted"
+        className="results-interaction-hint shrink-0 items-center gap-1.5 text-[11px] text-ink-muted"
         title="Double-click a device to open its details. Right-click for quick actions."
       >
         <Info size={12} aria-hidden />
