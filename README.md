@@ -148,11 +148,11 @@ cd src-tauri
 CARGO_TARGET_DIR=target-portable cargo build --release \
   --target x86_64-pc-windows-msvc --no-default-features --features portable,custom-protocol
 cd ..
-node scripts/package-portable.mjs --version 1.1.3 --target x86_64-pc-windows-msvc \
+node scripts/package-portable.mjs --version 1.1.4 --target x86_64-pc-windows-msvc \
   --binary src-tauri/target-portable/x86_64-pc-windows-msvc/release/exp-ip-scanner.exe \
   --out artifacts
-node scripts/verify-portable-zip.mjs --zip artifacts/EXP-IP-Scanner_1.1.3_windows-x64-portable.zip \
-  --architecture x64 --version 1.1.3
+node scripts/verify-portable-zip.mjs --zip artifacts/EXP-IP-Scanner_1.1.4_windows-x64-portable.zip \
+  --architecture x64 --version 1.1.4
 ```
 
 ### Regenerating assets
