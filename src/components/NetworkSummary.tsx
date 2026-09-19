@@ -123,7 +123,7 @@ export function NetworkSummary({
           )
         }
         title="Copy adapter, IP, gateway, scan range and public IP for a ticket or note"
-        aria-label="Copy network summary"
+        aria-label="Network details to clipboard"
       >
         <Copy size={11} aria-hidden />
       </button>
