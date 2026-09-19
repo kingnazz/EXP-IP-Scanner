@@ -30,6 +30,7 @@ import {
   buildClipboardTable,
   buildCsv,
   buildDeviceDetails,
+  buildIpList,
   csvFilename,
 } from "./lib/export";
 import { parsePorts, setServiceCatalog } from "./lib/format";
@@ -348,6 +349,18 @@ export default function App() {
     }
   }, [outputRows, toasts]);
 
+  const copyIps = useCallback(async () => {
+    if (outputRows.length === 0) return;
+    try {
+      await api.copyToClipboard(buildIpList(outputRows));
+      toasts.success(
+        `${outputRows.length} IP ${outputRows.length === 1 ? "address" : "addresses"} copied.`,
+      );
+    } catch {
+      toasts.error("Windows did not allow copying to the clipboard.");
+    }
+  }, [outputRows, toasts]);
+
   const exportCsv = useCallback(async () => {
     if (outputRows.length === 0) return;
     const scannedTarget = scan.summary?.target ?? target.trim();
@@ -540,6 +553,7 @@ export default function App() {
                 onResetColumns={resetColumnWidths}
                 onExport={() => void exportCsv()}
                 onCopy={() => void copyRows()}
+                onCopyIps={() => void copyIps()}
                 onClear={() => {
                   scan.clear();
                   setSelected(new Set());
