@@ -1,4 +1,5 @@
-import { Globe, Loader2, RefreshCw } from "lucide-react";
+import { Copy, Globe, Loader2, RefreshCw } from "lucide-react";
+import { buildNetworkSummary } from "../lib/export";
 import { formatCount } from "../lib/format";
 import type { PublicIpState } from "../hooks/usePublicIp";
 import type { LocalNetwork } from "../types";
@@ -106,8 +107,41 @@ export function NetworkSummary({
           </button>
         ) : null}
       </div>
+
+      <button
+        type="button"
+        className="icon-btn icon-btn-sm ml-auto size-[20px] shrink-0 rounded-sm"
+        onClick={() =>
+          onCopy(
+            buildNetworkSummary({
+              network,
+              target,
+              addressCount,
+              publicIp: publicIpForClipboard(publicIp),
+            }),
+            "Network summary",
+          )
+        }
+        title="Copy adapter, IP, gateway, scan range and public IP for a ticket or note"
+        aria-label="Copy network summary"
+      >
+        <Copy size={11} aria-hidden />
+      </button>
     </div>
   );
+}
+
+function publicIpForClipboard(state: PublicIpState): string {
+  switch (state.status) {
+    case "ready":
+      return state.ip;
+    case "loading":
+      return "Looking up";
+    case "unavailable":
+      return "Unavailable";
+    case "off":
+      return "Off";
+  }
 }
 
 function PublicIp({
