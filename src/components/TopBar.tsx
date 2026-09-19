@@ -1,4 +1,4 @@
-import { Info, Monitor, Moon, Settings, Sun } from "lucide-react";
+import { CircleAlert, Info, Monitor, Moon, Settings, Sun } from "lucide-react";
 import type { ThemePref } from "../lib/prefs";
 import { BrandLogo } from "./BrandLogo";
 
@@ -29,6 +29,7 @@ export function TopBar({
   onOpenAbout,
   version,
   edition,
+  updateVersion,
 }: {
   theme: ThemePref;
   onThemeChange: (next: ThemePref) => void;
@@ -36,6 +37,7 @@ export function TopBar({
   onOpenAbout: () => void;
   version: string;
   edition: string | null;
+  updateVersion: string | null;
 }) {
   const ThemeIcon = THEME_ICON[theme];
   const nextTheme = THEME_ORDER[(THEME_ORDER.indexOf(theme) + 1) % THEME_ORDER.length] ?? "system";
@@ -55,6 +57,20 @@ export function TopBar({
       </div>
 
       <div className="flex-1" />
+
+      {updateVersion ? (
+        <button
+          type="button"
+          className="update-notice"
+          onClick={onOpenAbout}
+          title={`Version ${updateVersion} is available. Open About to install it.`}
+          aria-label={`Update available: version ${updateVersion}`}
+        >
+          <CircleAlert size={13} aria-hidden />
+          <span>Update available</span>
+          <span className="mono text-[10px] opacity-75">v{updateVersion}</span>
+        </button>
+      ) : null}
 
       <button
         type="button"
