@@ -247,7 +247,7 @@ pub fn open_traceroute_console(ip: String) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn ping_host(ip: String) -> Result<PingOutcome, String> {
-    launch::ping_once(&ip, 1_500).await
+    launch::ping_quick(&ip, 1_500).await
 }
 
 // --- Fixed destinations ----------------------------------------------------
