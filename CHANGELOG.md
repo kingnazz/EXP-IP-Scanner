@@ -6,6 +6,24 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.2.0
+
+### Added
+
+- The network summary strip now has a one-click **Copy network summary** action.
+  It copies the adapter, local IP, default gateway, scan range with address
+  count, and public IP as a clean text block ready for a ticket, work note,
+  Teams message, or email.
+- The copied summary stays useful when a value is unavailable: missing adapter
+  data, no default route, disabled public-IP lookup, and failed public-IP lookup
+  are written plainly instead of being omitted.
+
+### Notes
+
+- This is intentionally a small field-work improvement. It adds no background
+  process, storage, telemetry, new network request, or dependency.
+- Individual network-summary values still copy on click exactly as before.
+
 ## 1.1.2
 
 ### Changed
