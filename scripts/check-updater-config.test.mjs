@@ -45,14 +45,10 @@ describe("looksLikeSigningKey", () => {
 });
 
 describe("the repository's own configuration", () => {
-  it("still ships the placeholder, so no release claims to sign updates", () => {
-    // When a maintainer generates a key and replaces this, that is the change
-    // that turns updates on -- and this assertion is the reminder to flip it.
+  it("ships a valid updater signing public key", () => {
     const pubkey = configuredPubkey();
     expect(typeof pubkey).toBe("string");
-    if (pubkey !== PLACEHOLDER) {
-      // A real key has been configured; it must be a valid one.
-      expect(looksLikeSigningKey(pubkey)).toBe(true);
-    }
+    expect(pubkey).not.toBe(PLACEHOLDER);
+    expect(looksLikeSigningKey(pubkey)).toBe(true);
   });
 });
