@@ -148,11 +148,11 @@ cd src-tauri
 CARGO_TARGET_DIR=target-portable cargo build --release \
   --target x86_64-pc-windows-msvc --no-default-features --features portable,custom-protocol
 cd ..
-node scripts/package-portable.mjs --version 1.1.3 --target x86_64-pc-windows-msvc \
+node scripts/package-portable.mjs --version 1.1.4 --target x86_64-pc-windows-msvc \
   --binary src-tauri/target-portable/x86_64-pc-windows-msvc/release/exp-ip-scanner.exe \
   --out artifacts
-node scripts/verify-portable-zip.mjs --zip artifacts/EXP-IP-Scanner_1.1.3_windows-x64-portable.zip \
-  --architecture x64 --version 1.1.3
+node scripts/verify-portable-zip.mjs --zip artifacts/EXP-IP-Scanner_1.1.4_windows-x64-portable.zip \
+  --architecture x64 --version 1.1.4
 ```
 
 ### Regenerating assets
@@ -225,18 +225,14 @@ edited.
 
 ### One-time setup
 
-Auto-update for the installed edition needs a signing key, which cannot live in
-the repository:
+Auto-update for the installed edition is signed with Tauri's updater key. The
+public key is compiled into the installed application; the matching private key
+lives only in GitHub Actions as `TAURI_SIGNING_PRIVATE_KEY` (with
+`TAURI_SIGNING_PRIVATE_KEY_PASSWORD` when the key is password-protected).
 
-```bash
-npm run tauri signer generate -- -w ~/.tauri/exp-ip-scanner.key
-```
-
-Paste the printed public key into `plugins.updater.pubkey` in
-`src-tauri/tauri.conf.json`, and set two repository secrets:
-`TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Until
-that is done, releases still publish both downloads and simply carry no updater
-manifest, so a first release is not blocked on it.
+Starting with 1.1.4, release publishing requires signing to be configured. A
+release will fail before publishing rather than produce an installer that
+installed copies cannot trust. The portable edition still contains no updater.
 
 GitHub Pages needs to be switched on once: **Settings → Pages → Source: GitHub
 Actions**.

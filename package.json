@@ -1,7 +1,7 @@
 {
   "name": "exp-ip-scanner",
   "private": true,
-  "version": "1.1.3",
+  "version": "1.1.4",
   "type": "module",
   "description": "EXP IP Scanner - a fast, lightweight Windows network scanner for everyday IT work",
   "author": "EXP",
