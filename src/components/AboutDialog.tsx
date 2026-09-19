@@ -99,8 +99,8 @@ export function AboutDialog({
       <p className="mb-4 text-[12.5px] leading-relaxed text-ink-soft">
         A network scanner for everyday IT work. Scans happen on this computer, results stay in
         memory until you export them, and there is no account, no telemetry and no cloud service
-        behind it. The only thing it sends out on its own is the public IP lookup in the network
-        summary, which you can turn off in Settings.
+        behind it. Its only automatic outbound requests are the optional public IP lookup and, in
+        the installed edition, a quiet GitHub release check after startup.
       </p>
 
       <div className="mb-4 rounded-md border border-line px-3 py-2.5">
@@ -110,7 +110,7 @@ export function AboutDialog({
               <div className="min-w-0">
                 <p className="text-[12.5px] font-medium">Updates</p>
                 <p className="text-[11.5px] text-ink-muted">
-                  Checks this project&rsquo;s GitHub releases when you ask it to.
+                  Checks quietly after startup and whenever you ask it to.
                 </p>
               </div>
               <button
