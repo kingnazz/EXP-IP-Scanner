@@ -76,6 +76,17 @@ const targets = [
     pattern: /(id="release-notes-link" href="whats-new-[^"]+\.html">What changed in )[^<]+(<\/a>)/,
   },
   {
+    file: "site/index.html",
+    // Screenshot URLs carry the app version as a cache key so GitHub Pages or
+    // a browser cannot keep showing an older capture after a release.
+    pattern: /(assets\/shots\/[^"?]+\.webp\?v=)[^"&<]+(["&<])/g,
+  },
+  {
+    file: "site/exp.v3.js",
+    // The screenshot tab switcher uses the same release cache key.
+    pattern: /(var SCREENSHOT_VERSION = ")[^"]+(";)/,
+  },
+  {
     file: "site/releases.html",
     pattern: /(<span id="current-version">v)[^<]+(<\/span>)/,
   },
