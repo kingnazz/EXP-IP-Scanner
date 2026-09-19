@@ -15,8 +15,7 @@ name: Publish release
 #     TAURI_SIGNING_PRIVATE_KEY           the generated private key
 #     TAURI_SIGNING_PRIVATE_KEY_PASSWORD  its password, or "" if none
 #
-# Until that is done the release still publishes both downloads; it simply
-# carries no updater manifest, so a first release is not blocked on a key.
+# Releases now require updater signing. If the key or secret is missing, publishing stops before any installer is released.
 
 on:
   workflow_dispatch:
@@ -105,11 +104,11 @@ jobs:
       - name: The current release has readable website notes
         run: npm run check-release-page
 
-      - name: Can this release sign updater artifacts?
+      - name: Require signed updater artifacts
         id: updater
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-        run: node scripts/check-updater-config.mjs
+        run: node scripts/check-updater-config.mjs --require
 
       # --------------------------------------------------------- installer
 
