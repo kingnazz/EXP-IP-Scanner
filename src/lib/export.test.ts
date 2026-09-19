@@ -10,6 +10,7 @@ import {
   buildClipboardTable,
   buildCsv,
   buildDeviceDetails,
+  buildIpList,
   csvFilename,
 } from "./export";
 
@@ -111,6 +112,16 @@ describe("buildClipboardTable", () => {
     ]);
     expect(text.split("\n")).toHaveLength(2);
     expect(text).toContain("two columns and a row");
+  });
+});
+
+describe("buildIpList", () => {
+  it("copies only IP addresses, one per line", () => {
+    expect(buildIpList(ALL_ROWS)).toBe(ALL_ROWS.map((row) => row.host.ip).join("\n"));
+  });
+
+  it("returns an empty string for no rows", () => {
+    expect(buildIpList([])).toBe("");
   });
 });
 

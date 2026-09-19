@@ -6,6 +6,22 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.1.3
+
+### Added
+
+- **Copy IPs** in the results toolbar copies only the IP addresses for the
+  selected devices, or every currently shown device when nothing is selected.
+  Addresses are copied one per line so they can go straight into scripts,
+  firewall rules, tickets, spreadsheets, or another network tool.
+- Copy IPs follows the same search, filter, and multi-select rules as the
+  existing Copy and Export actions, so what you see is exactly what gets copied.
+
+### Changed
+
+- Release and updater links continue to use EXP's company-owned repository as
+  the permanent download/update authority introduced in 1.1.2.
+
 ## 1.1.2
 
 ### Changed
