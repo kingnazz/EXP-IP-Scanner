@@ -6,6 +6,29 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.1.4
+
+### Added
+
+- **Install and restart** support is now enabled for the installed edition.
+  Signed releases include the Tauri updater signature and `latest.json`, so
+  future versions can be downloaded, verified, installed, and relaunched from
+  the About dialog instead of opening the browser download page.
+
+### Changed
+
+- Release publishing now requires the updater signing key to be configured.
+  If signing is unavailable, the release stops before publishing rather than
+  shipping an unsigned installer that installed copies cannot trust.
+- The portable edition remains intentionally self-contained and never updates
+  itself.
+
+### Upgrade note
+
+- Versions 1.1.3 and earlier were built before the signing public key was
+  embedded. Install 1.1.4 manually once. After 1.1.4 is installed, later
+  releases can use **Install and restart** directly in the app.
+
 ## 1.1.3
 
 ### Added
