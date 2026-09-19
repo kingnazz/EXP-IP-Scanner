@@ -3,6 +3,7 @@ import { ExternalLink, Loader2 } from "lucide-react";
 import { BrandLogo } from "./BrandLogo";
 import { Modal } from "../ui/Modal";
 import { api } from "../lib/api";
+import type { UpdateCheckResult } from "../lib/update";
 import type { RuntimeInfo } from "../types";
 import { APP_VERSION } from "../version";
 
@@ -14,21 +15,38 @@ import { APP_VERSION } from "../version";
  * is no install-and-relaunch path in the binary to reach. It links to the
  * downloads page instead, which is the honest portable answer.
  */
+type UpdateState =
+  | { kind: "current" }
+  | { kind: "available"; version: string; installable: boolean }
+  | null;
+
+function stateFromResult(result: UpdateCheckResult | null): UpdateState {
+  if (!result) return null;
+  if (!result.available || !result.version) return { kind: "current" };
+  return {
+    kind: "available",
+    version: result.version,
+    installable: result.installable === true,
+  };
+}
+
 export function AboutDialog({
   runtime,
+  initialUpdate,
+  onUpdateResult,
   onClose,
   onError,
 }: {
   runtime: RuntimeInfo | null;
+  initialUpdate?: UpdateCheckResult | null;
+  onUpdateResult?: (result: UpdateCheckResult) => void;
   onClose: () => void;
   onError: (message: string) => void;
 }) {
   const [checking, setChecking] = useState(false);
-  const [updateState, setUpdateState] = useState<
-    | { kind: "current" }
-    | { kind: "available"; version: string; installable: boolean }
-    | null
-  >(null);
+  const [updateState, setUpdateState] = useState<UpdateState>(() =>
+    stateFromResult(initialUpdate ?? null),
+  );
   const [installing, setInstalling] = useState(false);
 
   const canSelfUpdate = api.native && runtime?.update_mode === "installer";
@@ -38,15 +56,8 @@ export function AboutDialog({
     setUpdateState(null);
     try {
       const result = await api.checkForUpdate();
-      setUpdateState(
-        result.available && result.version
-          ? {
-              kind: "available",
-              version: result.version,
-              installable: result.installable === true,
-            }
-          : { kind: "current" },
-      );
+      setUpdateState(stateFromResult(result));
+      onUpdateResult?.(result);
     } catch (error) {
       onError(
         `Could not check for updates. ${error instanceof Error ? error.message : String(error)}`,
