@@ -282,6 +282,23 @@ jobs:
             What changed: https://nazar-exp.github.io/EXP-IP-Scanner/whats-new-${{ needs.build.outputs.version }}.html
             All releases: https://nazar-exp.github.io/EXP-IP-Scanner/releases.html
 
+      - name: Sync the published release to EXP-owned repository
+        env:
+          EXP_MIRROR_TOKEN: ${{ secrets.EXP_MIRROR_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${EXP_MIRROR_TOKEN:-}" ]]; then
+            echo "EXP_MIRROR_TOKEN is not configured; skipping release sync dispatch."
+            exit 0
+          fi
+          curl --fail-with-body \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $EXP_MIRROR_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${{ github.repository }}/actions/workflows/sync-exp-releases.yml/dispatches \
+            --data '{"ref":"main"}'
+
       - name: Notify EXP work mirror after publishing
         env:
           EXP_MIRROR_TOKEN: ${{ secrets.EXP_MIRROR_TOKEN }}
