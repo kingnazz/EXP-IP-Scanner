@@ -89,7 +89,7 @@ describe("the installed-build check", () => {
     // feed URL is in the portable binary too. Testing for it would reject
     // every portable build, which is the trap this check exists to avoid.
     const portable = Buffer.from(
-      "https://github.com/kingnazz/EXP-IP-Scanner/releases/latest/download/latest.json",
+      "https://github.com/nazar-exp/EXP-IP-Scanner/releases/latest/download/latest.json",
       "latin1",
     );
     expect(updaterMarkersIn(portable)).toEqual([]);
