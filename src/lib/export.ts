@@ -81,6 +81,11 @@ export function buildClipboardTable(rows: readonly DeviceRow[]): string {
   return [headers, ...lines].join("\n");
 }
 
+/** IP addresses only, one per line, for scripts, tickets and network tools. */
+export function buildIpList(rows: readonly DeviceRow[]): string {
+  return rows.map((row) => row.host.ip).join("\n");
+}
+
 /** One device as a readable block, for Copy all details. */
 export function buildDeviceDetails(row: DeviceRow): string {
   const { host } = row;
