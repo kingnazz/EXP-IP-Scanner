@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ExternalLink, Loader2 } from "lucide-react";
 import { BrandLogo } from "./BrandLogo";
 import { Modal } from "../ui/Modal";
 import { api } from "../lib/api";
 import type { RuntimeInfo } from "../types";
 import { APP_VERSION } from "../version";
+import type { UpdateCheckResult } from "../lib/update";
 
 /**
  * About, and the update check for the installed edition.
@@ -16,10 +17,12 @@ import { APP_VERSION } from "../version";
  */
 export function AboutDialog({
   runtime,
+  knownUpdate,
   onClose,
   onError,
 }: {
   runtime: RuntimeInfo | null;
+  knownUpdate: UpdateCheckResult | null;
   onClose: () => void;
   onError: (message: string) => void;
 }) {
@@ -32,6 +35,16 @@ export function AboutDialog({
   const [installing, setInstalling] = useState(false);
 
   const canSelfUpdate = api.native && runtime?.update_mode === "installer";
+
+  useEffect(() => {
+    if (knownUpdate?.available && knownUpdate.version) {
+      setUpdateState({
+        kind: "available",
+        version: knownUpdate.version,
+        installable: knownUpdate.installable === true,
+      });
+    }
+  }, [knownUpdate]);
 
   const check = async () => {
     setChecking(true);
