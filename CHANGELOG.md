@@ -6,6 +6,25 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.1.6
+
+### Added
+
+- Results now surface the hidden row interactions instead of expecting a technician
+  to discover them by accident: **Double-click for details · Right-click for actions**
+  appears as a subtle hint when the toolbar has room.
+- Every device row carries the same interaction hint as a hover tooltip, so the
+  details drawer and quick-action menu remain discoverable even when the toolbar
+  hint is hidden at narrower widths.
+- The search-clear icon now has an explicit tooltip like the other icon-only
+  controls.
+
+### Changed
+
+- The discoverability hint automatically disappears when the results area gets
+  tight, including when the device-details drawer is open, so it does not crowd
+  the working controls.
+
 ## 1.1.5
 
 ### Added
