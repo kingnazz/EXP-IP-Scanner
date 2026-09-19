@@ -6,6 +6,24 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.1.5
+
+### Added
+
+- The installed edition now checks quietly for a newer stable release shortly
+  after startup.
+- When an update is available, the top bar shows a compact **Update vX.Y.Z**
+  indicator with an attention icon. Clicking it opens About directly to the
+  update controls.
+- The About dialog reuses the background check result, so a signed update can
+  go straight to **Install and restart** without making the user check twice.
+
+### Changed
+
+- Startup update-check failures stay silent. Manual **Check now** still reports
+  errors normally.
+- The portable edition remains unchanged and performs no update check.
+
 ## 1.1.4
 
 ### Added
