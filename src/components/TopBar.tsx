@@ -1,4 +1,4 @@
-import { Info, Monitor, Moon, Settings, Sun } from "lucide-react";
+import { CircleAlert, Info, Monitor, Moon, Settings, Sun } from "lucide-react";
 import type { ThemePref } from "../lib/prefs";
 import { BrandLogo } from "./BrandLogo";
 
@@ -27,6 +27,7 @@ export function TopBar({
   onThemeChange,
   onOpenSettings,
   onOpenAbout,
+  updateVersion,
   version,
   edition,
 }: {
@@ -34,6 +35,7 @@ export function TopBar({
   onThemeChange: (next: ThemePref) => void;
   onOpenSettings: () => void;
   onOpenAbout: () => void;
+  updateVersion: string | null;
   version: string;
   edition: string | null;
 }) {
@@ -55,6 +57,19 @@ export function TopBar({
       </div>
 
       <div className="flex-1" />
+
+      {updateVersion ? (
+        <button
+          type="button"
+          className="flex h-7 shrink-0 items-center gap-1.5 rounded-md border border-red-500/35 bg-red-500/10 px-2 text-[11.5px] font-medium text-red-600 transition-colors hover:bg-red-500/15 dark:text-red-400"
+          onClick={onOpenAbout}
+          title={`Version ${updateVersion} is available. Open update controls.`}
+          aria-label={`Update available: version ${updateVersion}`}
+        >
+          <CircleAlert size={13} aria-hidden />
+          Update v{updateVersion}
+        </button>
+      ) : null}
 
       <button
         type="button"
