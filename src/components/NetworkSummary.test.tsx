@@ -17,7 +17,7 @@ describe("network summary copy", () => {
       />,
     );
 
-    screen.getByRole("button", { name: "Copy network summary" }).click();
+    screen.getByRole("button", { name: "Network details to clipboard" }).click();
 
     expect(onCopy).toHaveBeenCalledWith(
       [
@@ -44,7 +44,7 @@ describe("network summary copy", () => {
       />,
     );
 
-    screen.getByRole("button", { name: "Copy network summary" }).click();
+    screen.getByRole("button", { name: "Network details to clipboard" }).click();
     expect(onCopy.mock.calls[0]?.[0]).toContain("Public IP    Off");
   });
 });
