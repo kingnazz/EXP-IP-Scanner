@@ -6,6 +6,22 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.2.0
+
+### Added
+
+- The network summary strip now has a one-click copy action that puts the adapter,
+  local IP, default gateway, scan range with address count, and public IP into
+  one clean block for a ticket, handoff, Teams message, or work note.
+
+### Changed
+
+- The **Ping** action tooltip now correctly describes the four-probe diagnostic
+  introduced in 1.1.7 instead of saying it sends one ping.
+- The website public-IP FAQ now matches the full privacy notice: the lookup
+  service necessarily sees the public address making the request, while EXP IP
+  Scanner sends no identifier, scan results, or discovered-device data.
+
 ## 1.1.7
 
 ### Changed
