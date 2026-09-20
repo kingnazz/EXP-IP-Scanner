@@ -45,7 +45,7 @@
           <p>Checking what address a customer site presents to the internet used to mean leaving the tool. Now it is already there. The lookup runs in the background and never delays startup, falls back to a second service if the first is unreachable, and reports &ldquo;Unavailable&rdquo; rather than failing loudly when neither answers. A refresh button asks again whenever you want.</p>
 
           <h2>It is still the only thing that leaves your machine</h2>
-          <p>The lookup asks a plain-text service what address you appear as and sends nothing about you, your network or your scans. It is named in the application&rsquo;s Content-Security-Policy, so the window cannot reach anywhere else, and it can be switched off in Settings, where the services it uses are named. Scan results are still never uploaded, and there is still no account, telemetry or analytics of any kind.</p>
+          <p>The lookup asks a plain-text service what address you appear as. It sends no scan results, discovered-device data or application identifier; like any HTTPS request, the lookup service can see the public IP making the request. It is named in the application&rsquo;s Content-Security-Policy, so the window cannot reach anywhere else, and it can be switched off in Settings, where the services it uses are named. Scan results are still never uploaded, and there is still no account, telemetry or analytics of any kind.</p>
 
           <h2>EXP branding throughout</h2>
           <p>The EXP IP Scanner logo now appears in the title bar and in About, the accent colour across the interface is the EXP orange this website already used, and the application, executable, installer, window and site icons are all derived from the same artwork rather than drawn separately.</p>
