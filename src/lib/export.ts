@@ -8,6 +8,7 @@
 // Deliberately not a report generator. A technician wants the rows they are
 // looking at, in something they can paste.
 
+import type { LocalNetwork } from "../types";
 import { portWithService } from "./format";
 import type { DeviceRow } from "./live";
 import { cellText } from "./table";
@@ -84,6 +85,31 @@ export function buildClipboardTable(rows: readonly DeviceRow[]): string {
 /** IP addresses only, one per line, for scripts, tickets and network tools. */
 export function buildIpList(rows: readonly DeviceRow[]): string {
   return rows.map((row) => row.host.ip).join("\n");
+}
+
+export interface NetworkSummaryContext {
+  network: LocalNetwork | null;
+  target: string;
+  addressCount: number | null;
+  /** Human-readable public IP state, e.g. an address, Unavailable, or Off. */
+  publicIp: string;
+}
+
+/** A compact network snapshot for pasting into a ticket or work note. */
+export function buildNetworkSummary(ctx: NetworkSummaryContext): string {
+  const range = ctx.target.trim() || "Not set";
+  const rangeWithCount =
+    ctx.addressCount == null
+      ? range
+      : `${range} (${ctx.addressCount} ${ctx.addressCount === 1 ? "address" : "addresses"})`;
+
+  return [
+    `Adapter      ${ctx.network?.interface ?? "Not detected"}`,
+    `Local IP     ${ctx.network?.ip ?? "Unavailable"}`,
+    `Gateway      ${ctx.network?.gateway ?? "None"}`,
+    `Scan range   ${rangeWithCount}`,
+    `Public IP    ${ctx.publicIp}`,
+  ].join("\n");
 }
 
 /** One device as a readable block, for Copy all details. */
