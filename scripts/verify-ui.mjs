@@ -134,7 +134,7 @@ await step("the scan bar names the adapter being scanned", async () => {
 });
 
 await step("the network summary reports where this machine is", async () => {
-  const summary = page.getByLabel("Network summary");
+  const summary = page.getByLabel("Network summary", { exact: true });
   await summary.waitFor({ timeout: 5_000 });
   const text = (await summary.innerText()).replace(/\s+/g, " ");
 
@@ -153,7 +153,7 @@ await step("the public IP arrives without holding anything else up", async () =>
   // The lookup is asynchronous by design. The target was already detected and
   // filled in, two checks ago, while this request was still in flight -- which
   // is the property being verified as much as the address itself.
-  const summary = page.getByLabel("Network summary");
+  const summary = page.getByLabel("Network summary", { exact: true });
   await summary.getByText("203.0.113.42").waitFor({ timeout: 10_000 });
 
   // And it can be asked again.
@@ -165,6 +165,28 @@ await step("the public IP arrives without holding anything else up", async () =>
   return "203.0.113.42, refreshable";
 });
 
+await step("the whole network summary copies as one ticket-ready block", async () => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  const summary = page.getByLabel("Network summary", { exact: true });
+  const copy = summary.getByRole("button", { name: "Copy network summary" });
+  if ((await copy.count()) !== 1) throw new Error("no network-summary copy control");
+
+  await copy.click();
+  await page.waitForTimeout(250);
+  const text = await page.evaluate(() => navigator.clipboard.readText());
+
+  for (const expected of [
+    "Adapter      Ethernet",
+    "Local IP     192.168.50.37",
+    "Gateway      192.168.50.1",
+    "Scan range   192.168.50.0/24 (254 addresses)",
+    "Public IP    203.0.113.42",
+  ]) {
+    if (!text.includes(expected)) throw new Error(`network summary omitted: ${expected}\n${text}`);
+  }
+  return "adapter + local IP + gateway + range + public IP";
+});
+
 await step("the public IP lookup can be turned off, and says so", async () => {
   await page.evaluate(() => {
     const raw = localStorage.getItem("exp-ip-scanner-settings");
@@ -174,7 +196,7 @@ await step("the public IP lookup can be turned off, and says so", async () => {
   });
   await page.reload({ waitUntil: "networkidle" });
 
-  const summary = page.getByLabel("Network summary");
+  const summary = page.getByLabel("Network summary", { exact: true });
   await summary.waitFor({ timeout: 5_000 });
   const text = (await summary.innerText()).replace(/\s+/g, " ");
   // "Off" rather than "Unavailable": nobody asked, so nothing failed.
@@ -547,7 +569,7 @@ await step("Export CSV produces a spreadsheet of the rows on screen", async () =
 
 await step("Copy puts a tab-separated table on the clipboard", async () => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.getByRole("button", { name: /^Copy/ }).first().click();
+  await page.locator(".results-toolbar").getByRole("button", { name: /^Copy/ }).first().click();
   await page.waitForTimeout(300);
   const text = await page.evaluate(() => navigator.clipboard.readText());
   const [header, first] = text.split("\n");
@@ -702,7 +724,7 @@ for (const size of SIZES) {
 
     // The summary gives up its address count as the window narrows, never an
     // address: half of an IP address is not a smaller IP address.
-    const summary = (await page.getByLabel("Network summary").innerText()).replace(/\s+/g, " ");
+    const summary = (await page.getByLabel("Network summary", { exact: true }).innerText()).replace(/\s+/g, " ");
     for (const address of ["192.168.50.37", "192.168.50.1", "203.0.113.42"]) {
       if (!summary.includes(address)) throw new Error(`${address} is cut off: ${summary}`);
     }

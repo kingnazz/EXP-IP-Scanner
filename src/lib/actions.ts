@@ -120,7 +120,7 @@ export function deviceActions(host: HostResult, ctx: ActionContext = {}): Device
       label: "Ping",
       group: "diagnostics",
       available: true,
-      hint: "Ping once and show the result in the details panel",
+      hint: "Send four pings and show loss and latency statistics in the details panel",
     },
     {
       id: "ping-console",

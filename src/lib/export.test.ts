@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ALL_ROWS,
+  ETHERNET,
   SILENT_PRINTER,
   WINDOWS_SERVER,
   host,
@@ -11,6 +12,7 @@ import {
   buildCsv,
   buildDeviceDetails,
   buildIpList,
+  buildNetworkSummary,
   csvFilename,
 } from "./export";
 
@@ -122,6 +124,41 @@ describe("buildIpList", () => {
 
   it("returns an empty string for no rows", () => {
     expect(buildIpList([])).toBe("");
+  });
+});
+
+describe("buildNetworkSummary", () => {
+  it("copies the five network facts a technician puts in a ticket", () => {
+    expect(
+      buildNetworkSummary({
+        network: ETHERNET,
+        target: "192.168.50.0/24",
+        addressCount: 254,
+        publicIp: "203.0.113.44",
+      }),
+    ).toBe(
+      [
+        "Adapter      Ethernet",
+        "Local IP     192.168.50.37",
+        "Gateway      192.168.50.1",
+        "Scan range   192.168.50.0/24 (254 addresses)",
+        "Public IP    203.0.113.44",
+      ].join("\n"),
+    );
+  });
+
+  it("stays useful when adapter or public-IP data is unavailable", () => {
+    const text = buildNetworkSummary({
+      network: null,
+      target: "10.0.0.5",
+      addressCount: 1,
+      publicIp: "Unavailable",
+    });
+    expect(text).toContain("Adapter      Not detected");
+    expect(text).toContain("Local IP     Unavailable");
+    expect(text).toContain("Gateway      None");
+    expect(text).toContain("Scan range   10.0.0.5 (1 address)");
+    expect(text).toContain("Public IP    Unavailable");
   });
 });
 

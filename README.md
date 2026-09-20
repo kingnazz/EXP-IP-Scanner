@@ -20,8 +20,8 @@ file share, SSH or a device's web interface straight from the results.
   because sometimes the VPN really is what you meant.
 - **Says where you are standing.** One line above the results: the adapter,
   this machine's address, the default gateway, the range about to be swept and
-  the public IP address the site appears as from outside. Click any of them to
-  copy it.
+  the public IP address the site appears as from outside. Copy an individual
+  address directly, or copy the whole network summary as one ticket-ready block.
 - **Finds the quiet devices.** ICMP, TCP and the ARP cache together, with a
   second ARP pass, so printers, cameras and hardened workstations that ignore
   ping still appear — and appear again on the next scan rather than flickering
@@ -113,7 +113,7 @@ the one that ships.
 
 ```bash
 npm run typecheck        # TypeScript, strict
-npm test                 # 210 frontend and packaging tests
+npm test                 # 223 frontend and packaging tests
 npm run build            # production frontend build
 
 cd src-tauri
@@ -148,11 +148,11 @@ cd src-tauri
 CARGO_TARGET_DIR=target-portable cargo build --release \
   --target x86_64-pc-windows-msvc --no-default-features --features portable,custom-protocol
 cd ..
-node scripts/package-portable.mjs --version 1.1.7 --target x86_64-pc-windows-msvc \
+node scripts/package-portable.mjs --version 1.2.0 --target x86_64-pc-windows-msvc \
   --binary src-tauri/target-portable/x86_64-pc-windows-msvc/release/exp-ip-scanner.exe \
   --out artifacts
-node scripts/verify-portable-zip.mjs --zip artifacts/EXP-IP-Scanner_1.1.7_windows-x64-portable.zip \
-  --architecture x64 --version 1.1.7
+node scripts/verify-portable-zip.mjs --zip artifacts/EXP-IP-Scanner_1.2.0_windows-x64-portable.zip \
+  --architecture x64 --version 1.2.0
 ```
 
 ### Regenerating assets

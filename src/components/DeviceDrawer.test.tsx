@@ -98,7 +98,7 @@ describe("a device that answered nothing", () => {
 
   it("still offers the diagnostics, which need only an address", () => {
     renderDrawer(SILENT_PRINTER);
-    expect(screen.getByTitle(/Ping once/).hasAttribute("disabled")).toBe(false);
+    expect(screen.getByTitle(/Send four pings/).hasAttribute("disabled")).toBe(false);
     expect(screen.getByTitle(/continuous ping/).hasAttribute("disabled")).toBe(false);
     expect(screen.getByTitle(/traceroute/).hasAttribute("disabled")).toBe(false);
   });
