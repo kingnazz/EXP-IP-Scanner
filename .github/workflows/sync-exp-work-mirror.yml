@@ -1,8 +1,9 @@
 name: Deploy EXP work mirror
 
 # Source-side automation pushes main + tags into this repository, then sends a
-# repository_dispatch. The work repo only needs to build and deploy its own
-# Pages site using its native GitHub Pages permissions.
+# repository_dispatch. The work repo builds and deploys its own Pages site using
+# its native GitHub Pages permissions. Product screenshots are captured from
+# the current mirrored UI immediately before deployment so they cannot drift.
 on:
   repository_dispatch:
     types: [sync_from_personal]
@@ -31,6 +32,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+
+      - name: Capture current product screenshots
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build
+          npm run preview > /tmp/exp-preview.log 2>&1 &
+          npx --yes wait-on http://localhost:4173/ --timeout 60000
+          npm i --no-save playwright
+          npx --yes playwright install --with-deps chromium
+          python3 -m pip install --user Pillow
+          npm run screenshots
 
       - name: Build the Pages artifact
         run: |
