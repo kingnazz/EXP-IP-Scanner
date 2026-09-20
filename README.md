@@ -113,7 +113,7 @@ the one that ships.
 
 ```bash
 npm run typecheck        # TypeScript, strict
-npm test                 # 210 frontend and packaging tests
+npm test                 # 223 frontend and packaging tests
 npm run build            # production frontend build
 
 cd src-tauri
