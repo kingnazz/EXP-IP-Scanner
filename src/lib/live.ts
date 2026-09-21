@@ -104,7 +104,7 @@ export function rowName(row: DeviceRow): string {
  *
  * Both are real devices. The difference is worth showing: a device with no
  * latency ignored every probe, which is normal for a printer or a hardened
- * workstation and tells a technician why they cannot ping it.
+ * workstation and tells a consultant why they cannot ping it.
  */
 export function isResponding(row: DeviceRow): boolean {
   return row.host.latency_ms != null;
