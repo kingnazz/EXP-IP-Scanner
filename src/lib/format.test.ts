@@ -129,7 +129,7 @@ describe("action ports", () => {
 });
 
 describe("parsePorts", () => {
-  it("accepts the forms a technician types", () => {
+  it("accepts the forms a consultant types", () => {
     expect(parsePorts("443").ports).toEqual([443]);
     expect(parsePorts("22,80,443").ports).toEqual([22, 80, 443]);
     expect(parsePorts("22 80 443").ports).toEqual([22, 80, 443]);
@@ -159,7 +159,7 @@ describe("parsePorts", () => {
   it("enforces the same cap the backend does, in the same words", () => {
     expect(parsePorts("1-1024").ports).toHaveLength(1024);
     // The backend's MAX_PORTS. Both sides say 1024 and phrase it identically,
-    // so a technician never sees two versions of the same rule.
+    // so a consultant never sees two versions of the same rule.
     expect(parsePorts("1-1024,3000").error).toBe(
       "More than 1024 ports selected. Use a shorter port list.",
     );
