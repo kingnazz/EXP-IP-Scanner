@@ -214,7 +214,7 @@ describe("the defaults themselves", () => {
     expect(DEFAULT_SETTINGS.theme).toBe("system");
     expect(DEFAULT_SETTINGS.resolveHostnames).toBe(true);
     expect(DEFAULT_SETTINGS.scanServices).toBe(true);
-    // Empty means the backend's default technician port set.
+    // Empty means the backend's default consultant port set.
     expect(DEFAULT_SETTINGS.portSpec).toBe("");
   });
 });
