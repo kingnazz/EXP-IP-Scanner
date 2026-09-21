@@ -7,7 +7,7 @@ import { formatCount } from "../lib/format";
  *
  * Compact and centred rather than a giant empty grid with column headings over
  * nothing. It states what is about to be scanned and how many addresses that
- * is, so the first thing a technician reads confirms the tool got the network
+ * is, so the first thing a consultant reads confirms the tool got the network
  * right -- and then gives them the button.
  */
 export function ReadyState({
