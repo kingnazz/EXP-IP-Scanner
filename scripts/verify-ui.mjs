@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Drive the built interface in a browser and check the things a technician
+// Drive the built interface in a browser and check the things a consultant
 // depends on.
 //
 // The unit tests cover the logic; this covers the assembled application, using
@@ -16,7 +16,7 @@
 import { chromium } from "playwright";
 
 const BASE = process.env.EXP_URL ?? "http://localhost:4173";
-/** Window sizes a technician's laptop actually reports. */
+/** Window sizes a consultant's laptop actually reports. */
 const SIZES = [
   { width: 1180, height: 780, label: "default window" },
   { width: 1920, height: 1080, label: "desktop" },
@@ -313,7 +313,7 @@ await step("the completion summary reports devices, addresses and duration", asy
   const match = text.match(/(\d+) devices found[\s\S]{0,80}?(\d+) of (\d+) addresses scanned/);
   if (!match) throw new Error(`no completion summary: ${text.slice(-200)}`);
   if (!/\d+(\.\d+)? sec|\d+ ms/.test(text)) throw new Error("no duration in the summary");
-  // And no modal interrupting the technician.
+  // And no modal interrupting the consultant.
   if ((await page.getByRole("dialog").count()) > 0) throw new Error("a dialog opened on completion");
   return match[0].replace(/\s+/g, " ");
 });
