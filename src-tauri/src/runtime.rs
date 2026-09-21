@@ -42,6 +42,7 @@ pub const BACKSTAGE_PROFILE_DIR: &str = "backstage-webview";
 /// DirectComposition surfaces are a known weak point. Tauri replaces WRY\'s
 /// default browser arguments when additional_browser_args is used, so the
 /// three WRY defaults are repeated here intentionally.
+#[cfg(target_os = "windows")]
 pub const BACKSTAGE_WEBVIEW_ARGS: &str =
     "--disable-gpu-compositing --disable-direct-composition \\\n     --disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection";
 
