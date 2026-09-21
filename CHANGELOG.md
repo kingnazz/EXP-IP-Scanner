@@ -38,7 +38,7 @@ This project uses [semantic versioning](https://semver.org/).
 
 ### Added
 
-- Results now surface the hidden row interactions instead of expecting a technician
+- Results now surface the hidden row interactions instead of expecting a consultant
   to discover them by accident: **Double-click for details · Right-click for actions**
   appears as a subtle hint when the toolbar has room.
 - Every device row carries the same interaction hint as a hover tooltip, so the
@@ -149,7 +149,7 @@ This project uses [semantic versioning](https://semver.org/).
 
 ### Notes
 
-- Update checking still runs only when the technician presses **Check now**.
+- Update checking still runs only when the consultant presses **Check now**.
   It does not run at startup or in the background.
 
 ## 1.1.0
@@ -163,7 +163,7 @@ This project uses [semantic versioning](https://semver.org/).
   adapter the route leaves by, so a laptop with a VPN up shows the tunnel's
   gateway on the tunnel and the wired one on the NIC. An adapter with no default
   route says so rather than being given an invented one.
-- Public IP lookup, so a technician on site can read the address the network
+- Public IP lookup, so a consultant on site can read the address the network
   appears as from outside without opening a browser. It runs asynchronously and
   never delays startup, falls back to a second service, says "Unavailable"
   rather than failing loudly when neither can be reached, and can be looked up
