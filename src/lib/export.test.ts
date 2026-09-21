@@ -41,7 +41,7 @@ describe("buildCsv", () => {
     );
   });
 
-  it("carries every field a technician needs, and the scan context on each row", () => {
+  it("carries every field a consultant needs, and the scan context on each row", () => {
     const server = lines.find((l) => l.startsWith("192.168.50.10,"));
     expect(server).toBeDefined();
     expect(server).toContain("dc01.exp.local");
@@ -128,7 +128,7 @@ describe("buildIpList", () => {
 });
 
 describe("buildNetworkSummary", () => {
-  it("copies the five network facts a technician puts in a ticket", () => {
+  it("copies the five network facts a consultant puts in a ticket", () => {
     expect(
       buildNetworkSummary({
         network: ETHERNET,
