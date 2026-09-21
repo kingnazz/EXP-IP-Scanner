@@ -3,6 +3,8 @@
 // from the same scanner modules as the desktop app, without initializing or
 // linking through the Tauri application library.
 
+#[path = "../backstage.rs"]
+mod backstage;
 #[path = "../ipparse.rs"]
 mod ipparse;
 #[path = "../netinfo.rs"]
@@ -13,8 +15,6 @@ mod oui;
 mod ports;
 #[path = "../scanner.rs"]
 mod scanner;
-#[path = "../backstage.rs"]
-mod backstage;
 
 fn main() {
     std::process::exit(backstage::run());
