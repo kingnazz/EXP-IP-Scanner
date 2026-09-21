@@ -30,6 +30,64 @@ use serde::Serialize;
 /// run side by side without sharing preferences.
 pub const PORTABLE_PROFILE_DIR: &str = "portable-webview";
 
+/// A separate WebView2 profile for ScreenConnect Backstage / Session 0 style
+/// launches. Backstage commonly runs under SYSTEM or the Services session, and
+/// keeping its browser data separate avoids both permission problems and
+/// WebView2 option conflicts with an ordinary interactive launch.
+pub const BACKSTAGE_PROFILE_DIR: &str = "backstage-webview";
+
+/// Browser flags used only for Backstage-compatible launches.
+///
+/// ScreenConnect Backstage uses a custom shell where browser-style GPU /
+/// DirectComposition surfaces are a known weak point. Tauri replaces WRY\'s
+/// default browser arguments when additional_browser_args is used, so the
+/// three WRY defaults are repeated here intentionally.
+pub const BACKSTAGE_WEBVIEW_ARGS: &str =
+    "--disable-gpu-compositing --disable-direct-composition \\\n     --disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection";
+
+fn truthy(value: &str) -> bool {
+    matches!(
+        value.trim().to_ascii_lowercase().as_str(),
+        "1" | "true" | "yes" | "on"
+    )
+}
+
+fn looks_like_backstage(username: &str, session_name: &str) -> bool {
+    username.eq_ignore_ascii_case("SYSTEM")
+        || session_name.eq_ignore_ascii_case("Services")
+}
+
+/// Whether this process should use the Backstage-safe WebView2 path.
+///
+/// ScreenConnect Backstage normally presents a SYSTEM / Services-style
+/// environment. The explicit command-line and environment overrides are
+/// deliberate escape hatches for ScreenConnect builds that create a separate
+/// logon session instead.
+pub fn backstage_compatibility_requested() -> bool {
+    if !cfg!(target_os = "windows") {
+        return false;
+    }
+
+    if std::env::args_os()
+        .skip(1)
+        .any(|arg| arg.to_string_lossy().eq_ignore_ascii_case("--backstage"))
+    {
+        return true;
+    }
+
+    if std::env::var("EXP_IP_SCANNER_BACKSTAGE")
+        .ok()
+        .as_deref()
+        .is_some_and(truthy)
+    {
+        return true;
+    }
+
+    let username = std::env::var("USERNAME").unwrap_or_default();
+    let session_name = std::env::var("SESSIONNAME").unwrap_or_default();
+    looks_like_backstage(&username, &session_name)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Edition {
@@ -128,10 +186,14 @@ pub struct RuntimeInfo {
 /// The installed edition returns `None` and keeps whatever Tauri would have
 /// chosen, so nothing about it changes. The portable edition names a directory
 /// under the per-user application data folder it was handed.
-pub fn webview_profile_dir(local_data_dir: &Path) -> Option<PathBuf> {
-    Edition::current()
-        .is_portable()
-        .then(|| local_data_dir.join(PORTABLE_PROFILE_DIR))
+pub fn webview_profile_dir(local_data_dir: &Path, backstage_compat: bool) -> Option<PathBuf> {
+    if backstage_compat {
+        Some(local_data_dir.join(BACKSTAGE_PROFILE_DIR))
+    } else {
+        Edition::current()
+            .is_portable()
+            .then(|| local_data_dir.join(PORTABLE_PROFILE_DIR))
+    }
 }
 
 pub fn info() -> RuntimeInfo {
@@ -172,9 +234,9 @@ mod tests {
     fn only_the_portable_edition_names_its_own_profile_directory() {
         let root = Path::new("/local/app/data");
         match Edition::current() {
-            Edition::Installed => assert_eq!(webview_profile_dir(root), None),
+            Edition::Installed => assert_eq!(webview_profile_dir(root, false), None),
             Edition::Portable => assert_eq!(
-                webview_profile_dir(root),
+                webview_profile_dir(root, false),
                 Some(root.join(PORTABLE_PROFILE_DIR))
             ),
         }
@@ -184,11 +246,38 @@ mod tests {
     fn a_portable_profile_is_never_placed_beside_the_executable() {
         // The whole point: the extracted folder stays read-only-safe.
         let root = Path::new("/local/app/data");
-        if let Some(profile) = webview_profile_dir(root) {
+        if let Some(profile) = webview_profile_dir(root, false) {
             assert!(
                 profile.starts_with(root),
                 "{profile:?} escaped the data root"
             );
+        }
+    }
+
+    #[test]
+    fn backstage_environment_detection_catches_screenconnect_style_launches() {
+        assert!(looks_like_backstage("SYSTEM", "Services"));
+        assert!(looks_like_backstage("SYSTEM", "Console"));
+        assert!(looks_like_backstage("consultant", "Services"));
+        assert!(!looks_like_backstage("consultant", "Console"));
+    }
+
+    #[test]
+    fn backstage_uses_an_isolated_webview_profile() {
+        let root = Path::new("/local/app/data");
+        assert_eq!(
+            webview_profile_dir(root, true),
+            Some(root.join(BACKSTAGE_PROFILE_DIR))
+        );
+    }
+
+    #[test]
+    fn truthy_backstage_override_values_are_deliberately_narrow() {
+        for value in ["1", "true", "TRUE", "yes", "on"] {
+            assert!(truthy(value), "{value}");
+        }
+        for value in ["", "0", "false", "no", "anything"] {
+            assert!(!truthy(value), "{value}");
         }
     }
 
