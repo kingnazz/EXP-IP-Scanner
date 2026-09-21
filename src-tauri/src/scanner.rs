@@ -4,7 +4,7 @@
 //! Everything here is read-only discovery. There is no exploit, brute-force,
 //! credential or evasion logic in this module and none belongs in it: the
 //! product is a discovery and administration utility for networks the
-//! technician is authorised to inspect.
+//! consultant is authorised to inspect.
 //!
 //! # What was reused from ArcScan, and why
 //!
@@ -227,7 +227,7 @@ impl ScanLimits {
 ///
 /// Turning service detection off must not turn the scanner into a ping sweep:
 /// plenty of Windows servers, printers and appliances drop ICMP but answer on
-/// one of these, and a technician who cannot see them has been failed by a
+/// one of these, and a consultant who cannot see them has been failed by a
 /// setting. So a handful of near-universal ports are still probed for liveness
 /// and for ARP priming, and whichever of them are open are reported honestly.
 pub const LIVENESS_PORTS: [u16; 5] = [22, 80, 443, 445, 3389];
@@ -248,7 +248,7 @@ pub const WARN_WORKLOAD: u64 = 250_000;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScanOptions {
     pub target: String,
-    /// Empty means the default technician service set.
+    /// Empty means the default consultant service set.
     #[serde(default)]
     pub ports: Vec<u16>,
     #[serde(default = "default_timeout")]
@@ -284,7 +284,7 @@ impl ScanOptions {
     /// A scan of `target` with every default.
     ///
     /// A test helper: real requests arrive fully populated from the interface,
-    /// which always sends the technician's current settings.
+    /// which always sends the consultant's current settings.
     #[cfg(test)]
     pub fn for_target(target: impl Into<String>) -> Self {
         let d = ScanLimits::default();
@@ -411,7 +411,7 @@ pub struct ScanResult {
     /// Addresses actually probed. Lower than `scanned` for a cancelled scan.
     pub probed: usize,
     pub hosts: Vec<HostResult>,
-    /// True when the technician stopped the scan before it finished.
+    /// True when the consultant stopped the scan before it finished.
     pub cancelled: bool,
     /// The port set the scan actually probed, so an export says what it covered.
     pub ports: Vec<u16>,
@@ -863,7 +863,7 @@ pub async fn run(
     for (ip, probe) in probe_results {
         let mut host = HostResult::new(ip, &probe, own_ips.contains(&ip), &now);
         // Never label a device with a proxy MAC: it belongs to the router, not
-        // to the device, and would send a technician to the wrong place.
+        // to the device, and would send a consultant to the wrong place.
         host.mac = arp.get(&ip).filter(|_| has_real_mac(&ip)).cloned();
         host.vendor = host.mac.as_deref().and_then(oui::lookup);
         host.hostname = hostnames.get(&ip).cloned();
@@ -906,7 +906,7 @@ pub async fn run(
 /// Each task already streamed its own update, so this only gathers the names
 /// for the finished result. A task that panicked or was cancelled contributes
 /// nothing rather than failing the scan: a missing hostname is a blank cell,
-/// not an error worth showing a technician.
+/// not an error worth showing a consultant.
 async fn collect_hostnames(tasks: DnsTasks) -> HashMap<Ipv4Addr, String> {
     let handles: Vec<_> = match tasks.lock() {
         Ok(mut guard) => std::mem::take(&mut *guard),
@@ -1037,7 +1037,7 @@ impl Probe {
 ///
 /// EXP IP Scanner is a GUI app, so every child process it spawns -- `ping`,
 /// `arp`, the launch helpers -- must carry CREATE_NO_WINDOW, or a /24 scan
-/// would flash hundreds of console windows across the technician's desktop.
+/// would flash hundreds of console windows across the consultant's desktop.
 pub fn quiet_command(program: &str) -> tokio::process::Command {
     #[allow(unused_mut)]
     let mut std_cmd = std::process::Command::new(program);
@@ -1165,7 +1165,7 @@ enum PortState {
 /// is Linux/Unix/macOS, ~128 is Windows, above that is usually network gear.
 /// Presented as a hint and never as a fact, because a single TTL is genuinely
 /// not enough to identify an operating system and pretending otherwise would
-/// send a technician down the wrong path.
+/// send a consultant down the wrong path.
 fn os_hint_from_ttl(ttl: u8) -> Option<String> {
     let label = if (33..=64).contains(&ttl) {
         "Linux / Unix / macOS"
@@ -1240,7 +1240,7 @@ async fn tcp_probe(
 /// ICMP echo through the OS `ping` binary.
 ///
 /// Deliberately not a raw socket: that would need administrator rights, and a
-/// scanner a technician cannot run on a locked-down laptop is not a scanner.
+/// scanner a consultant cannot run on a locked-down laptop is not a scanner.
 /// The reply is captured so the TTL and the reported round-trip time can be
 /// read. Requiring a `ttl=` marker also filters out the Windows quirk where
 /// `ping` exits 0 on a "Destination host unreachable" reply from a router.
@@ -1314,7 +1314,7 @@ async fn icmp_ping(
 /// One ICMP echo for the Ping action, outside any scan.
 ///
 /// Shares `icmp_ping` rather than shelling out separately, so the latency a
-/// technician sees from the Ping button is measured exactly the way the Latency
+/// consultant sees from the Ping button is measured exactly the way the Latency
 /// column is. Returns the round-trip time and the TTL, or `None` for no reply.
 pub async fn ping_for_action(ip: Ipv4Addr, timeout: Duration) -> Option<(f64, Option<u8>)> {
     // Its own single-permit semaphore: an action ping is one process and must
@@ -1762,7 +1762,7 @@ mod tests {
     fn turning_service_detection_off_still_probes_for_liveness() {
         let mut opts = ScanOptions::for_target("192.168.1.0/24");
         opts.scan_services = false;
-        // Even a port list the technician left behind is ignored, so the
+        // Even a port list the consultant left behind is ignored, so the
         // setting means what it says.
         opts.ports = (1..=500).collect();
         let plan = plan(&opts).unwrap();
