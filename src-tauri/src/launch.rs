@@ -1,4 +1,4 @@
-//! Technician actions: the commands that take a technician from a row in the
+//! Consultant actions: the commands that take a consultant from a row in the
 //! table to the device itself.
 //!
 //! This is the module that decides what a right-click can do, so it is also the
@@ -67,7 +67,7 @@ pub fn open_smb(app: &AppHandle, ip: &str) -> Result<(), String> {
     {
         let _ = app;
         // File Explorer is the native handler for a UNC path. Not launched
-        // through `quiet_command`: Explorer is a window the technician wants.
+        // through `quiet_command`: Explorer is a window the consultant wants.
         std::process::Command::new("explorer.exe")
             .arg(format!("\\\\{ip}"))
             .spawn()
@@ -128,7 +128,7 @@ pub fn open_rdp(app: &AppHandle, ip: &str) -> Result<(), String> {
 /// Open an interactive SSH session.
 ///
 /// The one action that deliberately keeps its console window: an SSH session is
-/// something the technician types into, so suppressing the window would launch
+/// something the consultant types into, so suppressing the window would launch
 /// a process nobody can use.
 pub fn open_ssh(app: &AppHandle, ip: &str) -> Result<(), String> {
     let ip = validated_ipv4(ip)?;
@@ -189,7 +189,7 @@ pub fn open_vnc(app: &AppHandle, ip: &str, port: Option<u16>) -> Result<(), Stri
 
 /// Open a console window running a continuous ping.
 ///
-/// The console is the point: a technician watching a device reboot wants the
+/// The console is the point: a consultant watching a device reboot wants the
 /// replies scrolling in front of them, and wants to stop it with Ctrl+C.
 pub fn open_ping_console(ip: &str) -> Result<(), String> {
     let ip = validated_ipv4(ip)?;
@@ -256,7 +256,7 @@ fn open_in_terminal(argv: &[&str]) -> Result<(), String> {
 
 /// What an in-app ping found.
 ///
-/// Shown in the details panel rather than a console, so a technician can check
+/// Shown in the details panel rather than a console, so a consultant can check
 /// one device without leaving the results table.
 #[derive(Debug, Clone, Serialize)]
 pub struct PingOutcome {
@@ -272,7 +272,7 @@ pub struct PingOutcome {
 ///
 /// Four probes match the familiar Windows ping default and avoid treating one
 /// lucky reply as the whole story. The separate command-prompt action remains
-/// continuous for technicians watching a device reboot.
+/// continuous for consultants watching a device reboot.
 const QUICK_PING_COUNT: usize = 4;
 
 pub async fn ping_quick(ip: &str, timeout_ms: u64) -> Result<PingOutcome, String> {
