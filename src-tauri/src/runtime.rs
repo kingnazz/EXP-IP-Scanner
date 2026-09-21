@@ -2,11 +2,11 @@
 //!
 //! The edition is an explicit Cargo feature, never inferred at runtime from the
 //! folder the executable happens to sit in. Inferring it would make the
-//! location of a technician's preferences depend on where they dropped the
+//! location of a consultant's preferences depend on where they dropped the
 //! file, which is a silent behaviour change waiting to happen.
 //!
 //! EXP IP Scanner has no database. Scan results live in memory for the life of
-//! the window and are written to disk only when a technician explicitly
+//! the window and are written to disk only when a consultant explicitly
 //! exports a CSV. That is deliberate: the same copy of this tool is pointed at
 //! many unrelated customer networks, and one customer's device list has no
 //! business persisting into the next site visit. It is also what makes the
