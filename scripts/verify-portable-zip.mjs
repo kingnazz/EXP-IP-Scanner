@@ -15,7 +15,14 @@
 
 import { readFileSync } from "node:fs";
 import { inflateRawSync } from "node:zlib";
-import { EXPECTED_PAYLOAD, EXE_NAME, TARGETS, peMachine, updaterMarkersIn } from "./package-portable.mjs";
+import {
+  BACKSTAGE_EXE_NAME,
+  EXPECTED_PAYLOAD,
+  EXE_NAME,
+  TARGETS,
+  peMachine,
+  updaterMarkersIn,
+} from "./package-portable.mjs";
 
 const args = process.argv.slice(2);
 const flag = (name) => {
@@ -117,26 +124,31 @@ check("it holds exactly the expected payload, flat", () => {
   return names.join(", ");
 });
 
-check("the executable is a Windows binary for the right architecture", () => {
-  const exe = entries.find((e) => e.name === EXE_NAME);
-  if (!exe) throw new Error(`${EXE_NAME} is missing`);
-  const machine = peMachine(exe.contents, EXE_NAME);
+check("both executables are Windows binaries for the right architecture", () => {
   const spec = Object.values(TARGETS).find((t) => t.machineName === architecture);
   if (!spec) throw new Error(`unknown architecture "${architecture}"`);
-  if (machine !== spec.machine) {
-    const found = Object.values(TARGETS).find((t) => t.machine === machine);
-    throw new Error(
-      `the ZIP is named ${architecture} but holds a ${found ? found.machineName : `0x${machine.toString(16)}`} binary`,
-    );
+
+  for (const name of [EXE_NAME, BACKSTAGE_EXE_NAME]) {
+    const exe = entries.find((e) => e.name === name);
+    if (!exe) throw new Error(`${name} is missing`);
+    const machine = peMachine(exe.contents, name);
+    if (machine !== spec.machine) {
+      const found = Object.values(TARGETS).find((t) => t.machine === machine);
+      throw new Error(
+        `${name} is ${found ? found.machineName : `0x${machine.toString(16)}`}, expected ${architecture}`,
+      );
+    }
   }
-  return `${architecture} (PE machine 0x${machine.toString(16)})`;
+  return `${architecture} desktop + Backstage binaries`;
 });
 
-check("the executable is the portable build, with no updater linked", () => {
-  const exe = entries.find((e) => e.name === EXE_NAME);
-  const markers = updaterMarkersIn(exe.contents);
-  if (markers.length > 0) {
-    throw new Error(`it contains updater strings (${markers.join(", ")})`);
+check("neither executable contains the installer updater", () => {
+  for (const name of [EXE_NAME, BACKSTAGE_EXE_NAME]) {
+    const exe = entries.find((e) => e.name === name);
+    const markers = updaterMarkersIn(exe.contents);
+    if (markers.length > 0) {
+      throw new Error(`${name} contains updater strings (${markers.join(", ")})`);
+    }
   }
   return "no updater strings present";
 });
@@ -161,7 +173,9 @@ check("nothing that belongs to the installer came along", () => {
   // The mistakes this catches: an NSIS setup, an updater manifest or its
   // signature, or debug symbols, swept up by a wildcard copy.
   const forbidden = /\.(msi|exe\.sig|sig|pdb|nsis\.zip)$|^latest\.json$/i;
-  const extra = entries.map((e) => e.name).filter((n) => n !== EXE_NAME && forbidden.test(n));
+  const extra = entries
+    .map((e) => e.name)
+    .filter((n) => ![EXE_NAME, BACKSTAGE_EXE_NAME].includes(n) && forbidden.test(n));
   if (extra.length > 0) throw new Error(`the archive contains ${extra.join(", ")}`);
   return "installer artifacts absent";
 });
