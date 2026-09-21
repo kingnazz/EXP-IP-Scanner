@@ -1,3 +1,4 @@
+mod backstage;
 mod commands;
 mod ipparse;
 mod launch;
@@ -19,6 +20,13 @@ compile_error!(
     "the `portable` and `installed-updater` features are mutually exclusive: build the portable \
      edition with --no-default-features --features portable"
 );
+
+/// Run the console companion used in ScreenConnect Backstage and other
+/// limited Windows shells. It shares the same scanner as the desktop app and
+/// deliberately initializes no Tauri window or WebView.
+pub fn run_backstage() -> i32 {
+    backstage::run()
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
