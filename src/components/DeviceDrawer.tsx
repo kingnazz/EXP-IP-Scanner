@@ -10,7 +10,7 @@ import { DetailRow, NoValue, SectionTitle } from "../ui/primitives";
  * The device details panel.
  *
  * A drawer over the right-hand side rather than a page, because leaving the
- * results to look at one device would lose the technician's place in a scan
+ * results to look at one device would lose the consultant's place in a scan
  * that may still be running. The scan keeps going and the table keeps
  * updating behind it.
  */
