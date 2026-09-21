@@ -4,11 +4,11 @@
 //! address and netmask become the network to sweep, with no typing.
 //!
 //! ArcScan's `netinfo` enumerated interfaces and sorted them by address family
-//! and prefix. A technician's laptop needs more than that. It routinely carries
+//! and prefix. A consultant's laptop needs more than that. It routinely carries
 //! a Hyper-V default switch, a Docker bridge, a VMware host-only adapter, a VPN
 //! client and two physical NICs at once, and only one of those is the customer
 //! network. So interfaces are classified and scored here, the best one becomes
-//! the default, and none of them are hidden -- a technician sometimes really
+//! the default, and none of them are hidden -- a consultant sometimes really
 //! does mean the VPN adapter or the USB NIC, and a tool that silently removed
 //! it would be worse than one that merely ranked it lower.
 
@@ -84,7 +84,7 @@ pub struct LocalNetwork {
 /// sensible default target, so the containing /24 is suggested instead.
 ///
 /// A /20 is 4,094 addresses and still a reasonable sweep. A flat /16 or /12 --
-/// which plenty of corporate networks are -- is not what a technician means by
+/// which plenty of corporate networks are -- is not what a consultant means by
 /// "scan this network", and making them wait to find that out would be a poor
 /// first impression. The real prefix is still shown, and the target field is
 /// editable, so nothing is taken away.
@@ -175,7 +175,7 @@ pub fn classify(name: &str) -> InterfaceKind {
 /// How good a default scan target an interface is. Higher wins.
 ///
 /// Kind dominates, because a wired or wireless NIC holding a private address is
-/// the customer network in almost every case a technician meets. A private
+/// the customer network in almost every case a consultant meets. A private
 /// address is worth more than a public one for the same reason: EXP IP Scanner
 /// is pointed at LANs.
 fn score(kind: InterfaceKind, ip: Ipv4Addr, prefix: u8) -> i32 {
@@ -272,7 +272,7 @@ pub fn enumerate() -> Vec<LocalNetwork> {
     }
 
     // Highest score first; ties broken by adapter name so the order a
-    // technician sees does not shuffle between launches.
+    // consultant sees does not shuffle between launches.
     nets.sort_by(|a, b| {
         b.0.cmp(&a.0)
             .then_with(|| a.1.interface.cmp(&b.1.interface))
@@ -476,7 +476,7 @@ mod tests {
     }
 
     #[test]
-    fn classifies_the_adapters_a_technician_laptop_actually_has() {
+    fn classifies_the_adapters_a_consultant_laptop_actually_has() {
         assert_eq!(classify("Ethernet"), InterfaceKind::Ethernet);
         assert_eq!(classify("Ethernet 2"), InterfaceKind::Ethernet);
         assert_eq!(classify("Local Area Connection"), InterfaceKind::Ethernet);
@@ -530,7 +530,7 @@ mod tests {
         ]);
         assert_eq!(ranked[0].interface, "Ethernet");
         assert!(ranked[0].recommended);
-        // Nothing was removed: the technician can still pick the virtual ones.
+        // Nothing was removed: the consultant can still pick the virtual ones.
         assert_eq!(ranked.len(), 4);
         assert!(ranked[1..].iter().all(|n| !n.recommended));
     }
@@ -719,7 +719,7 @@ Persistent Routes:
         assert_eq!(nets[0].gateway.as_deref(), Some("192.168.1.1"));
         // The VPN's own gateway, not the wired one: a laptop on a tunnel has
         // two default routes, and handing the first to everybody would put the
-        // wrong device in front of the technician.
+        // wrong device in front of the consultant.
         assert_eq!(nets[1].gateway.as_deref(), Some("10.99.0.1"));
         // No default route leaves by the Hyper-V switch, and none is invented.
         assert_eq!(nets[2].gateway, None);
