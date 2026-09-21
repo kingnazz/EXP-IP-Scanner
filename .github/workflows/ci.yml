@@ -226,12 +226,23 @@ jobs:
           --no-default-features
           --features portable,custom-protocol
 
+      - name: Build the Backstage console companion
+        working-directory: src-tauri
+        env:
+          CARGO_TARGET_DIR: target-portable
+        run: >
+          cargo build --release
+          --target x86_64-pc-windows-msvc
+          --no-default-features
+          --bin exp-ip-scanner-backstage
+
       - name: Package the portable ZIP
         run: >
           node scripts/package-portable.mjs
           --version ${{ steps.version.outputs.value }}
           --target x86_64-pc-windows-msvc
           --binary src-tauri/target-portable/x86_64-pc-windows-msvc/release/exp-ip-scanner.exe
+          --backstage-binary src-tauri/target-portable/x86_64-pc-windows-msvc/release/exp-ip-scanner-backstage.exe
           --out artifacts
 
       - name: Verify the portable ZIP
