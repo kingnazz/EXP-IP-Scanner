@@ -7,7 +7,7 @@ import type { LocalNetwork } from "../types";
 /**
  * The network summary: where this machine is, in one line.
  *
- * Five facts a technician confirms before they scan and quotes afterwards --
+ * Five facts a consultant confirms before they scan and quotes afterwards --
  * the adapter, this machine's address, the gateway, what is about to be swept,
  * and how the site appears from outside. They sat in three different places
  * before this strip existed, and the public address was not available at all.
@@ -15,7 +15,7 @@ import type { LocalNetwork } from "../types";
  * One line, 28px, under the scan bar rather than in a panel of its own: it is
  * reference material, not a workflow, and the results table is what the window
  * is for. Every value can be clicked to copy it, because the next thing a
- * technician does with a gateway address is paste it somewhere.
+ * consultant does with a gateway address is paste it somewhere.
  */
 export function NetworkSummary({
   network,
