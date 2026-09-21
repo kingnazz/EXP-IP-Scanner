@@ -53,8 +53,7 @@ fn truthy(value: &str) -> bool {
 }
 
 fn looks_like_backstage(username: &str, session_name: &str) -> bool {
-    username.eq_ignore_ascii_case("SYSTEM")
-        || session_name.eq_ignore_ascii_case("Services")
+    username.eq_ignore_ascii_case("SYSTEM") || session_name.eq_ignore_ascii_case("Services")
 }
 
 /// Whether this process should use the Backstage-safe WebView2 path.
