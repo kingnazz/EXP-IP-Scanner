@@ -24,13 +24,13 @@ The version bump triggers the release workflow. The workflow will refuse to publ
 
 ## Writing release notes
 
-Write for the technician using the tool, not for the commit history.
+Write for the consultant using the tool, not for the commit history.
 
 Good release notes answer:
 
 - What changed?
 - Why does it matter during real support work?
-- Is there anything the technician needs to do differently?
+- Is there anything the consultant needs to do differently?
 - Did privacy, storage, permissions, supported Windows versions, or update behavior change?
 
 Keep implementation details in GitHub or developer documentation unless they materially affect the user.
