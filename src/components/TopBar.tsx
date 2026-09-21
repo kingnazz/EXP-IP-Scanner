@@ -19,7 +19,7 @@ const THEME_LABEL: Record<ThemePref, string> = {
  * from, so a screen reader still reads a heading here.
  *
  * There is no navigation, because there is nowhere to navigate to: everything
- * a technician needs is on the one screen below. The only controls here are
+ * a consultant needs is on the one screen below. The only controls here are
  * the ones that are not part of scanning.
  */
 export function TopBar({
