@@ -5,7 +5,7 @@
 // into a ticket, a spreadsheet, a Teams message or an email as a table rather
 // than as one run-together line.
 //
-// Deliberately not a report generator. A technician wants the rows they are
+// Deliberately not a report generator. A consultant wants the rows they are
 // looking at, in something they can paste.
 
 import type { LocalNetwork } from "../types";
@@ -145,7 +145,7 @@ export function csvFilename(target: string, now = new Date()): string {
       .replace(/[^a-zA-Z0-9.-]+/g, "_")
       // A dot belongs in an address, but a run of them does not, and a default
       // filename that reads like a path traversal is worth not producing even
-      // though the technician picks the real destination in the save dialog
+      // though the consultant picks the real destination in the save dialog
       // and the backend validates it again.
       .replace(/\.{2,}/g, ".")
       .replace(/^[._-]+|[._-]+$/g, "")
