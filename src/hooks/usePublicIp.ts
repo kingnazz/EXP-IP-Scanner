@@ -6,7 +6,7 @@ import { api } from "../lib/api";
  *
  * `off` and `unavailable` are different states on purpose: one means nobody
  * asked, the other means we asked and got no answer. Collapsing them would put
- * "Unavailable" in front of a technician who deliberately turned the lookup
+ * "Unavailable" in front of a consultant who deliberately turned the lookup
  * off, which reads as a fault rather than a choice.
  */
 export type PublicIpState =
