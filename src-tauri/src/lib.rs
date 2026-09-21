@@ -57,6 +57,15 @@ pub fn run() {
                 .clone();
             let mut window = WebviewWindowBuilder::from_config(app.handle(), &config)?;
 
+            // ScreenConnect Backstage runs applications as Windows LocalSystem.
+            // WebView2 blocks SYSTEM hosts by default, so only that security
+            // context gets Microsoft's explicit opt-in flag. Normal desktop
+            // launches retain Tauri/wry's ordinary browser configuration.
+            #[cfg(target_os = "windows")]
+            if runtime::running_as_windows_system() {
+                window = window.additional_browser_args(runtime::SYSTEM_WEBVIEW2_BROWSER_ARGS);
+            }
+
             if let Ok(local_data) = app.path().app_local_data_dir() {
                 if let Some(profile) = runtime::webview_profile_dir(&local_data) {
                     // Created up front: WebView2 will not create a profile
