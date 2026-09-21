@@ -6,9 +6,9 @@ A lightweight Windows network scanner built for everyday IT work. It detects the
 network you are on, sweeps it in seconds, and lets you open Remote Desktop, a
 file share, SSH or a device's web interface straight from the results.
 
-[Download](https://nazar-exp.github.io/EXP-IP-Scanner/) ·
-[What's new](https://nazar-exp.github.io/EXP-IP-Scanner/releases.html) ·
-[Privacy](https://nazar-exp.github.io/EXP-IP-Scanner/privacy.html)
+[Download](https://expipscanner.com/) ·
+[What's new](https://expipscanner.com/releases.html) ·
+[Privacy](https://expipscanner.com/privacy.html)
 
 ![A finished scan of a small business network](site/assets/shots/scan-dark.webp)
 
@@ -60,7 +60,7 @@ rather than having the button hidden.
 Both editions need the Microsoft Edge WebView2 Runtime, which ships with
 Windows 11 and with current Windows 10.
 
-Get them from the [website](https://nazar-exp.github.io/EXP-IP-Scanner/) or the
+Get them from the [website](https://expipscanner.com/) or the
 [releases page](https://github.com/nazar-exp/EXP-IP-Scanner/releases). Each
 release carries a `SHA256SUMS.txt`.
 
@@ -84,7 +84,7 @@ results or discovered-device data:
   updater at all.
 
 The full notes are on the
-[privacy page](https://nazar-exp.github.io/EXP-IP-Scanner/privacy.html).
+[privacy page](https://expipscanner.com/privacy.html).
 
 ## Scope
 
