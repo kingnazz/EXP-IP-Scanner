@@ -11,7 +11,7 @@ export interface Toast {
 
 /** How long a message stays before it disappears on its own. */
 const DISMISS_MS: Record<ToastKind, number> = {
-  // An error stays longer, because it usually says something the technician
+  // An error stays longer, because it usually says something the consultant
   // has to act on.
   error: 8_000,
   info: 4_500,
