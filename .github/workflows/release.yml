@@ -278,8 +278,8 @@ jobs:
 
             `SHA256SUMS.txt` carries a checksum for each download.
 
-            What changed: https://nazar-exp.github.io/EXP-IP-Scanner/whats-new-${{ needs.build.outputs.version }}.html
-            All releases: https://nazar-exp.github.io/EXP-IP-Scanner/releases.html
+            What changed: https://expipscanner.com/whats-new-${{ needs.build.outputs.version }}.html
+            All releases: https://expipscanner.com/releases.html
 
       - name: Sync the published release to EXP-owned repository
         env:
