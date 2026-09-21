@@ -61,7 +61,7 @@ describe("action enablement follows the open ports", () => {
 
   it("offers nothing under Connect for a device that answered nothing", () => {
     // The ARP-only printer. Every Connect action has to be disabled, or a
-    // technician clicks and waits for a timeout.
+    // consultant clicks and waits for a timeout.
     const connect = actionsInGroup(SILENT_PRINTER, "connect");
     expect(connect).not.toHaveLength(0);
     expect(connect.every((a) => !a.available)).toBe(true);
