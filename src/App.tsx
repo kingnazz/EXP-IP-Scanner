@@ -106,7 +106,7 @@ export default function App() {
       setNetworks(nets);
       setDefaultPorts(ports);
 
-      // The target is filled in from the best interface before the technician
+      // The target is filled in from the best interface before the consultant
       // touches anything, which is the whole of the first-run experience:
       // open the app, press Scan. A remembered adapter wins, so someone who
       // works from a USB NIC does not re-pick it every launch.
