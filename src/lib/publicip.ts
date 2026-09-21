@@ -4,7 +4,7 @@
 // else in the network summary comes from the machine: the adapter, its address,
 // its netmask, its routing table. The address the rest of the internet sees the
 // site as belongs to the ISP's equipment upstream, so something outside has to
-// be asked -- and a technician standing in a comms room genuinely needs it.
+// be asked -- and a consultant standing in a comms room genuinely needs it.
 //
 // It is therefore the only outbound request the application makes on its own,
 // and is treated accordingly:
@@ -17,7 +17,7 @@
 //     because it arrives from outside and nothing outside is trusted;
 //   * the hosts are named in `tauri.conf.json`'s `connect-src`, so the window
 //     cannot reach anywhere else even if this file said otherwise;
-//   * and a technician who does not want the request can turn it off in
+//   * and a consultant who does not want the request can turn it off in
 //     Settings, which is why this takes no action of its own on import.
 
 /** One service that answers with the caller's public IP address in plain text. */
@@ -31,7 +31,7 @@ export interface PublicIpService {
  * The services, in the order they are tried.
  *
  * ipify is first because it answers IPv4 only, which is the address a
- * technician means. icanhazip is the fallback and answers over whichever
+ * consultant means. icanhazip is the fallback and answers over whichever
  * family the connection used, so a v6-only site still gets an answer rather
  * than a dash.
  */

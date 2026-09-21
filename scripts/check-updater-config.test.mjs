@@ -27,7 +27,7 @@ describe("looksLikeSigningKey", () => {
   });
 
   it("refuses a truncated paste", () => {
-    // The failure this catches would otherwise appear on a technician's
+    // The failure this catches would otherwise appear on a consultant's
     // machine at update time rather than in the release that caused it.
     expect(looksLikeSigningKey(realKey.slice(0, 60))).toBe(false);
   });

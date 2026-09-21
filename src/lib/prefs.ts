@@ -33,7 +33,7 @@ export interface Settings {
   /** `ping` processes running at once. */
   pingConcurrency: number;
   /**
-   * The port list, as typed. Empty means the backend's default technician set,
+   * The port list, as typed. Empty means the backend's default consultant set,
    * which is what most people should be using.
    */
   portSpec: string;
@@ -42,7 +42,7 @@ export interface Settings {
   /**
    * Whether the network summary looks up this network's public IP address.
    *
-   * On by default, because it is one of the first things a technician wants
+   * On by default, because it is one of the first things a consultant wants
    * from a site and the lookup sends nothing. It is a setting because it is the
    * only request the application makes on its own, and somebody working on an
    * isolated network is entitled to switch it off.
@@ -51,14 +51,14 @@ export interface Settings {
   hiddenColumns: ColumnKey[];
   sortKey: ColumnKey;
   sortDir: SortDir;
-  /** The adapter name the technician last chose, if they chose one. */
+  /** The adapter name the consultant last chose, if they chose one. */
   preferredInterface: string | null;
 }
 
 /**
  * The defaults.
  *
- * Chosen so that most technicians never open Settings at all. The concurrency
+ * Chosen so that most consultants never open Settings at all. The concurrency
  * numbers are the scanner's own defaults, which are conservative on purpose:
  * small-business network gear drops ARP replies under heavy fan-out, and a
  * gentler sweep finds more devices in one pass.
@@ -174,7 +174,7 @@ export type ColumnWidths = Partial<Record<ColumnKey, number>>;
  * The range a width could have come from.
  *
  * A drag is bounded by the column's own minimum and by the window, so a stored
- * width outside this never came from a technician resizing anything. Such a
+ * width outside this never came from a consultant resizing anything. Such a
  * value is discarded rather than clamped: falling back to the column's default
  * is right, while clamping a stored 4,000 to 900 -- or a stored 0 to 30 --
  * would render a column nobody chose and then have to be found and dragged

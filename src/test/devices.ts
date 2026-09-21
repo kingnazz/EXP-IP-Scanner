@@ -1,6 +1,6 @@
 // Realistic mock devices, shared by the tests.
 //
-// Every one is a thing a technician actually meets on a customer network, and
+// Every one is a thing a consultant actually meets on a customer network, and
 // each exists because it exercises something different: a Windows server that
 // answers everything, a printer that answers nothing but ARP, an access point
 // with only a management page, a camera on an odd port, a NAS, a firewall, a

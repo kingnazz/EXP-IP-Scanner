@@ -30,7 +30,7 @@ const ips = (list: { host: { ip: string } }[]) => list.map((r) => r.host.ip);
 describe("sortRows by address", () => {
   it("orders addresses numerically", () => {
     // 192.168.50.9 must come before .10 and .100, which is exactly what a
-    // string sort gets wrong and what every technician notices immediately.
+    // string sort gets wrong and what every consultant notices immediately.
     expect(ips(sortRows(rows, "ip", "asc"))).toEqual([
       "192.168.50.1",
       "192.168.50.9",
@@ -179,7 +179,7 @@ describe("search", () => {
     expect(filterRows(rows, "all", "   ")).toHaveLength(rows.length);
   });
 
-  it("searches only what the technician can see", () => {
+  it("searches only what the consultant can see", () => {
     const hay = searchHaystack({ host: WINDOWS_SERVER, pending: false });
     expect(hay).toContain("dc01.exp.local");
     expect(hay).toContain("00:15:5d:3a:91:22");

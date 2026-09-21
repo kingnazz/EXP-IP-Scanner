@@ -2,7 +2,7 @@
 // Read a packaged portable ZIP back and check it is what was promised.
 //
 // package-portable.mjs checks the binary before packaging; this checks the
-// archive afterwards, which is the artifact a technician actually downloads.
+// archive afterwards, which is the artifact a consultant actually downloads.
 // The two together mean a release cannot ship a ZIP holding the installed
 // build, the wrong architecture, or an extra file nobody meant to include.
 //

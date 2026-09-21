@@ -9,7 +9,7 @@ import { formatCount } from "../lib/format";
  * Search sits first and widest because it is the thing used most: on a busy
  * network, finding the device is the task. Filters are three buttons rather
  * than a builder -- "All", "Responding", "Has services" covers what a
- * technician actually asks of a scan.
+ * consultant actually asks of a scan.
  */
 export const ResultsToolbar = forwardRef<
   HTMLInputElement,

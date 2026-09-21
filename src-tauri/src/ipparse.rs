@@ -16,7 +16,7 @@ pub const MAX_HOSTS: usize = 65_536;
 
 /// Parse a target into the concrete list of addresses to probe.
 ///
-/// The error strings are written to be shown to a technician as they are, which
+/// The error strings are written to be shown to a consultant as they are, which
 /// is why they name the offending token and say what was expected.
 pub fn parse_target(input: &str) -> Result<Vec<Ipv4Addr>, String> {
     let s = input.trim();
@@ -79,7 +79,7 @@ fn parse_ipv4(s: &str) -> Result<Ipv4Addr, String> {
         .map_err(|_| format!("`{s}` is not a valid IPv4 address."))
 }
 
-/// Resolve the end of a dashed range, which a technician writes either as a
+/// Resolve the end of a dashed range, which a consultant writes either as a
 /// full address (`192.168.1.254`) or as a bare last octet (`254`).
 fn range_end(start: Ipv4Addr, b: &str) -> Result<Ipv4Addr, String> {
     if b.contains('.') {
@@ -161,7 +161,7 @@ mod tests {
 
     #[test]
     fn cidr_normalizes_any_address_inside_the_block() {
-        // A technician pastes their own address with a mask; that is the network.
+        // A consultant pastes their own address with a mask; that is the network.
         let from_host = parse_target("192.168.1.37/24").unwrap();
         let from_network = parse_target("192.168.1.0/24").unwrap();
         assert_eq!(from_host, from_network);

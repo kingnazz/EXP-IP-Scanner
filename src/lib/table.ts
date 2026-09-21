@@ -2,7 +2,7 @@
 //
 // Pure, so the behaviour that matters most -- addresses in numeric order, a
 // stable row order while results stream in, and a search that matches what the
-// technician can actually see -- is testable without rendering anything.
+// consultant can actually see -- is testable without rendering anything.
 
 import { ipToNum, portWithService, serviceLabel } from "./format";
 import { hasServices, isResponding, rowName, type DeviceRow } from "./live";
@@ -22,7 +22,7 @@ export type SortDir = "asc" | "desc";
 export interface ColumnDef {
   key: ColumnKey;
   label: string;
-  /** Starting width in pixels, before the technician resizes anything. */
+  /** Starting width in pixels, before the consultant resizes anything. */
   width: number;
   minWidth: number;
   align?: "right";
@@ -39,7 +39,7 @@ export interface ColumnDef {
 /**
  * Column order.
  *
- * Status, address and hostname first, because that is the order a technician
+ * Status, address and hostname first, because that is the order a consultant
  * reads a row in: is it alive, where is it, what is it called. Open ports last
  * and flexible, because it is the widest and most variable value and benefits
  * from whatever space is left.
@@ -68,10 +68,10 @@ export const COLUMN_BY_KEY: Record<ColumnKey, ColumnDef> = Object.fromEntries(
   COLUMNS.map((c) => [c.key, c]),
 ) as Record<ColumnKey, ColumnDef>;
 
-/** Columns the technician may switch off. */
+/** Columns the consultant may switch off. */
 export const TOGGLEABLE_COLUMNS = COLUMNS.filter((c) => !c.required);
 
-/** Columns hidden until the technician asks for them. */
+/** Columns hidden until the consultant asks for them. */
 export const DEFAULT_HIDDEN_COLUMNS: ColumnKey[] = COLUMNS.filter(
   (c) => c.optionalByDefault,
 ).map((c) => c.key);
@@ -115,7 +115,7 @@ export function searchHaystack(row: DeviceRow): string {
  *
  * Every whitespace-separated term has to match, so "printer 9100" narrows
  * rather than widens. There is no query language and deliberately so: a
- * technician should be able to type what they remember.
+ * consultant should be able to type what they remember.
  */
 export function filterRows(
   rows: readonly DeviceRow[],

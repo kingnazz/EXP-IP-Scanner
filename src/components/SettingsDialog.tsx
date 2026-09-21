@@ -9,7 +9,7 @@ import { PUBLIC_IP_SERVICES } from "../lib/publicip";
 /**
  * Settings.
  *
- * Deliberately one short screen. The defaults are chosen so most technicians
+ * Deliberately one short screen. The defaults are chosen so most consultants
  * never open this at all, and every field here earns its place by being
  * something a real network occasionally needs changed -- a slow link that
  * wants a longer timeout, a fragile switch that wants less fan-out, a site
@@ -26,7 +26,7 @@ export function SettingsDialog({
   onClose,
 }: {
   settings: Settings;
-  /** The backend's default technician port set, shown when the field is empty. */
+  /** The backend's default consultant port set, shown when the field is empty. */
   defaultPorts: number[];
   onChange: (patch: Partial<Settings>) => void;
   onRestoreDefaults: () => void;
@@ -106,7 +106,7 @@ export function SettingsDialog({
           ) : (
             <span className="text-ink-muted">
               {settings.portSpec.trim().length === 0
-                ? `Empty means the default technician set: ${defaultPorts.length} ports covering remote desktop, file shares, SSH, web management, printing, databases and phones.`
+                ? `Empty means the default consultant set: ${defaultPorts.length} ports covering remote desktop, file shares, SSH, web management, printing, databases and phones.`
                 : `${effectivePortCount} ${effectivePortCount === 1 ? "port" : "ports"} selected. Single ports, lists and ranges: 22, 80, 443, 8000-8010.`}
             </span>
           )}

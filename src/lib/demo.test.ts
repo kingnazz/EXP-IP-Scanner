@@ -42,7 +42,7 @@ function collector() {
 }
 
 describe("the demo network", () => {
-  it("reports the interfaces a technician's laptop plausibly has, best first", () => {
+  it("reports the interfaces a consultant's laptop plausibly has, best first", () => {
     const networks = demo.detectNetworks();
     expect(networks[0]?.interface).toBe("Ethernet");
     expect(networks[0]?.recommended).toBe(true);
@@ -142,7 +142,7 @@ describe("a demo scan", () => {
   it("stops promptly and reports itself cancelled", async () => {
     const c = collector();
     const running = demo.scan(OPTIONS, c.listeners);
-    // Stop once the first devices are in, the way a technician would.
+    // Stop once the first devices are in, the way a consultant would.
     await new Promise((resolve) => setTimeout(resolve, 60));
     demo.cancelScan();
     const result = await running;

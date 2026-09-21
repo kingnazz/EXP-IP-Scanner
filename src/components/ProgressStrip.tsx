@@ -7,7 +7,7 @@ import type { ScanSummary } from "../hooks/useScan";
  * Live scan status, and the completion line afterwards.
  *
  * One strip, 26px tall, that never moves and never interrupts. There is no
- * completion dialog on purpose: a technician who has just watched a table fill
+ * completion dialog on purpose: a consultant who has just watched a table fill
  * does not need to be told it finished and then click to continue.
  */
 export function ProgressStrip({

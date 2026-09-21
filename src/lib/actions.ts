@@ -1,7 +1,7 @@
-// Which technician actions make sense for a given device.
+// Which consultant actions make sense for a given device.
 //
 // Every action is always listed, so the menu does not change shape from device
-// to device and nothing a technician learned moves. Only the ones the device's
+// to device and nothing a consultant learned moves. Only the ones the device's
 // open services actually support are enabled, and a disabled action says why
 // rather than failing after the click.
 
@@ -58,7 +58,7 @@ export interface ActionContext {
  * The clipboard and diagnostic actions need only an address, which every
  * device has. Everything under Connect needs evidence that the service is
  * there: offering Remote Desktop for a device with 3389 closed would waste a
- * technician's time twice, once clicking and once waiting for the timeout.
+ * consultant's time twice, once clicking and once waiting for the timeout.
  */
 export function deviceActions(host: HostResult, ctx: ActionContext = {}): DeviceAction[] {
   const ports = host.open_ports;
@@ -198,7 +198,7 @@ export function deviceActions(host: HostResult, ctx: ActionContext = {}): Device
 }
 
 /**
- * The one action a technician most likely wants for this device.
+ * The one action a consultant most likely wants for this device.
  *
  * Ordered by what someone opens a device to do: take control of it, reach its
  * files, then look at its management page.

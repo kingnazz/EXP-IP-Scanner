@@ -43,7 +43,7 @@ EXTRACTED FOLDER, USB AND READ-ONLY SHARES
 ------------------------------------------
 
 The folder containing the executable is never written to. Running from a
-read-only share, a USB stick, a synced OneDrive folder or a technician
+read-only share, a USB stick, a synced OneDrive folder or a consultant
 tools folder is supported.
 
 Two portable copies may run at once, and a portable copy may run

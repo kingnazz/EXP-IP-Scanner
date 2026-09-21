@@ -207,7 +207,7 @@ jobs:
         shell: bash
         working-directory: artifacts
         run: |
-          # Every asset a person downloads, so a technician on a locked-down
+          # Every asset a person downloads, so a consultant on a locked-down
           # site can verify what they were given. Signatures and the manifest
           # are machinery and are excluded.
           sha256sum *-setup.exe *-portable.zip > SHA256SUMS.txt
@@ -266,7 +266,7 @@ jobs:
             ## Downloads
 
             **Portable** — `EXP-IP-Scanner_${{ needs.build.outputs.version }}_windows-x64-portable.zip`
-            Recommended for technicians. Extract it and run it: no installation, no
+            Recommended for consultants. Extract it and run it: no installation, no
             administrator rights, and it never writes to the folder you extracted it into.
 
             **Installer** — `EXP-IP-Scanner_${{ needs.build.outputs.version }}_x64-setup.exe`

@@ -17,7 +17,7 @@ const KIND_ICON: Record<InterfaceKind, typeof Cable> = {
  * Just the adapter here: its address, its gateway and what is about to be swept
  * are one line below in the network summary, and printing them twice within
  * 30px would be noise. The selector only appears when there is more than one
- * viable interface, and it lists every one of them -- a technician sometimes
+ * viable interface, and it lists every one of them -- a consultant sometimes
  * really does mean the VPN adapter or the Hyper-V switch, so those are ranked
  * lower but never hidden.
  */

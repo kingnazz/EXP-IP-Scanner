@@ -62,7 +62,7 @@ export function formatTime(iso: string): string {
 //
 // The backend owns the service table and hands it over once at startup, so the
 // interface keeps no second copy to drift out of step. Until it arrives (or in
-// the browser demo) this fallback covers the default technician set, which is
+// the browser demo) this fallback covers the default consultant set, which is
 // enough that the table never shows a bare number where a word belongs.
 // ---------------------------------------------------------------------------
 
@@ -126,7 +126,7 @@ export function portWithService(port: number): string {
 }
 
 /**
- * Ports that lead somewhere a technician can click through to.
+ * Ports that lead somewhere a consultant can click through to.
  *
  * Used to emphasise them in the table: across a full /24 this is what makes a
  * server, a printer and a switch distinguishable at a glance.

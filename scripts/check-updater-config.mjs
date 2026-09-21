@@ -39,7 +39,7 @@ export const PLACEHOLDER = "REPLACE_WITH_TAURI_SIGNING_PUBLIC_KEY";
  *
  * A minisign public key is base64 that decodes to a comment line followed by a
  * second base64 line. Checking the shape catches a truncated paste, which
- * would otherwise fail at update time on a technician's machine rather than
+ * would otherwise fail at update time on a consultant's machine rather than
  * here.
  */
 export function looksLikeSigningKey(pubkey) {

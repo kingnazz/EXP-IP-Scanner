@@ -189,7 +189,7 @@ await step("every internal link resolves", async () => {
   return `${unique.length} internal links`;
 });
 
-await step("no page points a technician at a source-code archive", async () => {
+await step("no page points a consultant at a source-code archive", async () => {
   for (const path of ["/", "/releases.html", "/privacy.html"]) {
     const text = await (await page.request.get(`${BASE}${path}`)).text();
     if (/archive\/refs|zipball|tarball|Source code \(zip\)/i.test(text)) {

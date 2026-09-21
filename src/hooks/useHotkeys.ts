@@ -27,7 +27,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
 /**
  * The application's keyboard shortcuts.
  *
- * Chosen to be the ones a Windows technician already knows, so nothing has to
+ * Chosen to be the ones a Windows consultant already knows, so nothing has to
  * be learned: Ctrl+F to search, F5 to scan, Escape to stop, Ctrl+E to export.
  * A shortcut that would interfere with typing is suppressed while a field has
  * focus, except the ones whose whole purpose is to move focus.
