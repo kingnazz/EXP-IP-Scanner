@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://nazar-exp.github.io/EXP-IP-Scanner/sitemap.xml
+Sitemap: https://expipscanner.com/sitemap.xml
