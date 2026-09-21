@@ -52,7 +52,7 @@ Windows 10 and Windows 11, x64. Both editions are the same application.
 | Start Menu entry | No | Yes |
 | Scan data kept on disk | None | None |
 
-**Portable is the recommended technician download.** It runs from a USB stick,
+**Portable is the recommended consultant download.** It runs from a USB stick,
 a read-only share, a synced OneDrive folder or a tools folder, and never writes
 to the folder it was extracted into. It is compiled without the updater at all,
 rather than having the button hidden.
@@ -180,7 +180,7 @@ src-tauri/src/
   netinfo.rs             Interface detection, ranking and gateways
   ports.rs               The default service set and the service names
   oui.rs + oui_data.tsv  The embedded IEEE registry
-  launch.rs              Technician actions, and the validation boundary
+  launch.rs              Consultant actions, and the validation boundary
   commands.rs            The Tauri command surface
   runtime.rs             Which edition this is, and where preferences live
 site/                    The static download website
