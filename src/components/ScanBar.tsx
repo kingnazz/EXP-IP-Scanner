@@ -7,7 +7,7 @@ import { InterfacePicker } from "./InterfacePicker";
  * The scan bar: which network, what to scan, and the one button that matters.
  *
  * The Scan button is the visually dominant control in the window, because it
- * is the only thing a technician has to do on a first run. It turns into Stop
+ * is the only thing a consultant has to do on a first run. It turns into Stop
  * while a scan is running rather than sitting next to a separate Stop, so
  * there is never a question about which one is live.
  */
