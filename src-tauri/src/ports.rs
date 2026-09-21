@@ -6,7 +6,7 @@
 //! the probe loop regardless of what the interface sent.
 //!
 //! What differs is the default set. ArcScan shipped a 14-port spread aimed at
-//! fingerprinting. EXP IP Scanner probes the services a technician actually
+//! fingerprinting. EXP IP Scanner probes the services a consultant actually
 //! acts on -- remote desktop, file shares, SSH, web management pages, printers,
 //! databases, phone systems -- because the point of the scan is to click
 //! through to the device afterwards.
@@ -20,12 +20,12 @@ use std::collections::BTreeSet;
 /// overwhelm the customer's switch.
 pub const MAX_PORTS: usize = 1_024;
 
-/// The default technician service set.
+/// The default consultant service set.
 ///
 /// Wide enough to recognise the devices on a business network at a glance and
 /// to light up the right-click actions, small enough that a /24 finishes in
 /// seconds. Not a security sweep: every port here exists because knowing it is
-/// open tells a technician what the device is or gives them a way in to
+/// open tells a consultant what the device is or gives them a way in to
 /// administer it.
 pub const DEFAULT_PORTS: [u16; 32] = [
     20, 21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 389, 443, 445, 515, 587, 631, 993, 995, 1433,
@@ -54,7 +54,7 @@ pub fn sanitize(ports: &[u16]) -> Result<Vec<u16>, String> {
     Ok(unique.into_iter().collect())
 }
 
-/// Parse a port specification as a technician would write one.
+/// Parse a port specification as a consultant would write one.
 ///
 /// Accepts single ports, comma or space separated lists, ranges, and any mix:
 /// `22`, `22,80,443`, `22 80 443`, `8000-8100`, `80, 443, 8000-8010`.
@@ -118,7 +118,7 @@ fn parse_port(token: &str) -> Result<u16, String> {
 /// The short service name shown beside a port, e.g. the `SSH` in `22 SSH`.
 ///
 /// A curated list of what turns up on business networks rather than the whole
-/// IANA registry, so the Open Ports column reads as words a technician
+/// IANA registry, so the Open Ports column reads as words a consultant
 /// recognises instead of a wall of numbers.
 pub fn service_name(port: u16) -> Option<&'static str> {
     let name = match port {
@@ -244,7 +244,7 @@ mod tests {
                 "port {port} drives a device action and must be probed by default"
             );
         }
-        // And the ports that identify the device classes a technician meets
+        // And the ports that identify the device classes a consultant meets
         // most: printers, domain controllers, databases, phones.
         for (port, what) in [
             (9100u16, "raw printing"),
