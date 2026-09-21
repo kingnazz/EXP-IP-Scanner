@@ -184,11 +184,7 @@ async fn run_async(args: Args) -> Result<(), String> {
                 let bucket = pct / 25;
                 if bucket > last_progress_bucket && pct < 100 {
                     last_progress_bucket = bucket;
-                    println!(
-                        "  progress {:>3}%  {} found",
-                        pct,
-                        progress.found
-                    );
+                    println!("  progress {:>3}%  {} found", pct, progress.found);
                 }
             }
             _ => {}
@@ -246,10 +242,7 @@ fn print_banner(
     if let Some(network) = network {
         println!("Adapter : {}", network.adapter);
         println!("Local IP: {}", network.local_ip);
-        println!(
-            "Gateway : {}",
-            network.gateway.as_deref().unwrap_or("None")
-        );
+        println!("Gateway : {}", network.gateway.as_deref().unwrap_or("None"));
     }
     println!("Target  : {target}");
     println!(
