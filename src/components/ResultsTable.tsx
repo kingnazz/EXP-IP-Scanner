@@ -77,7 +77,7 @@ export function ResultsTable({
    * so opening the details drawer would crush the MAC address and the service
    * list into ellipses. With it the container scrolls sideways instead and
    * every column keeps the width it was given -- which is also what makes a
-   * resize a technician performed stick.
+   * resize a consultant performed stick.
    */
   const minTableWidth = useMemo(
     () => widths.reduce((total, column) => total + column.width, 0),
@@ -305,7 +305,7 @@ function rowDomId(ip: string): string {
  * Which column a right-click landed in.
  *
  * Read from the event's own cell rather than tracked in state, so Copy cell
- * refers to the value the technician was actually pointing at.
+ * refers to the value the consultant was actually pointing at.
  */
 function columnFromEvent(event: React.MouseEvent, columns: ColumnDef[]): ColumnKey | null {
   const cell = (event.target as HTMLElement | null)?.closest("td");
@@ -460,7 +460,7 @@ function StatusDot({ row }: { row: DeviceRow }) {
  * The Open Ports cell.
  *
  * Every port is shown with its service word, because `445 SMB` tells a
- * technician something `445` does not. The ports that lead to an action are
+ * consultant something `445` does not. The ports that lead to an action are
  * tinted, which is what makes a server, a printer and a switch
  * distinguishable while scrolling a full table.
  */
@@ -469,7 +469,7 @@ function StatusDot({ row }: { row: DeviceRow }) {
  *
  * A domain controller answers on seven or eight of the default ports, which is
  * more than fits. Silently clipping them at the cell edge would leave a
- * technician unsure whether they were seeing everything, so the overflow is
+ * consultant unsure whether they were seeing everything, so the overflow is
  * counted explicitly and the full list is one double-click away in the details
  * panel.
  */
