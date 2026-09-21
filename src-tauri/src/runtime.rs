@@ -230,11 +230,11 @@ mod tests {
         assert!(looks_like_windows_system_account(Some("SYSTEM"), None));
         assert!(looks_like_windows_system_account(
             Some("system"),
-            Some(r"C:\\Windows\\System32\\config\\systemprofile")
+            Some(r"C:\Windows\System32\config\systemprofile")
         ));
         assert!(looks_like_windows_system_account(
             None,
-            Some(r"C:\\Windows\\System32\\config\\systemprofile")
+            Some(r"C:\Windows\System32\config\systemprofile")
         ));
     }
 
@@ -242,7 +242,7 @@ mod tests {
     fn system_account_detection_rejects_normal_users() {
         assert!(!looks_like_windows_system_account(
             Some("consultant"),
-            Some(r"C:\\Users\\consultant")
+            Some(r"C:\Users\consultant")
         ));
         assert!(!looks_like_windows_system_account(None, None));
     }
