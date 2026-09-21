@@ -13,7 +13,7 @@
  *
  * Neutrals are layered rather than flat -- sunken < canvas < surface < raised
  * -- which is what gives the window depth without shadows, glass or gradients.
- * Neither theme uses pure black or pure white over large areas: a technician
+ * Neither theme uses pure black or pure white over large areas: a consultant
  * has this open all day.
  * ------------------------------------------------------------------------- */
 @theme {
@@ -421,7 +421,7 @@
     font-weight: 600;
     color: var(--color-ink);
   }
-  /* The services a technician acts on, emphasised so a server or a printer is
+  /* The services a consultant acts on, emphasised so a server or a printer is
      recognisable at a glance across a full table. */
   .service-chip-actionable {
     background: var(--accent-soft);
@@ -576,7 +576,7 @@
    * addresses are the point of the strip and none of them may be ellipsised,
    * so what gives way as the window narrows is chosen here rather than left to
    * the flex algorithm: first the address count, which is arithmetic the
-   * technician can do, then the adapter name, which truncates and keeps its
+   * consultant can do, then the adapter name, which truncates and keeps its
    * full value in a tooltip.
    */
   .network-summary {
