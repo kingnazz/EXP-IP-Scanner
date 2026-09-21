@@ -30,7 +30,7 @@ pub fn runtime_info() -> RuntimeInfo {
 /// The usable local networks, best default first, each with its gateway.
 ///
 /// Called once at startup. This is what fills the network summary and the
-/// target field before the technician touches anything. Async because the
+/// target field before the consultant touches anything. Async because the
 /// gateway comes from the routing table, and reading it must not block the
 /// window while it opens.
 #[tauri::command]
@@ -58,7 +58,7 @@ pub fn service_catalog() -> Vec<ServiceInfo> {
         .collect()
 }
 
-/// The default technician service set, so Settings can show and restore it
+/// The default consultant service set, so Settings can show and restore it
 /// without hardcoding the list a second time.
 #[tauri::command]
 pub fn default_ports() -> Vec<u16> {
@@ -73,7 +73,7 @@ pub fn parse_port_spec(spec: String) -> Result<Vec<u16>, String> {
 }
 
 /// What a scan would do, so the empty state can say "254 addresses" and a large
-/// scan can be flagged before the technician commits to it.
+/// scan can be flagged before the consultant commits to it.
 #[derive(Debug, Clone, Serialize)]
 pub struct ScanPreview {
     pub total: usize,
@@ -198,7 +198,7 @@ fn validate_export_path(path: &str) -> Result<(), String> {
 }
 
 /// Write an already-formatted CSV, built in the interface, to the path the
-/// technician chose in the native save dialog.
+/// consultant chose in the native save dialog.
 #[tauri::command]
 pub fn save_text(path: String, contents: String) -> Result<(), String> {
     validate_export_path(&path)?;
@@ -208,7 +208,7 @@ pub fn save_text(path: String, contents: String) -> Result<(), String> {
     std::fs::write(&path, contents).map_err(|e| format!("Could not save {path}. {e}"))
 }
 
-// --- Technician actions ----------------------------------------------------
+// --- Consultant actions ----------------------------------------------------
 
 #[tauri::command]
 pub fn open_web(app: tauri::AppHandle, ip: String, port: Option<u16>) -> Result<(), String> {
