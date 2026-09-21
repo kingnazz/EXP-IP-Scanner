@@ -38,8 +38,7 @@ pub const SYSTEM_WEBVIEW2_BROWSER_ARGS: &str =
     "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --allow-run-as-system";
 
 fn looks_like_windows_system_account(username: Option<&str>, userprofile: Option<&str>) -> bool {
-    username
-        .is_some_and(|value| value.eq_ignore_ascii_case("SYSTEM"))
+    username.is_some_and(|value| value.eq_ignore_ascii_case("SYSTEM"))
         || userprofile.is_some_and(|value| {
             value
                 .replace('/', "\\")
@@ -63,7 +62,6 @@ pub fn running_as_windows_system() -> bool {
     let userprofile = std::env::var("USERPROFILE").ok();
     looks_like_windows_system_account(username.as_deref(), userprofile.as_deref())
 }
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -226,7 +224,6 @@ mod tests {
             );
         }
     }
-
 
     #[test]
     fn system_account_detection_accepts_screenconnect_style_identity() {
