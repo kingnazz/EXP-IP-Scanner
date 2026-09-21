@@ -1,3 +1,8 @@
+// The shared scanner modules expose a few desktop-only helpers the console
+// companion deliberately does not call. Keep dead-code warnings strict in the
+// main crate while allowing those shared APIs in this binary-only crate.
+#![allow(dead_code)]
+
 // ScreenConnect Backstage uses a custom Windows shell where WebView-based
 // applications are not dependable. Build this as a plain console executable
 // from the same scanner modules as the desktop app, without initializing or
