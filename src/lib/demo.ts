@@ -25,7 +25,7 @@ import { APP_VERSION } from "../version";
 import type { ScanListeners } from "./api";
 import type { PublicIpResult } from "./publicip";
 
-/** The interfaces a technician's laptop plausibly has, in the order the real
+/** The interfaces a consultant's laptop plausibly has, in the order the real
  * adapter ranking would produce. */
 const NETWORKS: LocalNetwork[] = [
   {
@@ -100,7 +100,7 @@ interface DemoDevice {
 /**
  * A plausible small-business network: a gateway, a domain controller, a file
  * server, printers, access points, cameras, phones, a NAS, a switch and a
- * spread of workstations -- including the awkward ones a technician actually
+ * spread of workstations -- including the awkward ones a consultant actually
  * has to deal with, like a printer that answers nothing but ARP.
  */
 const DEVICES: DemoDevice[] = [
