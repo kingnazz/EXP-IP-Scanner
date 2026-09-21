@@ -113,7 +113,7 @@ where
     I: Iterator<Item = String>,
 {
     iter.next()
-        .filter(|value| !value.trim().is_empty())
+        .filter(|value| !value.trim().is_empty() && !value.starts_with('-'))
         .ok_or_else(|| format!("{flag} needs a value"))
 }
 
@@ -373,7 +373,10 @@ fn write_csv(path: &Path, result: &scanner::ScanResult) -> Result<(), String> {
 }
 
 fn csv_field(value: &str) -> String {
-    if value.contains([',', '"', '\n', '\r']) {
+    if value
+        .chars()
+        .any(|character| matches!(character, ',' | '"' | '\n' | '\r'))
+    {
         format!("\"{}\"", value.replace('"', "\"\""))
     } else {
         value.to_string()
