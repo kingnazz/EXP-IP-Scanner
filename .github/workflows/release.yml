@@ -194,6 +194,7 @@ jobs:
           cargo build --release
           --target x86_64-pc-windows-msvc
           --no-default-features
+          --features portable
           --bin exp-ip-scanner-backstage
 
       - name: Collect the Backstage console companion
@@ -294,8 +295,9 @@ jobs:
             For a workstation you use every day. Adds a Start Menu entry and can check for
             updates.
 
-            Windows 10 and Windows 11, x64. Both need the Microsoft Edge WebView2 Runtime,
-            which ships with Windows 11 and with current Windows 10.
+            Windows 10 and Windows 11, x64. The Portable GUI and Installer use the Microsoft
+            Edge WebView2 Runtime, which ships with Windows 11 and current Windows 10.
+            The Backstage console companion does not require WebView2.
 
             `SHA256SUMS.txt` carries a checksum for each download.
 
