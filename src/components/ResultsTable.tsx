@@ -1,5 +1,5 @@
 import { memo, useCallback, useMemo, useRef, useState } from "react";
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { ArrowDown, ArrowUp, CirclePlus, CircleSlash, RefreshCw } from "lucide-react";
 import { useVirtualRows } from "../hooks/useVirtualRows";
 import { formatLatency, isActionablePort, serviceName } from "../lib/format";
 import { isResponding, rowName, type DeviceRow } from "../lib/live";
@@ -274,7 +274,7 @@ const Row = memo(
         onDoubleClick={() => onActivate(row)}
         onContextMenu={(event) => onContextMenu(event, row, columnFromEvent(event, columns))}
         title="Double-click for device details · Right-click for actions"
-        className="cursor-default"
+        className={`cursor-default${row.watchState ? ` watch-row-${row.watchState}` : ""}`}
         style={
           focused
             ? { outline: "2px solid var(--color-accent)", outlineOffset: "-2px" }
@@ -293,6 +293,7 @@ const Row = memo(
     prev.index === next.index &&
     prev.columns === next.columns &&
     prev.row.pending === next.row.pending &&
+    prev.row.watchState === next.row.watchState &&
     sameHost(prev.row, next.row),
 );
 
@@ -392,6 +393,13 @@ function Cell({ row, column }: { row: DeviceRow; column: ColumnDef }) {
     }
 
     case "latency": {
+      if (row.watchState === "offline") {
+        return (
+          <td className="mono text-danger" style={align} title="Not found in the latest Watch scan">
+            offline
+          </td>
+        );
+      }
       const latency = formatLatency(row.host.latency_ms);
       return (
         <td className="mono" style={align}>
@@ -423,6 +431,40 @@ function Cell({ row, column }: { row: DeviceRow; column: ColumnDef }) {
 }
 
 function StatusDot({ row }: { row: DeviceRow }) {
+  if (row.watchState === "new") {
+    return (
+      <span
+        className="inline-flex text-ok"
+        title="New since the previous Watch scan"
+        aria-label="New device"
+      >
+        <CirclePlus size={14} aria-hidden />
+      </span>
+    );
+  }
+  if (row.watchState === "changed") {
+    return (
+      <span
+        className="inline-flex text-warn"
+        title="Device details changed since the previous Watch scan"
+        aria-label="Changed device"
+      >
+        <RefreshCw size={13} aria-hidden />
+      </span>
+    );
+  }
+  if (row.watchState === "offline") {
+    return (
+      <span
+        className="inline-flex text-danger"
+        title="Not found in the latest Watch scan"
+        aria-label="Offline device"
+      >
+        <CircleSlash size={14} aria-hidden />
+      </span>
+    );
+  }
+
   if (row.host.is_self) {
     return (
       <span

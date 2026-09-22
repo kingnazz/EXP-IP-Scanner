@@ -21,6 +21,7 @@ export function DeviceDrawer({
   onAction,
   pingResult,
   pinging,
+  watchActive = false,
 }: {
   row: DeviceRow;
   /** The interface the scan ran from, for the network context section. */
@@ -29,6 +30,7 @@ export function DeviceDrawer({
   onAction: (action: DeviceAction) => void;
   pingResult: PingOutcome | null;
   pinging: boolean;
+  watchActive?: boolean;
 }) {
   const panel = useRef<HTMLElement>(null);
   const { host } = row;
@@ -59,13 +61,22 @@ export function DeviceDrawer({
           <p className="mono mt-0.5 truncate text-[12px] text-ink-muted">{host.ip}</p>
         </div>
         {host.is_self ? <span className="badge badge-accent mt-0.5">This PC</span> : null}
+        {row.watchState === "new" ? (
+          <span className="badge badge-ok mt-0.5">New</span>
+        ) : row.watchState === "changed" ? (
+          <span className="badge badge-warn mt-0.5">Changed</span>
+        ) : row.watchState === "offline" ? (
+          <span className="badge badge-danger mt-0.5">Offline</span>
+        ) : watchActive ? (
+          <span className="badge badge-ok mt-0.5">Online</span>
+        ) : null}
         <button type="button" className="icon-btn icon-btn-sm -mr-1" onClick={onClose} aria-label="Close details">
           <X size={14} />
         </button>
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-3.5 py-3">
-        {primary ? (
+        {primary && row.watchState !== "offline" ? (
           <button
             type="button"
             className="btn btn-primary mb-3 w-full"
@@ -92,8 +103,12 @@ export function DeviceDrawer({
             {host.vendor?.trim() ?? <NoValue title="No manufacturer registered for this MAC prefix" />}
           </DetailRow>
           <DetailRow label="Latency">
-            {formatLatency(host.latency_ms) ?? (
-              <NoValue title="This device answered no ping and no TCP probe" />
+            {row.watchState === "offline" ? (
+              <span className="font-medium text-danger">Offline</span>
+            ) : (
+              formatLatency(host.latency_ms) ?? (
+                <NoValue title="This device answered no ping and no TCP probe" />
+              )
             )}
           </DetailRow>
           {host.icmp_ms != null || host.tcp_ms != null ? (
@@ -123,7 +138,7 @@ export function DeviceDrawer({
               <NoValue title="Not enough information to estimate" />
             )}
           </DetailRow>
-          <DetailRow label="Found at">{formatTime(host.seen_at)}</DetailRow>
+          <DetailRow label={watchActive ? "Last seen" : "Found at"}>{formatTime(host.seen_at)}</DetailRow>
         </dl>
 
         <section className="mb-4">
@@ -163,7 +178,7 @@ export function DeviceDrawer({
                 key={action.id}
                 type="button"
                 className="btn btn-sm btn-secondary justify-start"
-                disabled={!action.available}
+                disabled={row.watchState === "offline" || !action.available}
                 title={action.hint}
                 onClick={() => onAction(action)}
               >

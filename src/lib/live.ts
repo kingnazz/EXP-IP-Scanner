@@ -8,6 +8,8 @@
 
 import type { HostResult } from "../types";
 
+export type WatchState = "new" | "changed" | "offline";
+
 /** One row in the results table. */
 export interface DeviceRow {
   host: HostResult;
@@ -16,6 +18,12 @@ export interface DeviceRow {
    * table uses to show a name or MAC cell as "resolving" rather than empty.
    */
   pending: boolean;
+  /**
+   * A transient comparison marker from Watch Mode. New/changed clear on the
+   * next unchanged cycle. Offline stays until the device returns or Watch Mode
+   * ends.
+   */
+  watchState?: WatchState;
 }
 
 /** Drop an event that belongs to a scan the interface is no longer showing. */
@@ -107,9 +115,72 @@ export function rowName(row: DeviceRow): string {
  * workstation and tells a consultant why they cannot ping it.
  */
 export function isResponding(row: DeviceRow): boolean {
-  return row.host.latency_ms != null;
+  return row.watchState !== "offline" && row.host.latency_ms != null;
 }
 
 export function hasServices(row: DeviceRow): boolean {
-  return row.host.open_ports.length > 0;
+  return row.watchState !== "offline" && row.host.open_ports.length > 0;
+}
+
+/** Facts worth calling a change in Watch Mode. Latency jitter is deliberately ignored. */
+export function watchHostChanged(before: HostResult, after: HostResult): boolean {
+  const beforePorts = [...before.open_ports].sort((a, b) => a - b);
+  const afterPorts = [...after.open_ports].sort((a, b) => a - b);
+
+  return (
+    clean(before.hostname) !== clean(after.hostname) ||
+    clean(before.mac) !== clean(after.mac) ||
+    clean(before.vendor) !== clean(after.vendor) ||
+    (before.latency_ms == null) !== (after.latency_ms == null) ||
+    beforePorts.length !== afterPorts.length ||
+    beforePorts.some((port, index) => port !== afterPorts[index])
+  );
+}
+
+export interface WatchComparison {
+  rows: DeviceRow[];
+  offline: Map<string, HostResult>;
+}
+
+/**
+ * Compare one completed Watch Mode scan with the previous completed scan.
+ *
+ * This runs only after the scanner has finished, so the visible table does not
+ * flicker empty between cycles. Offline devices stay visible until they return
+ * or Watch Mode ends, while New/Changed markers clear after one unchanged
+ * cycle.
+ */
+export function compareWatchResults(
+  previous: readonly HostResult[] | null,
+  current: readonly HostResult[],
+  retainedOffline: ReadonlyMap<string, HostResult> = new Map(),
+): WatchComparison {
+  if (previous == null) {
+    return { rows: rowsFromResult([...current]), offline: new Map() };
+  }
+
+  const previousByIp = new Map(previous.map((host) => [host.ip, host]));
+  const currentByIp = new Map(current.map((host) => [host.ip, host]));
+  const offline = new Map(retainedOffline);
+
+  for (const host of current) offline.delete(host.ip);
+  for (const host of previous) {
+    if (!currentByIp.has(host.ip)) offline.set(host.ip, host);
+  }
+
+  const rows: DeviceRow[] = current.map((host) => {
+    const before = previousByIp.get(host.ip);
+    const watchState = before == null ? "new" : watchHostChanged(before, host) ? "changed" : undefined;
+    return { host, pending: false, ...(watchState ? { watchState } : {}) };
+  });
+
+  for (const [ip, host] of offline) {
+    if (!currentByIp.has(ip)) rows.push({ host, pending: false, watchState: "offline" });
+  }
+
+  return { rows, offline };
+}
+
+function clean(value: string | null): string {
+  return value?.trim() ?? "";
 }

@@ -1,4 +1,4 @@
-import { CheckCircle2, CircleSlash, Loader2 } from "lucide-react";
+import { CheckCircle2, CircleSlash, Loader2, Radio } from "lucide-react";
 import { formatCount, formatDuration, phaseLabel } from "../lib/format";
 import type { ScanProgress, ScanStarted } from "../types";
 import type { ScanSummary } from "../hooks/useScan";
@@ -18,6 +18,8 @@ export function ProgressStrip({
   summary,
   shownCount,
   totalCount,
+  watchActive,
+  watchIntervalMs,
 }: {
   scanning: boolean;
   stopping: boolean;
@@ -28,6 +30,8 @@ export function ProgressStrip({
   shownCount: number;
   /** Rows found in total, before filtering. */
   totalCount: number;
+  watchActive: boolean;
+  watchIntervalMs: number;
 }) {
   const total = progress?.total ?? started?.total ?? 0;
   const done = progress?.done ?? 0;
@@ -103,6 +107,15 @@ export function ProgressStrip({
         )}
 
         <div className="flex-1" />
+
+        {watchActive ? (
+          <span className="flex shrink-0 items-center gap-1.5 font-medium text-accent-text">
+            <Radio size={11} aria-hidden />
+            Watching every {watchIntervalMs / 1_000}s
+          </span>
+        ) : null}
+
+        {watchActive && filtered ? <Dot /> : null}
 
         {filtered ? (
           <span className="shrink-0 text-ink-muted">

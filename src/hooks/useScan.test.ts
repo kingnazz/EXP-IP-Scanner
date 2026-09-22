@@ -311,6 +311,82 @@ describe("a scan that fails", () => {
   });
 });
 
+describe("Watch Mode", () => {
+  it("marks new and changed devices, retains offline devices, and cleans up when watching ends", async () => {
+    stubScan(() => result({ scan_id: 1, hosts: [WINDOWS_SERVER] }));
+
+    const { result: hook } = renderHook(() => useScan({ onError }));
+    await act(async () => {
+      await hook.current.run(OPTIONS);
+    });
+
+    const changedServer = {
+      ...WINDOWS_SERVER,
+      open_ports: [...WINDOWS_SERVER.open_ports, 80],
+      seen_at: "2026-09-21T20:00:00Z",
+    };
+
+    stubScan(() =>
+      result({
+        scan_id: 2,
+        hosts: [changedServer, PRINTER],
+      }),
+    );
+    await act(async () => {
+      await hook.current.run(OPTIONS, { watch: true });
+    });
+
+    expect(hook.current.rows.find((row) => row.host.ip === WINDOWS_SERVER.ip)?.watchState).toBe(
+      "changed",
+    );
+    expect(hook.current.rows.find((row) => row.host.ip === PRINTER.ip)?.watchState).toBe("new");
+
+    stubScan(() => result({ scan_id: 3, hosts: [PRINTER] }));
+    await act(async () => {
+      await hook.current.run(OPTIONS, { watch: true });
+    });
+
+    expect(hook.current.rows.find((row) => row.host.ip === WINDOWS_SERVER.ip)?.watchState).toBe(
+      "offline",
+    );
+    expect(hook.current.rows.find((row) => row.host.ip === PRINTER.ip)?.watchState).toBeUndefined();
+
+    // Offline rows persist across later cycles instead of vanishing while a
+    // consultant is waiting for a rebooted device to return.
+    stubScan(() => result({ scan_id: 4, hosts: [PRINTER] }));
+    await act(async () => {
+      await hook.current.run(OPTIONS, { watch: true });
+    });
+    expect(hook.current.rows.find((row) => row.host.ip === WINDOWS_SERVER.ip)?.watchState).toBe(
+      "offline",
+    );
+
+    act(() => hook.current.endWatch());
+    expect(hook.current.rows.map((row) => row.host.ip)).toEqual([PRINTER.ip]);
+    expect(hook.current.rows[0]?.watchState).toBeUndefined();
+  });
+
+  it("ignores latency jitter when deciding whether a device changed", async () => {
+    stubScan(() => result({ hosts: [WINDOWS_SERVER] }));
+    const { result: hook } = renderHook(() => useScan({ onError }));
+    await act(async () => {
+      await hook.current.run(OPTIONS);
+    });
+
+    stubScan(() =>
+      result({
+        scan_id: 2,
+        hosts: [{ ...WINDOWS_SERVER, latency_ms: (WINDOWS_SERVER.latency_ms ?? 1) + 12 }],
+      }),
+    );
+    await act(async () => {
+      await hook.current.run(OPTIONS, { watch: true });
+    });
+
+    expect(hook.current.rows[0]?.watchState).toBeUndefined();
+  });
+});
+
 describe("clearing", () => {
   it("empties the table and forgets the last scan", async () => {
     stubScan((listeners) => {
