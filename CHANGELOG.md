@@ -6,6 +6,23 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.2.2
+
+### Changed
+
+- Retired the experimental ScreenConnect Backstage console companion after
+  real-world antivirus and remote-shell compatibility proved inconsistent.
+- Releases now ship only the two supported editions: Portable and Installer.
+- The portable ZIP is simple again: `EXP IP Scanner.exe` plus its README.
+- CI, release packaging, checksums, website download logic, and documentation no
+  longer build, publish, bundle, or advertise a separate Backstage executable.
+
+### Notes
+
+- The main scanner and its network-discovery behavior are unchanged.
+- Version 1.2.1 remains in the historical changelog because it did ship the
+  experimental companion; 1.2.2 is the supported replacement.
+
 ## 1.2.1
 
 ### Added
