@@ -27,6 +27,10 @@ interface straight from the results.
   second ARP pass, so printers, cameras and hardened workstations that ignore
   ping still appear — and appear again on the next scan rather than flickering
   in and out. No administrator rights needed.
+- **Watches while you troubleshoot.** Watch Mode can repeat the scan every 5,
+  10 or 30 seconds and highlight devices that appeared, changed or went offline.
+  The comparison stays only in the current session and disappears when Watch
+  Mode ends.
 - **Names things.** Reverse DNS alongside the sweep, plus the full IEEE OUI
   registry built in, so manufacturers are identified offline on an isolated
   customer network.
