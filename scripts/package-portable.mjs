@@ -10,13 +10,15 @@
 //   * it is a Windows PE for the architecture the ZIP is named after, read out
 //     of the PE header rather than inferred from the path;
 //   * it is the *portable* build, not the installed one (see below);
-//   * the staged payload is exactly the executable and the README;
+//   * the staged payload is exactly the desktop executable, the Backstage
+//     console companion, and the README;
 //   * nothing else -- no installer, no updater manifest, no signature, no
 //     debug symbols -- came along.
 //
 //   node scripts/package-portable.mjs --version 1.0.0
 //                                     --target x86_64-pc-windows-msvc
-//                                     --binary <path to the exe>
+//                                     --binary <path to the desktop exe>
+//                                     --backstage-binary <path to console exe>
 //                                     [--out dist-portable]
 //
 // Adapted from ArcScan's script, including the PE-header check and the
@@ -62,11 +64,12 @@ export const TARGETS = {
   "aarch64-pc-windows-msvc": { label: "windows-arm64", machine: 0xaa64, machineName: "ARM64" },
 };
 
-/** What the executable is called inside the ZIP. */
+/** What the executables are called inside the ZIP. */
 export const EXE_NAME = "EXP IP Scanner.exe";
+export const BACKSTAGE_EXE_NAME = "EXP IP Scanner Backstage.exe";
 
 /** Exactly what a portable ZIP may contain, and nothing else. */
-export const EXPECTED_PAYLOAD = [EXE_NAME, "README-PORTABLE.txt"];
+export const EXPECTED_PAYLOAD = [EXE_NAME, BACKSTAGE_EXE_NAME, "README-PORTABLE.txt"];
 
 /**
  * Strings that are in the binary only because the updater plugin is linked.
@@ -145,12 +148,13 @@ function main() {
   const version = flag("version");
   const target = flag("target");
   const binary = flag("binary");
+  const backstageBinary = flag("backstage-binary");
   const outDir = path.resolve(root, flag("out", "dist-portable"));
 
-  if (!version || !target || !binary) {
+  if (!version || !target || !binary || !backstageBinary) {
     die(
       "usage: package-portable.mjs --version <x.y.z> --target <rust target> " +
-        "--binary <exe> [--out <dir>]",
+        "--binary <desktop-exe> --backstage-binary <console-exe> [--out <dir>]",
     );
   }
   if (!/^\d+\.\d+\.\d+(-[\w.]+)?$/.test(version)) die(`"${version}" is not a semantic version`);
@@ -186,6 +190,30 @@ function main() {
     );
   }
 
+  const backstagePath = path.resolve(root, backstageBinary);
+  if (!existsSync(backstagePath)) die(`no Backstage binary at ${backstagePath}`);
+  const backstageBuffer = readFileSync(backstagePath);
+  let backstageMachine;
+  try {
+    backstageMachine = peMachine(backstageBuffer, backstagePath);
+  } catch (error) {
+    die(error.message);
+  }
+  if (backstageMachine !== spec.machine) {
+    const known = Object.values(TARGETS).find((t) => t.machine === backstageMachine);
+    die(
+      `${backstagePath} is a ${known ? known.machineName : `0x${backstageMachine.toString(16)}`} binary, ` +
+        `but ${target} needs ${spec.machineName}. Refusing to package the wrong architecture.`,
+    );
+  }
+  const backstageMarkers = updaterMarkersIn(backstageBuffer);
+  if (backstageMarkers.length > 0) {
+    die(
+      `${backstagePath} contains updater strings (${backstageMarkers.join(", ")}); ` +
+        "the Backstage companion must remain updater-free.",
+    );
+  }
+
   // ------------------------------------------------------------- staging
 
   const name = assetName(version, target);
@@ -195,6 +223,7 @@ function main() {
   mkdirSync(outDir, { recursive: true });
 
   copyFileSync(binaryPath, path.join(staging, EXE_NAME));
+  copyFileSync(backstagePath, path.join(staging, BACKSTAGE_EXE_NAME));
 
   const readmeSource = path.join(root, "packaging", "README-PORTABLE.txt");
   if (!existsSync(readmeSource)) die(`no README at ${readmeSource}`);
@@ -250,5 +279,5 @@ function main() {
   console.log(`  contents     ${EXPECTED_PAYLOAD.join(", ")}`);
   console.log(`  target       ${target}`);
   console.log(`  architecture ${spec.machineName} (PE machine 0x${machine.toString(16)})`);
-  console.log(`  edition      portable (no updater strings present)`);
+  console.log(`  edition      portable GUI + Backstage console (no updater strings present)`);
 }
