@@ -2,9 +2,29 @@
 
 All notable changes to EXP IP Scanner are recorded here. The same history, in a
 form built for reading, is on the
-[website](https://nazar-exp.github.io/EXP-IP-Scanner/releases.html).
+[website](https://expipscanner.com/releases.html).
 
 This project uses [semantic versioning](https://semver.org/).
+
+## 1.2.1
+
+### Added
+
+- A dedicated **EXP IP Scanner Backstage** console companion for ScreenConnect
+  Backstage and other limited remote shells. It uses the same Rust scanning
+  engine as the desktop app without opening a Tauri window or requiring WebView2.
+- The Backstage companion auto-detects the recommended local subnet, streams
+  discoveries, and prints IP, hostname, MAC, manufacturer, latency, and open services.
+- Backstage supports `--target`, `--ports`, `--no-services`, `--csv`, and
+  `--json` for scripted or ticket-friendly workflows.
+- The standalone Backstage EXE is published as its own release asset and is also
+  included in the portable ZIP.
+
+### Changed
+
+- The website now exposes a dedicated Backstage download option.
+- Portable packaging and CI verify the Backstage executable architecture and
+  ensure it stays updater-free.
 
 ## 1.2.0
 
