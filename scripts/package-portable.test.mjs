@@ -4,7 +4,6 @@
 
 import { describe, expect, it } from "vitest";
 import {
-  BACKSTAGE_EXE_NAME,
   EXE_NAME,
   EXPECTED_PAYLOAD,
   TARGETS,
@@ -98,14 +97,9 @@ describe("the installed-build check", () => {
 });
 
 describe("the payload", () => {
-  it("is the desktop app, Backstage companion and README, and nothing else", () => {
-    expect(EXPECTED_PAYLOAD).toEqual([
-      EXE_NAME,
-      BACKSTAGE_EXE_NAME,
-      "README-PORTABLE.txt",
-    ]);
+  it("is the desktop app and README, and nothing else", () => {
+    expect(EXPECTED_PAYLOAD).toEqual([EXE_NAME, "README-PORTABLE.txt"]);
     expect(EXE_NAME).toBe("EXP IP Scanner.exe");
-    expect(BACKSTAGE_EXE_NAME).toBe("EXP IP Scanner Backstage.exe");
   });
 });
 
@@ -132,6 +126,5 @@ describe("the README", () => {
     expect(rendered).toContain("never updates itself");
     expect(rendered).toContain("read-only share");
     expect(rendered).toContain("WebView2");
-    expect(rendered).toContain("ScreenConnect Backstage");
   });
 });
