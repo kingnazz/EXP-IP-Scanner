@@ -2,7 +2,7 @@
 
 **Find what's on the network. Fast.**
 
-An official free Windows network scanner from [EXP Technical](https://exptechnical.com/),
+An official free Windows network scanner from EXP Technical,
 built for everyday IT work. It detects the network you are on, sweeps it in
 seconds, and lets you open Remote Desktop, a file share, SSH or a device's web
 interface straight from the results.
