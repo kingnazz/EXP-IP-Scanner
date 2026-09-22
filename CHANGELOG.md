@@ -6,6 +6,34 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.3.0
+
+### Added
+
+- **Watch Mode** repeats a scan every 5, 10, or 30 seconds while you troubleshoot.
+- Devices that appear are marked **New**, meaningful device changes are marked
+  **Changed**, and devices missing from the latest completed pass stay visible
+  as **Offline** instead of disappearing.
+- **Scan now** lets you trigger the next Watch pass immediately without leaving
+  Watch Mode.
+- The device details panel shows Watch status and uses **Last seen** while
+  watching.
+
+### Changed
+
+- Watch scans keep the previous completed table visible while the next pass
+  runs, so repeated scans do not flicker or clear the working view.
+- Ordinary latency jitter does not count as a device change. Watch Mode focuses
+  on useful changes such as hostname, MAC, manufacturer, service availability,
+  or whether the device stopped responding.
+- Watch state is session-only. Stopping Watch Mode removes offline ghosts and
+  change markers, with no database, history, alerting service, or cloud storage.
+
+### Notes
+
+- Watch Mode uses the same scanner and scan settings as a normal scan.
+- Portable and Installer editions have identical Watch Mode behavior.
+
 ## 1.2.2
 
 ### Changed

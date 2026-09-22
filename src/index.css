@@ -400,6 +400,16 @@
     border-color: color-mix(in srgb, var(--color-warn) 35%, transparent);
     color: var(--color-warn);
   }
+  .badge-ok {
+    background: color-mix(in srgb, var(--color-ok) 10%, transparent);
+    border-color: color-mix(in srgb, var(--color-ok) 32%, transparent);
+    color: var(--color-ok);
+  }
+  .badge-danger {
+    background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+    border-color: color-mix(in srgb, var(--color-danger) 32%, transparent);
+    color: var(--color-danger);
+  }
 
   /* A service chip in the Open Ports column: the port and its service word.
      Not a pill, not rounded to a capsule -- a dense label. */
@@ -587,6 +597,25 @@
     .network-summary .summary-aside {
       display: none;
     }
+  }
+  .results-table tbody tr.watch-row-new td {
+    background: color-mix(in srgb, var(--color-ok) 7%, var(--color-surface));
+  }
+  .results-table tbody tr.watch-row-changed td {
+    background: color-mix(in srgb, var(--color-warn) 8%, var(--color-surface));
+  }
+  .results-table tbody tr.watch-row-offline td {
+    background: color-mix(in srgb, var(--color-danger) 6%, var(--color-surface));
+    color: var(--color-ink-soft);
+  }
+  .results-table tbody tr.watch-row-new td:first-child {
+    box-shadow: inset 3px 0 0 var(--color-ok);
+  }
+  .results-table tbody tr.watch-row-changed td:first-child {
+    box-shadow: inset 3px 0 0 var(--color-warn);
+  }
+  .results-table tbody tr.watch-row-offline td:first-child {
+    box-shadow: inset 3px 0 0 var(--color-danger);
   }
   .results-table tbody tr:hover td {
     background: var(--color-surface-hover);

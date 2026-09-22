@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
 import {
+  compareWatchResults,
   isStaleEvent,
   removeHostByIp,
   rowsFromResult,
@@ -11,6 +12,7 @@ import {
 import type {
   HostEvent,
   HostRemovedEvent,
+  HostResult,
   ScanOptions,
   ScanProgress,
   ScanResult,
@@ -27,6 +29,11 @@ export interface ScanSummary {
   probed: number;
   found: number;
   cancelled: boolean;
+}
+
+export interface ScanRunOptions {
+  /** Keep the last completed table visible and compare this result against it. */
+  watch?: boolean;
 }
 
 /** A queued event, applied in batches rather than one render at a time. */
@@ -47,10 +54,10 @@ export interface UseScanOptions {
 /**
  * Runs scans and keeps the results table in step with them.
  *
- * Two things here carry their weight. Events are queued and applied on an
- * interval, so a wide sweep cannot drive one render per device. And every event
- * is checked against the scan the interface is currently showing, so a stopped
- * scan winding down in the background cannot inject devices into the next one.
+ * Normal scans stream results into an empty table. Watch scans deliberately do
+ * not: they keep the last completed table stable while the next pass runs, then
+ * swap in one comparison at completion. That is what makes New, Changed, and
+ * Offline useful instead of making the table flicker every few seconds.
  */
 export function useScan({ onError }: UseScanOptions) {
   const [rows, setRows] = useState<DeviceRow[]>([]);
@@ -59,12 +66,17 @@ export function useScan({ onError }: UseScanOptions) {
   const [progress, setProgress] = useState<ScanProgress | null>(null);
   const [started, setStarted] = useState<ScanStarted | null>(null);
   const [summary, setSummary] = useState<ScanSummary | null>(null);
+  const [lastRunFailed, setLastRunFailed] = useState(false);
 
   /** The scan whose events the interface accepts. */
   const activeScanId = useRef<number | null>(null);
   const queue = useRef<Queued[]>([]);
   const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mounted = useRef(true);
+
+  /** The last completed online set, plus devices retained as offline. */
+  const watchBaseline = useRef<HostResult[] | null>(null);
+  const watchOffline = useRef<Map<string, HostResult>>(new Map());
 
   useEffect(() => {
     mounted.current = true;
@@ -110,17 +122,24 @@ export function useScan({ onError }: UseScanOptions) {
   }, []);
 
   const run = useCallback(
-    async (opts: ScanOptions) => {
+    async (opts: ScanOptions, runOptions: ScanRunOptions = {}): Promise<boolean> => {
+      const watch = runOptions.watch === true;
+
       // Claiming the slot before the first await means a second Scan while this
       // one is starting cannot interleave two sets of events.
       activeScanId.current = null;
       clearQueue();
 
-      setRows([]);
+      if (!watch) {
+        watchBaseline.current = null;
+        watchOffline.current.clear();
+        setRows([]);
+        setSummary(null);
+      }
       setProgress(null);
       setStarted(null);
-      setSummary(null);
       setStopping(false);
+      setLastRunFailed(false);
       setMode("scanning");
 
       try {
@@ -134,30 +153,41 @@ export function useScan({ onError }: UseScanOptions) {
             setProgress(event);
           },
           onHostDiscovered: (event: HostEvent) => {
-            if (isStaleEvent(event.scan_id, activeScanId.current)) return;
-            // Still pending: the hostname, MAC and manufacturer arrive later.
+            if (watch || isStaleEvent(event.scan_id, activeScanId.current)) return;
             enqueue({ kind: "upsert", host: event.host, pending: true });
           },
           onHostUpdated: (event: HostEvent) => {
-            if (isStaleEvent(event.scan_id, activeScanId.current)) return;
-            // Only the final update settles a row. A hostname that resolved
-            // mid-scan must not make the MAC and manufacturer -- which are not
-            // read until the ARP pass at the end -- look like they are missing.
+            if (watch || isStaleEvent(event.scan_id, activeScanId.current)) return;
             enqueue({ kind: "upsert", host: event.host, pending: event.is_final !== true });
           },
           onHostRemoved: (event: HostRemovedEvent) => {
-            if (isStaleEvent(event.scan_id, activeScanId.current)) return;
+            if (watch || isStaleEvent(event.scan_id, activeScanId.current)) return;
             enqueue({ kind: "remove", ip: event.ip });
           },
         });
 
-        flush();
-        if (!mounted.current) return;
+        if (!watch) flush();
+        if (!mounted.current) return false;
 
-        // Rebuild from the returned result, which is the source of truth: if an
-        // update event was dropped under backpressure, the table still ends up
-        // exactly what the scan found.
-        setRows(settleRows(rowsFromResult(result.hosts)));
+        if (watch) {
+          // A user stopping Watch Mode should not turn every unprobed address
+          // into a false Offline result. Keep the last completed table instead.
+          if (!result.cancelled) {
+            const comparison = compareWatchResults(
+              watchBaseline.current,
+              result.hosts,
+              watchOffline.current,
+            );
+            watchBaseline.current = [...result.hosts];
+            watchOffline.current = comparison.offline;
+            setRows(comparison.rows);
+          }
+        } else {
+          const settled = settleRows(rowsFromResult(result.hosts));
+          watchBaseline.current = [...result.hosts];
+          setRows(settled);
+        }
+
         setMode("finished");
         setStopping(false);
         setSummary({
@@ -168,17 +198,20 @@ export function useScan({ onError }: UseScanOptions) {
           found: result.hosts.length,
           cancelled: result.cancelled,
         });
+        return true;
       } catch (error) {
-        if (!mounted.current) return;
+        if (!mounted.current) return false;
         activeScanId.current = null;
         clearQueue();
-        setMode("idle");
+        setMode(watch && summary ? "finished" : "idle");
         setStopping(false);
         setProgress(null);
+        setLastRunFailed(true);
         onError(error instanceof Error ? error.message : String(error));
+        return false;
       }
     },
-    [clearQueue, enqueue, flush, onError],
+    [clearQueue, enqueue, flush, onError, summary],
   );
 
   const cancel = useCallback(async () => {
@@ -192,14 +225,33 @@ export function useScan({ onError }: UseScanOptions) {
     }
   }, [mode, stopping, onError]);
 
+  /**
+   * Leave Watch Mode without leaving its comparison ghosts behind.
+   * The table returns to the most recent completed online set.
+   */
+  const endWatch = useCallback(() => {
+    watchOffline.current.clear();
+    setRows((current) => {
+      const online =
+        watchBaseline.current ??
+        current.filter((row) => row.watchState !== "offline").map((row) => row.host);
+      return settleRows(rowsFromResult([...online]));
+    });
+  }, []);
+
+  const clearFailure = useCallback(() => setLastRunFailed(false), []);
+
   /** Clear the table without starting anything. */
   const clear = useCallback(() => {
     activeScanId.current = null;
     clearQueue();
+    watchBaseline.current = null;
+    watchOffline.current.clear();
     setRows([]);
     setProgress(null);
     setStarted(null);
     setSummary(null);
+    setLastRunFailed(false);
     setMode("idle");
   }, [clearQueue]);
 
@@ -211,8 +263,11 @@ export function useScan({ onError }: UseScanOptions) {
     progress,
     started,
     summary,
+    lastRunFailed,
     run,
     cancel,
+    endWatch,
+    clearFailure,
     clear,
   };
 }

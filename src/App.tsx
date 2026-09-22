@@ -77,10 +77,15 @@ export default function App() {
   const [pingResult, setPingResult] = useState<PingOutcome | null>(null);
   const [pinging, setPinging] = useState(false);
   const [menuColumn, setMenuColumn] = useState<ColumnKey | null>(null);
+  const [watchActive, setWatchActive] = useState(false);
+  const [watchIntervalMs, setWatchIntervalMs] = useState(10_000);
+  const [watchKick, setWatchKick] = useState(0);
 
   const targetInput = useRef<HTMLInputElement>(null);
   const searchInput = useRef<HTMLInputElement>(null);
   const selectionAnchor = useRef<number | null>(null);
+  const watchImmediate = useRef(false);
+  const watchOptions = useRef<ScanOptions | null>(null);
 
   const onScanError = useCallback((message: string) => toasts.error(message), [toasts]);
   const scan = useScan({ onError: onScanError });
@@ -202,6 +207,39 @@ export default function App() {
     };
   }, [scanOptions, target]);
 
+  // Watch Mode keeps its scan settings frozen for the session, so opening
+  // Settings while watching cannot make a port-set change look like a device
+  // change. Stop and restart Watch Mode to pick up new scan settings.
+  useEffect(() => {
+    if (!watchActive || scan.scanning || scan.lastRunFailed) return;
+    const options = watchOptions.current;
+    if (!options || targetError) return;
+
+    const delay = watchImmediate.current ? 0 : watchIntervalMs;
+    watchImmediate.current = false;
+    const timer = window.setTimeout(() => {
+      void scan.run(options, { watch: true });
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    scan.lastRunFailed,
+    scan.run,
+    scan.scanning,
+    scan.summary,
+    targetError,
+    watchActive,
+    watchIntervalMs,
+    watchKick,
+  ]);
+
+  useEffect(() => {
+    if (!watchActive || !scan.lastRunFailed) return;
+    watchOptions.current = null;
+    setWatchActive(false);
+    scan.endWatch();
+  }, [scan.endWatch, scan.lastRunFailed, watchActive]);
+
   // --- Rows ----------------------------------------------------------------
 
   const columns = useMemo(() => visibleColumns(settings.hiddenColumns), [settings.hiddenColumns]);
@@ -233,7 +271,19 @@ export default function App() {
 
   // --- Scanning ------------------------------------------------------------
 
+  const triggerWatchNow = useCallback(() => {
+    if (!watchActive || scan.scanning) return;
+    scan.clearFailure();
+    watchImmediate.current = true;
+    setWatchKick((value) => value + 1);
+  }, [scan, watchActive]);
+
   const startScan = useCallback(() => {
+    if (watchActive) {
+      triggerWatchNow();
+      return;
+    }
+
     const trimmed = target.trim();
     if (!trimmed || targetError || scan.scanning) return;
     setSelected(new Set());
@@ -242,9 +292,35 @@ export default function App() {
     setPingResult(null);
     setRecentTargets(pushRecentTarget(trimmed));
     void scan.run({ ...scanOptions, target: trimmed });
-  }, [scan, scanOptions, target, targetError]);
+  }, [scan, scanOptions, target, targetError, triggerWatchNow, watchActive]);
 
-  const stopScan = useCallback(() => void scan.cancel(), [scan]);
+  const toggleWatch = useCallback(() => {
+    if (watchActive) {
+      watchOptions.current = null;
+      setWatchActive(false);
+      scan.endWatch();
+      if (scan.scanning) void scan.cancel();
+      return;
+    }
+
+    const trimmed = target.trim();
+    if (!trimmed || targetError || scan.scanning) return;
+    scan.clearFailure();
+    watchOptions.current = { ...scanOptions, target: trimmed };
+    setRecentTargets(pushRecentTarget(trimmed));
+    watchImmediate.current = true;
+    setWatchActive(true);
+    setWatchKick((value) => value + 1);
+  }, [scan, scanOptions, target, targetError, watchActive]);
+
+  const stopScan = useCallback(() => {
+    if (watchActive) {
+      watchOptions.current = null;
+      setWatchActive(false);
+      scan.endWatch();
+    }
+    void scan.cancel();
+  }, [scan, watchActive]);
 
   const onSelectNetwork = useCallback(
     (network: LocalNetwork) => {
@@ -510,7 +586,7 @@ export default function App() {
         onScan: () => (scan.scanning ? stopScan() : startScan()),
         onEscape: () => {
           if (menu.state) menu.close();
-          else if (scan.scanning) stopScan();
+          else if (scan.scanning || watchActive) stopScan();
           else if (drawerIp) setDrawerIp(null);
           else if (query) setQuery("");
         },
@@ -518,7 +594,18 @@ export default function App() {
         onCopy: () => void copyRows(),
         onSelectAll: selectAll,
       }),
-      [copyRows, drawerIp, exportCsv, menu, query, scan.scanning, selectAll, startScan, stopScan],
+      [
+        copyRows,
+        drawerIp,
+        exportCsv,
+        menu,
+        query,
+        scan.scanning,
+        selectAll,
+        startScan,
+        stopScan,
+        watchActive,
+      ],
     ),
   );
 
@@ -549,6 +636,10 @@ export default function App() {
         recentTargets={recentTargets}
         scanning={scan.scanning}
         stopping={scan.stopping}
+        watching={watchActive}
+        watchIntervalMs={watchIntervalMs}
+        onWatchToggle={toggleWatch}
+        onWatchIntervalChange={setWatchIntervalMs}
         onScan={startScan}
         onStop={stopScan}
       />
@@ -582,6 +673,9 @@ export default function App() {
                 onCopy={() => void copyRows()}
                 onCopyIps={() => void copyIps()}
                 onClear={() => {
+                  watchOptions.current = null;
+                  setWatchActive(false);
+                  scan.endWatch();
                   scan.clear();
                   setSelected(new Set());
                   setFocusedIp(null);
@@ -634,6 +728,7 @@ export default function App() {
             onAction={(action) => void runAction(action, drawerRow.host)}
             pingResult={pingResult}
             pinging={pinging}
+            watchActive={watchActive}
           />
         ) : null}
       </div>
@@ -646,6 +741,8 @@ export default function App() {
         summary={scan.summary}
         shownCount={rows.length}
         totalCount={scan.rows.length}
+        watchActive={watchActive}
+        watchIntervalMs={watchIntervalMs}
       />
 
       {menu.state ? (

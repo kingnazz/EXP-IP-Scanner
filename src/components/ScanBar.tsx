@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
-import { ChevronDown, Play, Square } from "lucide-react";
+import { ChevronDown, Play, Radio, RefreshCw, Square } from "lucide-react";
 import type { LocalNetwork } from "../types";
 import { InterfacePicker } from "./InterfacePicker";
 
@@ -23,6 +23,10 @@ export const ScanBar = forwardRef<
     recentTargets: string[];
     scanning: boolean;
     stopping: boolean;
+    watching: boolean;
+    watchIntervalMs: number;
+    onWatchToggle: () => void;
+    onWatchIntervalChange: (intervalMs: number) => void;
     onScan: () => void;
     onStop: () => void;
   }
@@ -37,6 +41,10 @@ export const ScanBar = forwardRef<
     recentTargets,
     scanning,
     stopping,
+    watching,
+    watchIntervalMs,
+    onWatchToggle,
+    onWatchIntervalChange,
     onScan,
     onStop,
   },
@@ -68,7 +76,7 @@ export const ScanBar = forwardRef<
           networks={networks}
           selected={selectedNetwork}
           onSelect={onSelectNetwork}
-          disabled={scanning}
+          disabled={scanning || watching}
         />
 
         <div className="divider-v my-1" />
@@ -86,6 +94,7 @@ export const ScanBar = forwardRef<
             placeholder="192.168.1.0/24, 192.168.1.1-254 or 10.0.0.50"
             spellCheck={false}
             autoComplete="off"
+            disabled={scanning || watching}
             aria-invalid={targetError ? true : undefined}
             aria-describedby={targetError ? "scan-target-error" : undefined}
           />
@@ -97,6 +106,7 @@ export const ScanBar = forwardRef<
               aria-label="Recent networks"
               title="Recent networks"
               aria-expanded={recentOpen}
+              disabled={scanning || watching}
             >
               <ChevronDown size={14} />
             </button>
@@ -122,12 +132,49 @@ export const ScanBar = forwardRef<
           ) : null}
         </div>
 
+        <button
+          type="button"
+          className="btn btn-lg btn-secondary min-w-[6.75rem]"
+          style={
+            watching
+              ? {
+                  background: "var(--accent-soft)",
+                  borderColor: "var(--color-accent)",
+                  color: "var(--color-ink)",
+                }
+              : undefined
+          }
+          disabled={!watching && (Boolean(targetError) || target.trim().length === 0 || scanning)}
+          onClick={onWatchToggle}
+          title={watching ? "Stop Watch Mode" : "Repeat scans and highlight network changes"}
+          aria-pressed={watching}
+        >
+          <Radio size={13} className={watching ? "text-accent-text" : undefined} aria-hidden />
+          {watching ? "Watching" : "Watch"}
+        </button>
+
+        <label className="sr-only" htmlFor="watch-interval">
+          Watch interval
+        </label>
+        <select
+          id="watch-interval"
+          className="field field-lg w-[4.7rem] px-2 text-[12.5px]"
+          value={watchIntervalMs}
+          onChange={(event) => onWatchIntervalChange(Number(event.target.value))}
+          title="Time between completed Watch Mode scans"
+          aria-label="Watch interval"
+        >
+          <option value={5_000}>5s</option>
+          <option value={10_000}>10s</option>
+          <option value={30_000}>30s</option>
+        </select>
+
         {scanning ? (
           <button
             type="submit"
             className="btn btn-lg btn-stop min-w-[7.5rem]"
             disabled={stopping}
-            title="Stop the scan (Escape)"
+            title={watching ? "Stop Watch Mode and the current scan (Escape)" : "Stop the scan (Escape)"}
           >
             <Square size={13} aria-hidden />
             {stopping ? "Stopping…" : "Stop"}
@@ -137,10 +184,10 @@ export const ScanBar = forwardRef<
             type="submit"
             className="btn btn-lg btn-primary min-w-[7.5rem]"
             disabled={Boolean(targetError) || target.trim().length === 0}
-            title="Start the scan (F5)"
+            title={watching ? "Run the next Watch scan now (F5)" : "Start the scan (F5)"}
           >
-            <Play size={13} aria-hidden />
-            Scan
+            {watching ? <RefreshCw size={13} aria-hidden /> : <Play size={13} aria-hidden />}
+            {watching ? "Scan now" : "Scan"}
           </button>
         )}
       </form>
