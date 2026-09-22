@@ -16,7 +16,6 @@
 import { readFileSync } from "node:fs";
 import { inflateRawSync } from "node:zlib";
 import {
-  BACKSTAGE_EXE_NAME,
   EXPECTED_PAYLOAD,
   EXE_NAME,
   TARGETS,
@@ -124,31 +123,26 @@ check("it holds exactly the expected payload, flat", () => {
   return names.join(", ");
 });
 
-check("both executables are Windows binaries for the right architecture", () => {
+check("the executable is a Windows binary for the right architecture", () => {
   const spec = Object.values(TARGETS).find((t) => t.machineName === architecture);
   if (!spec) throw new Error(`unknown architecture "${architecture}"`);
-
-  for (const name of [EXE_NAME, BACKSTAGE_EXE_NAME]) {
-    const exe = entries.find((e) => e.name === name);
-    if (!exe) throw new Error(`${name} is missing`);
-    const machine = peMachine(exe.contents, name);
-    if (machine !== spec.machine) {
-      const found = Object.values(TARGETS).find((t) => t.machine === machine);
-      throw new Error(
-        `${name} is ${found ? found.machineName : `0x${machine.toString(16)}`}, expected ${architecture}`,
-      );
-    }
+  const exe = entries.find((e) => e.name === EXE_NAME);
+  if (!exe) throw new Error(`${EXE_NAME} is missing`);
+  const machine = peMachine(exe.contents, EXE_NAME);
+  if (machine !== spec.machine) {
+    const found = Object.values(TARGETS).find((t) => t.machine === machine);
+    throw new Error(
+      `${EXE_NAME} is ${found ? found.machineName : `0x${machine.toString(16)}`}, expected ${architecture}`,
+    );
   }
-  return `${architecture} desktop + Backstage binaries`;
+  return `${architecture} desktop binary`;
 });
 
-check("neither executable contains the installer updater", () => {
-  for (const name of [EXE_NAME, BACKSTAGE_EXE_NAME]) {
-    const exe = entries.find((e) => e.name === name);
-    const markers = updaterMarkersIn(exe.contents);
-    if (markers.length > 0) {
-      throw new Error(`${name} contains updater strings (${markers.join(", ")})`);
-    }
+check("the executable contains no installer updater", () => {
+  const exe = entries.find((e) => e.name === EXE_NAME);
+  const markers = updaterMarkersIn(exe.contents);
+  if (markers.length > 0) {
+    throw new Error(`${EXE_NAME} contains updater strings (${markers.join(", ")})`);
   }
   return "no updater strings present";
 });
@@ -175,7 +169,7 @@ check("nothing that belongs to the installer came along", () => {
   const forbidden = /\.(msi|exe\.sig|sig|pdb|nsis\.zip)$|^latest\.json$/i;
   const extra = entries
     .map((e) => e.name)
-    .filter((n) => ![EXE_NAME, BACKSTAGE_EXE_NAME].includes(n) && forbidden.test(n));
+    .filter((n) => n !== EXE_NAME && forbidden.test(n));
   if (extra.length > 0) throw new Error(`the archive contains ${extra.join(", ")}`);
   return "installer artifacts absent";
 });

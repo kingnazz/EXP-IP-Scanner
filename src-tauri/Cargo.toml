@@ -1,12 +1,11 @@
 [package]
 name = "exp-ip-scanner"
-version = "1.2.1"
+version = "1.2.2"
 description = "A fast, lightweight Windows network scanner for everyday IT work"
 authors = ["EXP"]
 license = "MIT"
 edition = "2021"
 rust-version = "1.82"
-default-run = "exp-ip-scanner"
 
 [lib]
 # The `_lib` suffix avoids a name collision with the binary on Windows.

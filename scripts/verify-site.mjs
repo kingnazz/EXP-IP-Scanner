@@ -210,7 +210,7 @@ await step("all download cards work before any JavaScript runs", async () => {
   const links = await plain.$$eval(".dl [data-field='link']", (as) =>
     as.map((a) => a.getAttribute("href")),
   );
-  if (links.length !== 3) throw new Error(`${links.length} download links, expected 3`);
+  if (links.length !== 2) throw new Error(`${links.length} download links, expected 2`);
   for (const href of links) {
     if (!/^https:\/\/github\.com\/nazar-exp\/EXP-IP-Scanner\/releases/.test(href ?? "")) {
       throw new Error(`a download link points at ${href}`);
@@ -239,7 +239,6 @@ await step("the asset rules pick the right file out of a full release", async ()
     { name: `EXP-IP-Scanner_${VERSION}_x64-setup.exe`, size: 4_000_000 },
     { name: `EXP-IP-Scanner_${VERSION}_x64-setup.exe.sig`, size: 200 },
     { name: `EXP-IP-Scanner_${VERSION}_windows-x64-portable.zip`, size: 3_500_000 },
-    { name: `EXP-IP-Scanner_${VERSION}_backstage-x64.exe`, size: 2_000_000 },
     { name: "latest.json", size: 500 },
   ];
 
@@ -248,7 +247,6 @@ await step("the asset rules pick the right file out of a full release", async ()
       const api = window.__expAssetRules;
       return {
         portable: api.pick(list, api.rules.portable, version)?.name ?? null,
-        backstage: api.pick(list, api.rules.backstage, version)?.name ?? null,
         installer: api.pick(list, api.rules.installer, version)?.name ?? null,
       };
     },
@@ -258,13 +256,10 @@ await step("the asset rules pick the right file out of a full release", async ()
   if (picked.portable !== `EXP-IP-Scanner_${VERSION}_windows-x64-portable.zip`) {
     throw new Error(`the portable card picked ${picked.portable}`);
   }
-  if (picked.backstage !== `EXP-IP-Scanner_${VERSION}_backstage-x64.exe`) {
-    throw new Error(`the Backstage card picked ${picked.backstage}`);
-  }
   if (picked.installer !== `EXP-IP-Scanner_${VERSION}_x64-setup.exe`) {
     throw new Error(`the installer card picked ${picked.installer}`);
   }
-  return `${picked.portable}, ${picked.backstage}, and ${picked.installer}`;
+  return `${picked.portable} and ${picked.installer}`;
 });
 
 await step("the asset rules refuse anything that is not a build", async () => {
@@ -283,7 +278,6 @@ await step("the asset rules refuse anything that is not a build", async () => {
         stale: api.pick(only("EXP-IP-Scanner_0.9.0_windows-x64-portable.zip"), api.rules.portable, version),
         // And the two cards must never pick each other's file.
         crossed: api.pick(only(`EXP-IP-Scanner_${version}_windows-x64-portable.zip`), api.rules.installer, version),
-        backstageCrossed: api.pick(only(`EXP-IP-Scanner_${version}_x64-setup.exe`), api.rules.backstage, version),
       };
     },
     [VERSION],

@@ -186,30 +186,12 @@ jobs:
           --no-default-features
           --features portable,custom-protocol
 
-      - name: Build the Backstage console companion
-        working-directory: src-tauri
-        env:
-          CARGO_TARGET_DIR: target-portable
-        run: >
-          cargo build --release
-          --target x86_64-pc-windows-msvc
-          --no-default-features
-          --features portable
-          --bin exp-ip-scanner-backstage
-
-      - name: Collect the Backstage console companion
-        shell: bash
-        run: |
-          set -euo pipefail
-          cp             src-tauri/target-portable/x86_64-pc-windows-msvc/release/exp-ip-scanner-backstage.exe             "artifacts/EXP-IP-Scanner_${{ steps.version.outputs.value }}_backstage-x64.exe"
-
       - name: Package the portable ZIP
         run: >
           node scripts/package-portable.mjs
           --version ${{ steps.version.outputs.value }}
           --target x86_64-pc-windows-msvc
           --binary src-tauri/target-portable/x86_64-pc-windows-msvc/release/exp-ip-scanner.exe
-          --backstage-binary src-tauri/target-portable/x86_64-pc-windows-msvc/release/exp-ip-scanner-backstage.exe
           --out artifacts
 
       - name: Verify the portable ZIP
@@ -228,7 +210,7 @@ jobs:
           # Every asset a person downloads, so a consultant on a locked-down
           # site can verify what they were given. Signatures and the manifest
           # are machinery and are excluded.
-          sha256sum *-setup.exe *-portable.zip *backstage*.exe > SHA256SUMS.txt
+          sha256sum *-setup.exe *-portable.zip > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
@@ -287,17 +269,12 @@ jobs:
             Recommended for consultants. Extract it and run it: no installation, no
             administrator rights, and it never writes to the folder you extracted it into.
 
-            **Backstage** — `EXP-IP-Scanner_${{ needs.build.outputs.version }}_backstage-x64.exe`
-            Console companion for ScreenConnect Backstage. Uses the same scanner engine,
-            requires no WebView2, and can be launched directly from PowerShell or CMD.
-
             **Installer** — `EXP-IP-Scanner_${{ needs.build.outputs.version }}_x64-setup.exe`
             For a workstation you use every day. Adds a Start Menu entry and can check for
             updates.
 
-            Windows 10 and Windows 11, x64. The Portable GUI and Installer use the Microsoft
-            Edge WebView2 Runtime, which ships with Windows 11 and current Windows 10.
-            The Backstage console companion does not require WebView2.
+            Windows 10 and Windows 11, x64. Both editions use the Microsoft Edge WebView2
+            Runtime, which ships with Windows 11 and current Windows 10.
 
             `SHA256SUMS.txt` carries a checksum for each download.
 
