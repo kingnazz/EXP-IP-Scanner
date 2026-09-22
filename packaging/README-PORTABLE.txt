@@ -15,36 +15,6 @@ GETTING STARTED
    interface. Double-click one for its full details.
 5. Export a CSV for anything you need to keep.
 
-SCREENCONNECT BACKSTAGE
------------------------
-
-The ZIP also includes "EXP IP Scanner Backstage.exe". It is a console
-companion built specifically for ScreenConnect Backstage and other limited
-remote shells where normal WebView applications may not open.
-
-From Backstage PowerShell or Command Prompt, run:
-
-  .\EXP IP Scanner Backstage.exe
-
-It detects the recommended local subnet automatically, streams discoveries,
-and prints a finished table with IP, hostname, MAC, manufacturer, latency and
-open services.
-
-Useful options:
-
-  .\EXP IP Scanner Backstage.exe --target 192.168.1.0/24
-  .\EXP IP Scanner Backstage.exe --ports 22,80,443,445,3389
-  .\EXP IP Scanner Backstage.exe --csv scan.csv
-  .\EXP IP Scanner Backstage.exe --json
-  .\EXP IP Scanner Backstage.exe --help
-
-The Backstage companion does not create a window and does not require
-WebView2. It uses the same Rust scanning engine as the normal desktop app.
-
-Windows may show an "unknown publisher" warning the first time. See
-SIGNING below.
-
-
 WHAT IT WRITES, AND WHERE
 -------------------------
 
@@ -102,14 +72,12 @@ REQUIREMENTS
 ------------
 
 * Windows 10 or Windows 11, __ARCH__.
-* The desktop GUI requires the Microsoft Edge WebView2 Runtime.
-* The Backstage console companion does not require WebView2.
+* Microsoft Edge WebView2 Runtime.
 
 WebView2 ships with Windows 11 and with current Windows 10, so it is
 almost always already present. This ZIP installs no system software. If
-it is missing, you can still use "EXP IP Scanner Backstage.exe" from a
-console, or install "Microsoft Edge WebView2 Runtime" from Microsoft for
-the normal desktop application.
+WebView2 is missing, install the Microsoft Edge WebView2 Runtime from
+Microsoft before running EXP IP Scanner.
 
 
 SIGNING
