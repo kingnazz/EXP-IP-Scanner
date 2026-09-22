@@ -75,13 +75,9 @@
       must: [/^EXP-IP-Scanner_[\d.]+_windows-x64-portable\.zip$/i],
       mustNot: [/arm64|aarch64/i, /setup/i],
     },
-    backstage: {
-      must: [/^EXP-IP-Scanner_[\d.]+_backstage-x64\.exe$/i],
-      mustNot: [/arm64|aarch64/i, /portable/i, /setup/i],
-    },
     installer: {
       must: [/^EXP-IP-Scanner_[\d.]+_x64-setup\.exe$/i],
-      mustNot: [/arm64|aarch64/i, /portable/i, /backstage/i],
+      mustNot: [/arm64|aarch64/i, /portable/i],
     },
   };
 
