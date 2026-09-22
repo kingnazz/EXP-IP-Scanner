@@ -2,9 +2,10 @@
 
 **Find what's on the network. Fast.**
 
-A lightweight Windows network scanner built for everyday IT work. It detects the
-network you are on, sweeps it in seconds, and lets you open Remote Desktop, a
-file share, SSH or a device's web interface straight from the results.
+An official free Windows network scanner from [EXP Technical](https://exptechnical.com/),
+built for everyday IT work. It detects the network you are on, sweeps it in
+seconds, and lets you open Remote Desktop, a file share, SSH or a device's web
+interface straight from the results.
 
 [Download](https://expipscanner.com/) ·
 [What's new](https://expipscanner.com/releases.html) ·
