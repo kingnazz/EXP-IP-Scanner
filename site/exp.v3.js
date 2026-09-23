@@ -144,6 +144,8 @@
   var heroDownload = document.getElementById("hero-download");
   var versionFallback = document.getElementById("version-fallback");
   var releaseMeta = document.getElementById("release-meta");
+  var downloadCount = document.getElementById("download-count");
+  var downloadCountWrap = document.getElementById("download-count-wrap");
 
   if (!Object.keys(cards).length) return;
 
@@ -173,9 +175,16 @@
           " · released " + new Date(release.published_at).toLocaleDateString();
       }
 
+      var currentReleaseDownloads = 0;
+      var matchedDownloadAssets = 0;
       Object.keys(cards).forEach(function (kind) {
         var card = cards[kind];
         var asset = pickAsset(assets, ASSET_RULES[kind], version);
+
+        if (asset && typeof asset.download_count === "number") {
+          currentReleaseDownloads += asset.download_count;
+          matchedDownloadAssets += 1;
+        }
 
         if (version) setField(card, "version", function (el) { el.textContent = version; });
         if (release.html_url) {
@@ -195,6 +204,17 @@
           setField(card, "size", function (el) { el.textContent = "see the release page"; });
         }
       });
+
+      if (
+        downloadCount &&
+        downloadCountWrap &&
+        matchedDownloadAssets === Object.keys(cards).length
+      ) {
+        downloadCount.textContent =
+          currentReleaseDownloads.toLocaleString() +
+          (currentReleaseDownloads === 1 ? " download" : " downloads");
+        downloadCountWrap.hidden = false;
+      }
 
       if (status) {
         status.textContent =
