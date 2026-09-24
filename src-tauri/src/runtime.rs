@@ -29,6 +29,39 @@ use serde::Serialize;
 /// and a distinct sub-directory so a portable copy and an installed copy can
 /// run side by side without sharing preferences.
 pub const PORTABLE_PROFILE_DIR: &str = "portable-webview";
+/// Browser arguments needed when WebView2 is hosted by the Windows LocalSystem
+/// account. ScreenConnect Backstage runs tools in that security context, while
+/// WebView2 refuses SYSTEM hosts by default. Keep Tauri/wry's normal disabled
+/// feature set when supplying our own arguments, then add Microsoft's explicit
+/// SYSTEM override.
+pub const SYSTEM_WEBVIEW2_BROWSER_ARGS: &str =
+    "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --allow-run-as-system";
+
+fn looks_like_windows_system_account(username: Option<&str>, userprofile: Option<&str>) -> bool {
+    username.is_some_and(|value| value.eq_ignore_ascii_case("SYSTEM"))
+        || userprofile.is_some_and(|value| {
+            value
+                .replace('/', "\\")
+                .to_ascii_lowercase()
+                .ends_with("\\windows\\system32\\config\\systemprofile")
+        })
+}
+
+/// Whether this process is running as Windows LocalSystem.
+///
+/// Backstage sessions created by ScreenConnect run outside a normal user
+/// desktop and commonly use LocalSystem. The environment check is intentionally
+/// narrow: the browser flag does not grant SYSTEM privileges; it only lets
+/// WebView2 start when the host process already has them.
+pub fn running_as_windows_system() -> bool {
+    if !cfg!(target_os = "windows") {
+        return false;
+    }
+
+    let username = std::env::var("USERNAME").ok();
+    let userprofile = std::env::var("USERPROFILE").ok();
+    looks_like_windows_system_account(username.as_deref(), userprofile.as_deref())
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -190,6 +223,36 @@ mod tests {
                 "{profile:?} escaped the data root"
             );
         }
+    }
+
+    #[test]
+    fn system_account_detection_accepts_screenconnect_style_identity() {
+        assert!(looks_like_windows_system_account(Some("SYSTEM"), None));
+        assert!(looks_like_windows_system_account(
+            Some("system"),
+            Some(r"C:\Windows\System32\config\systemprofile")
+        ));
+        assert!(looks_like_windows_system_account(
+            None,
+            Some(r"C:\Windows\System32\config\systemprofile")
+        ));
+    }
+
+    #[test]
+    fn system_account_detection_rejects_normal_users() {
+        assert!(!looks_like_windows_system_account(
+            Some("consultant"),
+            Some(r"C:\Users\consultant")
+        ));
+        assert!(!looks_like_windows_system_account(None, None));
+    }
+
+    #[test]
+    fn system_webview_args_keep_wry_defaults_and_add_the_system_override() {
+        assert!(SYSTEM_WEBVIEW2_BROWSER_ARGS.contains("msWebOOUI"));
+        assert!(SYSTEM_WEBVIEW2_BROWSER_ARGS.contains("msPdfOOUI"));
+        assert!(SYSTEM_WEBVIEW2_BROWSER_ARGS.contains("msSmartScreenProtection"));
+        assert!(SYSTEM_WEBVIEW2_BROWSER_ARGS.contains("--allow-run-as-system"));
     }
 
     #[test]
