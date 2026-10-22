@@ -1,8 +1,7 @@
-//! Passive web-exposure assessment for discovered devices.
+//! Passive web-exposure assessment for discovered devices and website URLs.
 //!
 //! This module deliberately does not send exploit payloads. It fingerprints
-//! web services that the normal network scan already found, reads ordinary
-//! response headers/body metadata, and turns that evidence into technician-
+//! ordinary HTTP/HTTPS responses and turns that evidence into technician-
 //! friendly findings. The goal is triage: identify systems that deserve an
 //! immediate patch/version check without turning a LAN scanner into an exploit
 //! framework.
@@ -15,6 +14,7 @@ use serde::Serialize;
 use tokio::process::Command;
 
 const MAX_BODY_CHARS: usize = 64 * 1024;
+const MAX_URL_CHARS: usize = 2_048;
 const WEB_PORTS: [u16; 9] = [80, 443, 5000, 5001, 8000, 8008, 8080, 8443, 8888];
 const PHP2SHELL_CVES: [&str; 2] = ["CVE-2026-109618", "CVE-2026-109619"];
 
@@ -55,6 +55,13 @@ pub struct SecurityAssessment {
     pub findings: Vec<SecurityFinding>,
 }
 
+#[derive(Debug, Clone)]
+struct WebsiteCandidate {
+    url: String,
+    scheme: String,
+    port: u16,
+}
+
 #[tauri::command]
 pub async fn security_assessment(
     ip: String,
@@ -89,23 +96,68 @@ pub async fn security_assessment(
         services.push(fingerprint_service(address, port).await);
     }
 
+    Ok(build_assessment(address.to_string(), services))
+}
+
+/// Passively assess a website by its hostname/URL.
+///
+/// The hostname is kept in curl's URL rather than being resolved to an IP in
+/// the app. That preserves TLS SNI and the HTTP Host header, so virtual hosts,
+/// reverse proxies and CDNs are checked as the user actually reaches them.
+#[tauri::command]
+pub async fn website_security_assessment(target: String) -> Result<SecurityAssessment, String> {
+    let (display_target, candidates) = website_candidates(&target)?;
+    let explicit_scheme = target.trim().to_ascii_lowercase().starts_with("http://")
+        || target.trim().to_ascii_lowercase().starts_with("https://");
+
+    let mut services = Vec::new();
+    for candidate in candidates {
+        let service = fingerprint_url(
+            &candidate.url,
+            candidate.port,
+            &candidate.scheme,
+            None,
+        )
+        .await;
+        let answered = service.status.is_some();
+        services.push(service);
+
+        // A bare domain means "the website", not "scan two protocols". Prefer
+        // HTTPS and only fall back to HTTP when HTTPS does not answer.
+        if answered || explicit_scheme {
+            break;
+        }
+    }
+
+    Ok(build_assessment(display_target, services))
+}
+
+fn build_assessment(target: String, services: Vec<WebServiceFingerprint>) -> SecurityAssessment {
     let findings = build_findings(&services);
     let (status, summary) = assessment_summary(&services, &findings);
 
-    Ok(SecurityAssessment {
-        target: address.to_string(),
+    SecurityAssessment {
+        target,
         checked_at: Utc::now().to_rfc3339(),
         status,
         summary,
         web_services: services,
         findings,
-    })
+    }
 }
 
 async fn fingerprint_service(ip: Ipv4Addr, port: u16) -> WebServiceFingerprint {
     let scheme = if is_tls_port(port) { "https" } else { "http" };
     let url = format!("{scheme}://{ip}:{port}/");
+    fingerprint_url(&url, port, scheme, synology_port_product(port)).await
+}
 
+async fn fingerprint_url(
+    url: &str,
+    port: u16,
+    scheme: &str,
+    fallback_product: Option<String>,
+) -> WebServiceFingerprint {
     let mut command = Command::new(curl_binary());
 
     // Windows normally gives a console window to a console-subsystem child
@@ -125,9 +177,9 @@ async fn fingerprint_service(ip: Ipv4Addr, port: u16) -> WebServiceFingerprint {
             "--show-error",
             "--location",
             "--max-time",
-            "3",
+            "4",
             "--connect-timeout",
-            "2",
+            "3",
             "--max-redirs",
             "2",
             "--range",
@@ -137,7 +189,7 @@ async fn fingerprint_service(ip: Ipv4Addr, port: u16) -> WebServiceFingerprint {
             "--include",
             "--user-agent",
             "EXP-IP-Scanner/1.3 passive-security-assessment",
-            &url,
+            url,
         ])
         .output()
         .await;
@@ -152,9 +204,9 @@ async fn fingerprint_service(ip: Ipv4Addr, port: u16) -> WebServiceFingerprint {
                 server: None,
                 powered_by: None,
                 php_version: None,
-                product: synology_port_product(port),
+                product: fallback_product,
                 title: None,
-                note: Some("The operating system curl client is unavailable, so HTTPS fingerprinting could not run.".into()),
+                note: Some("The operating system curl client is unavailable, so web fingerprinting could not run.".into()),
             }
         }
     };
@@ -166,8 +218,10 @@ async fn fingerprint_service(ip: Ipv4Addr, port: u16) -> WebServiceFingerprint {
     let Some((status, headers, body)) = parsed else {
         let note = if stderr.to_ascii_lowercase().contains("timed out") {
             "Web service did not answer the passive HTTP request before timeout."
+        } else if stderr.to_ascii_lowercase().contains("could not resolve host") {
+            "The website hostname could not be resolved."
         } else {
-            "TCP port was discovered, but a normal HTTP/HTTPS response could not be fingerprinted."
+            "The target did not return a normal HTTP/HTTPS response that could be fingerprinted."
         };
         return WebServiceFingerprint {
             port,
@@ -176,7 +230,7 @@ async fn fingerprint_service(ip: Ipv4Addr, port: u16) -> WebServiceFingerprint {
             server: None,
             powered_by: None,
             php_version: None,
-            product: synology_port_product(port),
+            product: fallback_product,
             title: None,
             note: Some(note.into()),
         };
@@ -191,7 +245,8 @@ async fn fingerprint_service(ip: Ipv4Addr, port: u16) -> WebServiceFingerprint {
         .and_then(extract_php_version)
         .or_else(|| server.as_deref().and_then(extract_php_version))
         .or_else(|| extract_php_version(&body));
-    let product = detect_product(port, server.as_deref(), powered_by.as_deref(), &body);
+    let product = detect_product(port, server.as_deref(), powered_by.as_deref(), &body)
+        .or(fallback_product);
     let title = extract_title(&body);
 
     WebServiceFingerprint {
@@ -209,6 +264,86 @@ async fn fingerprint_service(ip: Ipv4Addr, port: u16) -> WebServiceFingerprint {
             Some("The service returned enough metadata to fingerprint, but curl stopped before receiving a complete body.".into())
         },
     }
+}
+
+fn website_candidates(input: &str) -> Result<(String, Vec<WebsiteCandidate>), String> {
+    let trimmed = input.trim();
+    if trimmed.is_empty() {
+        return Err("Enter a website hostname or HTTP/HTTPS URL.".into());
+    }
+    if trimmed.len() > MAX_URL_CHARS {
+        return Err("Website URL is too long.".into());
+    }
+    if trimmed.chars().any(|ch| ch.is_control() || ch.is_whitespace()) {
+        return Err("Website URLs cannot contain spaces or control characters.".into());
+    }
+
+    let lower = trimmed.to_ascii_lowercase();
+    if lower.contains("://") && !lower.starts_with("http://") && !lower.starts_with("https://") {
+        return Err("Only HTTP and HTTPS website URLs are supported.".into());
+    }
+
+    let raw_candidates = if lower.starts_with("http://") || lower.starts_with("https://") {
+        vec![trimmed.to_string()]
+    } else {
+        vec![format!("https://{trimmed}"), format!("http://{trimmed}")]
+    };
+
+    let mut candidates = Vec::new();
+    for url in raw_candidates {
+        candidates.push(validate_website_url(url)?);
+    }
+
+    Ok((trimmed.to_string(), candidates))
+}
+
+fn validate_website_url(url: String) -> Result<WebsiteCandidate, String> {
+    let lower = url.to_ascii_lowercase();
+    let (scheme, rest, default_port) = if let Some(rest) = lower.strip_prefix("https://") {
+        ("https", &url[url.len() - rest.len()..], 443)
+    } else if let Some(rest) = lower.strip_prefix("http://") {
+        ("http", &url[url.len() - rest.len()..], 80)
+    } else {
+        return Err("Only HTTP and HTTPS website URLs are supported.".into());
+    };
+
+    let authority_end = rest.find(['/', '?', '#']).unwrap_or(rest.len());
+    let authority = &rest[..authority_end];
+    if authority.is_empty() {
+        return Err("Website URL is missing a hostname.".into());
+    }
+    if authority.contains('@') {
+        return Err("Website URLs with embedded usernames or passwords are not supported.".into());
+    }
+    if authority.starts_with('[') {
+        return Err("IPv6 website URLs are not supported by this check yet.".into());
+    }
+
+    let (host, port) = match authority.rsplit_once(':') {
+        Some((host, value)) if !host.contains(':') => {
+            let port = value
+                .parse::<u16>()
+                .map_err(|_| "Website URL contains an invalid port.".to_string())?;
+            (host, port)
+        }
+        _ => (authority, default_port),
+    };
+
+    if host.is_empty()
+        || !host
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '.' | '-'))
+        || host.starts_with('.')
+        || host.ends_with('.')
+    {
+        return Err("Website hostname is invalid.".into());
+    }
+
+    Ok(WebsiteCandidate {
+        url,
+        scheme: scheme.into(),
+        port,
+    })
 }
 
 fn curl_binary() -> &'static str {
@@ -492,16 +627,16 @@ fn assessment_summary(
             "A PHP runtime may need patch verification. The passive check could not prove a safe patch level.".into(),
         );
     }
-    if services.iter().all(|service| service.status.is_none()) {
+    if services.is_empty() || services.iter().all(|service| service.status.is_none()) {
         return (
             "unknown".into(),
-            "Web ports were open, but the passive HTTP check could not read a response.".into(),
+            "The passive HTTP check could not read a website response.".into(),
         );
     }
     if services.iter().any(|service| service.php_version.is_some()) {
         return (
             "clear".into(),
-            "No vulnerable upstream PHP 8.2-8.5 version was disclosed by the checked web services."
+            "No vulnerable upstream PHP 8.2-8.5 version was disclosed by the checked web service."
                 .into(),
         );
     }
@@ -598,5 +733,20 @@ mod tests {
         let finding = php_version_finding("7.4.33", &service(Some("7.4.33")));
         assert_eq!(finding.severity, "high");
         assert!(finding.title.contains("vendor verification"));
+    }
+
+    #[test]
+    fn website_urls_preserve_hostname_and_try_https_first() {
+        let (_, candidates) = website_candidates("portal.example.com/login").unwrap();
+        assert_eq!(candidates.len(), 2);
+        assert_eq!(candidates[0].url, "https://portal.example.com/login");
+        assert_eq!(candidates[0].port, 443);
+        assert_eq!(candidates[1].url, "http://portal.example.com/login");
+    }
+
+    #[test]
+    fn website_url_validation_rejects_credentials_and_non_web_schemes() {
+        assert!(website_candidates("ftp://example.com").is_err());
+        assert!(website_candidates("https://user:secret@example.com").is_err());
     }
 }
