@@ -1,4 +1,4 @@
-name: Temporary Rust dependency diagnostics
+name: Temporary release dependency refresh
 
 on:
   push:
@@ -7,21 +7,77 @@ on:
       - .github/workflows/dependency-diagnostics.yml
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  diagnose:
+  refresh:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: feat/web-exposure-security
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
       - uses: dtolnay/rust-toolchain@stable
-      - name: Show vulnerable dependency parents
+        with:
+          components: rustfmt
+      - name: Refresh manifests and workflow action runtimes
+        shell: python
+        run: |
+          from pathlib import Path
+          import json
+
+          cargo = Path('src-tauri/Cargo.toml')
+          text = cargo.read_text()
+          text = text.replace('rust-version = "1.82"', 'rust-version = "1.90"')
+          text = text.replace('tauri-plugin-updater = { version = "2", optional = true }', 'tauri-plugin-updater = { version = "2.14", optional = true }')
+          cargo.write_text(text)
+
+          package_path = Path('package.json')
+          package = json.loads(package_path.read_text())
+          package['dependencies']['@tauri-apps/api'] = '^2.12.0'
+          package['dependencies']['@tauri-apps/plugin-updater'] = '^2.14.0'
+          package_path.write_text(json.dumps(package, indent=2) + '\n')
+
+          for name in ['.github/workflows/ci.yml', '.github/workflows/release.yml']:
+              path = Path(name)
+              text = path.read_text()
+              text = text.replace('actions/checkout@v4', 'actions/checkout@v5')
+              text = text.replace('actions/setup-node@v4', 'actions/setup-node@v5')
+              path.write_text(text)
+      - name: Refresh JavaScript lockfile
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Refresh Rust lockfile
         working-directory: src-tauri
         shell: bash
         run: |
           set -euxo pipefail
-          cargo tree -i zip@4.6.1 || true
-          cargo tree -i rustls@0.23.45 || true
-          cargo tree -i rustls-webpki@0.103.15 || true
-          cargo tree -i webpki-root-certs@1.0.9 || true
-          cargo tree -p tauri-plugin-updater --depth 3 || true
+          cargo update -p tauri-plugin-updater --precise 2.14.0
+          cargo update -p rustls --precise 0.23.46
+          cargo update -p rustls-webpki --precise 0.103.16
+          cargo update -p webpki-root-certs --precise 1.0.10 || true
+          cargo fmt
+      - name: Verify dependency versions
+        working-directory: src-tauri
+        shell: bash
+        run: |
+          set -euxo pipefail
+          cargo tree -p tauri-plugin-updater --depth 1
+          cargo tree --target all -i zip || true
+          cargo tree -i rustls@0.23.46 || true
+          cargo tree -i rustls-webpki@0.103.16 || true
+      - name: Commit release-prep changes
+        shell: bash
+        run: |
+          set -euxo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/src/security.rs .github/workflows/ci.yml .github/workflows/release.yml
+          if git diff --cached --quiet; then
+            echo "No dependency refresh changes to commit."
+            exit 0
+          fi
+          git commit -m "Refresh Rust dependencies and Actions runtimes"
+          git push origin HEAD:feat/web-exposure-security
