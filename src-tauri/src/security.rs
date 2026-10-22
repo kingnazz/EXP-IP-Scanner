@@ -9,13 +9,12 @@
 
 use std::collections::{BTreeSet, HashSet};
 use std::net::Ipv4Addr;
-use std::time::Duration;
 
 use chrono::Utc;
-use reqwest::redirect::Policy;
 use serde::Serialize;
+use tokio::process::Command;
 
-const MAX_BODY_BYTES: usize = 64 * 1024;
+const MAX_BODY_CHARS: usize = 64 * 1024;
 const WEB_PORTS: [u16; 9] = [80, 443, 5000, 5001, 8000, 8008, 8080, 8443, 8888];
 const PHP2SHELL_CVES: [&str; 2] = ["CVE-2026-109618", "CVE-2026-109619"];
 
@@ -82,21 +81,9 @@ pub async fn security_assessment(
         });
     }
 
-    let client = reqwest::Client::builder()
-        .connect_timeout(Duration::from_millis(1_500))
-        .timeout(Duration::from_secs(3))
-        .redirect(Policy::limited(3))
-        // Appliances and internal management pages commonly use self-signed
-        // certificates. We are fingerprinting, not establishing identity, so a
-        // certificate error should not hide the service from the technician.
-        .danger_accept_invalid_certs(true)
-        .user_agent("EXP-IP-Scanner/1.3 passive-security-assessment")
-        .build()
-        .map_err(|e| format!("Could not initialize the web assessment client. {e}"))?;
-
     let mut services = Vec::new();
     for port in ports {
-        services.push(fingerprint_service(&client, address, port).await);
+        services.push(fingerprint_service(address, port).await);
     }
 
     let findings = build_findings(&services);
@@ -112,17 +99,37 @@ pub async fn security_assessment(
     })
 }
 
-async fn fingerprint_service(
-    client: &reqwest::Client,
-    ip: Ipv4Addr,
-    port: u16,
-) -> WebServiceFingerprint {
+async fn fingerprint_service(ip: Ipv4Addr, port: u16) -> WebServiceFingerprint {
     let scheme = if is_tls_port(port) { "https" } else { "http" };
     let url = format!("{scheme}://{ip}:{port}/");
 
-    let response = match client.get(&url).send().await {
-        Ok(response) => response,
-        Err(error) => {
+    let output = Command::new(curl_binary())
+        .args([
+            "--insecure",
+            "--silent",
+            "--show-error",
+            "--location",
+            "--max-time",
+            "3",
+            "--connect-timeout",
+            "2",
+            "--max-redirs",
+            "2",
+            "--range",
+            "0-65535",
+            "--max-filesize",
+            "65536",
+            "--include",
+            "--user-agent",
+            "EXP-IP-Scanner/1.3 passive-security-assessment",
+            &url,
+        ])
+        .output()
+        .await;
+
+    let output = match output {
+        Ok(output) => output,
+        Err(_) => {
             return WebServiceFingerprint {
                 port,
                 scheme: scheme.into(),
@@ -132,27 +139,45 @@ async fn fingerprint_service(
                 php_version: None,
                 product: synology_port_product(port),
                 title: None,
-                note: Some(short_request_error(&error)),
+                note: Some("The operating system curl client is unavailable, so HTTPS fingerprinting could not run.".into()),
             }
         }
     };
 
-    let status = response.status().as_u16();
-    let headers = response.headers().clone();
-    let server = header_text(&headers, "server");
-    let powered_by = header_text(&headers, "x-powered-by");
-    let mut response = response;
-    let body = read_small_body(&mut response).await;
-    let body_text = String::from_utf8_lossy(&body);
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let parsed = parse_http_output(&stdout);
+
+    let Some((status, headers, body)) = parsed else {
+        let note = if stderr.to_ascii_lowercase().contains("timed out") {
+            "Web service did not answer the passive HTTP request before timeout."
+        } else {
+            "TCP port was discovered, but a normal HTTP/HTTPS response could not be fingerprinted."
+        };
+        return WebServiceFingerprint {
+            port,
+            scheme: scheme.into(),
+            status: None,
+            server: None,
+            powered_by: None,
+            php_version: None,
+            product: synology_port_product(port),
+            title: None,
+            note: Some(note.into()),
+        };
+    };
+
+    let server = header_value(&headers, "server");
+    let powered_by = header_value(&headers, "x-powered-by");
+    let body = truncate(&body, MAX_BODY_CHARS);
 
     let php_version = powered_by
         .as_deref()
         .and_then(extract_php_version)
         .or_else(|| server.as_deref().and_then(extract_php_version))
-        .or_else(|| extract_php_version(&body_text));
-
-    let product = detect_product(port, server.as_deref(), powered_by.as_deref(), &body_text);
-    let title = extract_title(&body_text);
+        .or_else(|| extract_php_version(&body));
+    let product = detect_product(port, server.as_deref(), powered_by.as_deref(), &body);
+    let title = extract_title(&body);
 
     WebServiceFingerprint {
         port,
@@ -163,31 +188,61 @@ async fn fingerprint_service(
         php_version,
         product,
         title,
-        note: None,
+        note: if output.status.success() {
+            None
+        } else {
+            Some("The service returned enough metadata to fingerprint, but curl stopped before receiving a complete body.".into())
+        },
     }
 }
 
-async fn read_small_body(response: &mut reqwest::Response) -> Vec<u8> {
-    let mut body = Vec::new();
-    while body.len() < MAX_BODY_BYTES {
-        match response.chunk().await {
-            Ok(Some(chunk)) => {
-                let remaining = MAX_BODY_BYTES - body.len();
-                body.extend_from_slice(&chunk[..chunk.len().min(remaining)]);
+fn curl_binary() -> &'static str {
+    if cfg!(windows) { "curl.exe" } else { "curl" }
+}
+
+fn parse_http_output(raw: &str) -> Option<(u16, Vec<(String, String)>, String)> {
+    let normalized = raw.replace("\r\n", "\n");
+    let parts: Vec<&str> = normalized.split("\n\n").collect();
+    let mut last_header_index = None;
+    let mut status = None;
+    let mut headers = Vec::new();
+
+    for (index, block) in parts.iter().enumerate() {
+        let mut lines = block.lines();
+        let first = lines.next()?.trim();
+        if !first.starts_with("HTTP/") {
+            if last_header_index.is_some() {
+                break;
             }
-            Ok(None) | Err(_) => break,
+            continue;
         }
+        status = first.split_whitespace().nth(1).and_then(|value| value.parse().ok());
+        headers = lines
+            .filter_map(|line| {
+                let (name, value) = line.split_once(':')?;
+                Some((name.trim().to_ascii_lowercase(), value.trim().to_string()))
+            })
+            .collect();
+        last_header_index = Some(index);
     }
-    body
+
+    let header_index = last_header_index?;
+    let status = status?;
+    let body = parts
+        .iter()
+        .skip(header_index + 1)
+        .copied()
+        .collect::<Vec<_>>()
+        .join("\n\n");
+    Some((status, headers, body))
 }
 
-fn header_text(headers: &reqwest::header::HeaderMap, name: &str) -> Option<String> {
+fn header_value(headers: &[(String, String)], name: &str) -> Option<String> {
     headers
-        .get(name)
-        .and_then(|value| value.to_str().ok())
-        .map(str::trim)
+        .iter()
+        .find(|(key, _)| key == name)
+        .map(|(_, value)| value.clone())
         .filter(|value| !value.is_empty())
-        .map(ToOwned::to_owned)
 }
 
 fn is_tls_port(port: u16) -> bool {
@@ -211,7 +266,7 @@ fn detect_product(
     if body_lower.contains("synology")
         || body_lower.contains("diskstation")
         || server_lower.contains("synology")
-        || matches!(port, 5000 | 5001) && body_lower.contains("dsm")
+        || (matches!(port, 5000 | 5001) && body_lower.contains("dsm"))
     {
         return Some("Synology DSM".into());
     }
@@ -316,7 +371,7 @@ fn build_findings(services: &[WebServiceFingerprint]) -> Vec<SecurityFinding> {
             summary: "This web service appears to use PHP, but it does not disclose a version. A passive scan cannot determine whether the PHP2Shell fixes are installed.".into(),
             evidence: "PHP application/runtime indicators were present in ordinary HTTP response metadata or content, but no reliable PHP version was exposed.".into(),
             remediation: "Verify the server or appliance runtime directly. For upstream PHP, use 8.2.35+, 8.3.36+, 8.4.27+, or 8.5.12+; for vendor appliances, install the vendor update that includes the PHP fixes.".into(),
-            cves: PHP2SHELL_CVES.iter().map(|value| (*value).to_string()).collect(),
+            cves: cves(),
         });
     }
 
@@ -340,9 +395,8 @@ fn build_findings(services: &[WebServiceFingerprint]) -> Vec<SecurityFinding> {
 fn php_version_finding(version: &str, service: &WebServiceFingerprint) -> SecurityFinding {
     let parsed = parse_version(version);
     let evidence = format!(
-        "{}://{} on port {} disclosed PHP {}{}.",
+        "{} service on port {} disclosed PHP {}{}.",
         service.scheme,
-        service.product.as_deref().unwrap_or("web service"),
         service.port,
         version,
         service
@@ -357,25 +411,23 @@ fn php_version_finding(version: &str, service: &WebServiceFingerprint) -> Securi
         Some((8, 3, patch)) if patch < 36 => vulnerable_php_finding(version, evidence),
         Some((8, 4, patch)) if patch < 27 => vulnerable_php_finding(version, evidence),
         Some((8, 5, patch)) if patch < 12 => vulnerable_php_finding(version, evidence),
-        Some((8, 2, _)) | Some((8, 3, _)) | Some((8, 4, _)) | Some((8, 5, _)) => {
-            SecurityFinding {
-                id: format!("php2shell-patched-{version}"),
-                severity: "info".into(),
-                title: format!("PHP {version} includes the upstream PHP2Shell fixes"),
-                summary: "The disclosed upstream PHP version is at or above the fixed release for its branch.".into(),
-                evidence,
-                remediation: "No PHP2Shell action is indicated by this disclosed version. Continue normal patching and verify vendor backports separately on appliances.".into(),
-                cves: PHP2SHELL_CVES.iter().map(|value| (*value).to_string()).collect(),
-            }
-        }
-        Some((major, minor, _)) if major < 8 || major == 8 && minor < 2 => SecurityFinding {
+        Some((8, 2, _)) | Some((8, 3, _)) | Some((8, 4, _)) | Some((8, 5, _)) => SecurityFinding {
+            id: format!("php2shell-patched-{version}"),
+            severity: "info".into(),
+            title: format!("PHP {version} includes the upstream PHP2Shell fixes"),
+            summary: "The disclosed upstream PHP version is at or above the fixed release for its branch.".into(),
+            evidence,
+            remediation: "No PHP2Shell action is indicated by this disclosed version. Continue normal patching and verify vendor backports separately on appliances.".into(),
+            cves: cves(),
+        },
+        Some((major, minor, _)) if major < 8 || (major == 8 && minor < 2) => SecurityFinding {
             id: format!("php2shell-legacy-{version}"),
             severity: "high".into(),
             title: format!("Legacy PHP {version} requires vendor verification"),
             summary: "This PHP branch is older than the currently supported upstream branches. Version comparison alone cannot tell whether a distribution/vendor backported the fixes.".into(),
             evidence,
             remediation: "Check the OS or appliance vendor advisory/package revision. Upgrade to a currently supported PHP branch where practical.".into(),
-            cves: PHP2SHELL_CVES.iter().map(|value| (*value).to_string()).collect(),
+            cves: cves(),
         },
         _ => SecurityFinding {
             id: format!("php-version-{version}"),
@@ -384,7 +436,7 @@ fn php_version_finding(version: &str, service: &WebServiceFingerprint) -> Securi
             summary: "PHP was identified, but this version does not match a branch EXP IP Scanner can safely classify from the upstream fixed-version table.".into(),
             evidence,
             remediation: "Confirm the runtime against the PHP or vendor security advisory.".into(),
-            cves: PHP2SHELL_CVES.iter().map(|value| (*value).to_string()).collect(),
+            cves: cves(),
         },
     }
 }
@@ -397,7 +449,7 @@ fn vulnerable_php_finding(version: &str, evidence: String) -> SecurityFinding {
         summary: "The disclosed upstream PHP version falls in an affected 8.2-8.5 range for the two critical PHP2Shell remote-code-execution vulnerabilities.".into(),
         evidence,
         remediation: "Patch immediately. Minimum upstream fixed releases are PHP 8.2.35, 8.3.36, 8.4.27, and 8.5.12. If this is an appliance, install the vendor update rather than replacing its embedded PHP manually.".into(),
-        cves: PHP2SHELL_CVES.iter().map(|value| (*value).to_string()).collect(),
+        cves: cves(),
     }
 }
 
@@ -435,14 +487,8 @@ fn assessment_summary(
     )
 }
 
-fn short_request_error(error: &reqwest::Error) -> String {
-    if error.is_timeout() {
-        "Web service did not answer the passive HTTP request before timeout.".into()
-    } else if error.is_connect() {
-        "TCP port was discovered, but an HTTP connection could not be established.".into()
-    } else {
-        "Web service answered the network scan but could not be fingerprinted with a normal HTTP request.".into()
-    }
+fn cves() -> Vec<String> {
+    PHP2SHELL_CVES.iter().map(|value| (*value).to_string()).collect()
 }
 
 fn join_ports(ports: &[u16]) -> String {
@@ -483,6 +529,15 @@ mod tests {
         assert_eq!(extract_php_version("PHP/8.2.34"), Some("8.2.34".into()));
         assert_eq!(extract_php_version("PHP Version 8.4.27"), Some("8.4.27".into()));
         assert_eq!(extract_php_version("nginx"), None);
+    }
+
+    #[test]
+    fn parses_curl_headers_and_body() {
+        let raw = "HTTP/1.1 301 Moved\r\nLocation: /login\r\n\r\nHTTP/1.1 200 OK\r\nServer: nginx\r\nX-Powered-By: PHP/8.2.34\r\n\r\n<html><title>DSM</title></html>";
+        let (status, headers, body) = parse_http_output(raw).unwrap();
+        assert_eq!(status, 200);
+        assert_eq!(header_value(&headers, "server").as_deref(), Some("nginx"));
+        assert!(body.contains("DSM"));
     }
 
     #[test]
