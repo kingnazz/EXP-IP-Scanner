@@ -144,3 +144,37 @@ export interface HostRemovedEvent {
   scan_id: number;
   ip: string;
 }
+
+/** Mirrors `security::WebServiceFingerprint`. */
+export interface WebServiceFingerprint {
+  port: number;
+  scheme: string;
+  status: number | null;
+  server: string | null;
+  powered_by: string | null;
+  php_version: string | null;
+  product: string | null;
+  title: string | null;
+  note: string | null;
+}
+
+/** Mirrors `security::SecurityFinding`. */
+export interface SecurityFinding {
+  id: string;
+  severity: "critical" | "high" | "medium" | "low" | "info";
+  title: string;
+  summary: string;
+  evidence: string;
+  remediation: string;
+  cves: string[];
+}
+
+/** Mirrors `security::SecurityAssessment`. */
+export interface SecurityAssessment {
+  target: string;
+  checked_at: string;
+  status: "critical" | "attention" | "clear" | "unknown";
+  summary: string;
+  web_services: WebServiceFingerprint[];
+  findings: SecurityFinding[];
+}
