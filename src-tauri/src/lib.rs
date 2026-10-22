@@ -98,6 +98,7 @@ pub fn run() {
             commands::open_releases,
             commands::open_privacy,
             security::security_assessment,
+            security::website_security_assessment,
         ])
         .build(tauri::generate_context!())
         .expect("error while building EXP IP Scanner")
