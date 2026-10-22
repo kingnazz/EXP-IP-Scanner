@@ -25,6 +25,8 @@ export function DeviceDrawer({
   pingResult,
   pinging,
   watchActive = false,
+  securityAssessment = null,
+  onSecurityAssessment,
 }: {
   row: DeviceRow;
   /** The interface the scan ran from, for the network context section. */
@@ -34,6 +36,9 @@ export function DeviceDrawer({
   pingResult: PingOutcome | null;
   pinging: boolean;
   watchActive?: boolean;
+  /** Cached result from a network-wide security pass, when one exists. */
+  securityAssessment?: SecurityAssessment | null;
+  onSecurityAssessment?: (assessment: SecurityAssessment) => void;
 }) {
   const panel = useRef<HTMLElement>(null);
   const { host } = row;
@@ -42,9 +47,10 @@ export function DeviceDrawer({
   const connect = actions.filter((a) => a.group === "connect");
   const diagnostics = actions.filter((a) => a.group === "diagnostics");
   const hasWebPort = host.open_ports.some((port) => WEB_SECURITY_PORTS.has(port));
-  const [security, setSecurity] = useState<SecurityAssessment | null>(null);
+  const [localSecurity, setLocalSecurity] = useState<SecurityAssessment | null>(null);
   const [securityLoading, setSecurityLoading] = useState(false);
   const [securityError, setSecurityError] = useState<string | null>(null);
+  const security = securityAssessment ?? localSecurity;
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -55,7 +61,7 @@ export function DeviceDrawer({
   }, [onClose]);
 
   useEffect(() => {
-    setSecurity(null);
+    setLocalSecurity(null);
     setSecurityError(null);
     setSecurityLoading(false);
   }, [host.ip]);
@@ -65,7 +71,9 @@ export function DeviceDrawer({
     setSecurityLoading(true);
     setSecurityError(null);
     try {
-      setSecurity(await api.securityAssessment(host.ip, host.open_ports));
+      const assessment = await api.securityAssessment(host.ip, host.open_ports);
+      setLocalSecurity(assessment);
+      onSecurityAssessment?.(assessment);
     } catch (error) {
       setSecurityError(error instanceof Error ? error.message : String(error));
     } finally {
