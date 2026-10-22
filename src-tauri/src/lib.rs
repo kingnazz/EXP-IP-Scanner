@@ -56,15 +56,27 @@ pub fn run() {
                 .ok_or("tauri.conf.json declares no window")?
                 .clone();
             let mut window = WebviewWindowBuilder::from_config(app.handle(), &config)?;
+            let backstage_compat = runtime::backstage_compatibility_requested();
+
+            // ScreenConnect Backstage uses a custom Windows shell where
+            // DirectComposition / GPU-backed browser surfaces can fail to
+            // present. Keep normal launches untouched, but use WebView2's
+            // software-composited path when Backstage is detected (or forced
+            // with --backstage / EXP_IP_SCANNER_BACKSTAGE=1).
+            #[cfg(target_os = "windows")]
+            if backstage_compat {
+                window = window.additional_browser_args(runtime::BACKSTAGE_WEBVIEW_ARGS);
+            }
 
             if let Ok(local_data) = app.path().app_local_data_dir() {
-                if let Some(profile) = runtime::webview_profile_dir(&local_data) {
+                if let Some(profile) = runtime::webview_profile_dir(&local_data, backstage_compat) {
                     // Created up front: WebView2 will not create a profile
-                    // directory whose parent does not exist, and a portable
-                    // copy is routinely the first thing to run on a machine.
+                    // directory whose parent does not exist. Backstage gets a
+                    // separate writable profile because it commonly runs under
+                    // SYSTEM, while portable keeps its existing isolated one.
                     std::fs::create_dir_all(&profile).map_err(|e| {
                         format!(
-                            "EXP IP Scanner Portable could not create its settings folder at {}: {e}",
+                            "EXP IP Scanner could not create its WebView settings folder at {}: {e}",
                             profile.display()
                         )
                     })?;
