@@ -53,6 +53,12 @@ confirmation. Definitions and provenance can be corrected independently of UI.
 
 ## 5. UI changes
 
+Scan Web Exposure is a one-click action beside the navigation tabs. It discovers
+all addresses in the current target with common web ports plus selected services,
+then uses Safe Scan automatically. Overrides apply only to that run; saved
+settings and normal Scan/Watch behavior stay unchanged. Discovery progress and
+Stop are available within Security. No table selection or search narrows scope.
+
 Security navigation, severity/device summary cards, searchable device list with
 40-item pagination and lowest scores first, scores/factors, coverage notes,
 technology evidence, service/TLS details, finding/remediation dialog and native
@@ -73,7 +79,9 @@ malformed DER/HTML/HTTP, IPv6 URL formatting, safe/no-follow redirects, identifi
 requests, response/header caps, timeouts, cancellation, cache/deduplication,
 known raw-printer exclusion, global concurrency and end-to-end finding output.
 
-10 frontend tests cover reporting, conservative counts, Deep Scan consent,
+15 frontend tests cover the one-click full-target exposure pipeline, per-run
+port/service overrides and saved settings, stopped discovery/Watch separation,
+reporting, conservative counts, Deep Scan consent,
 escaped remote text, finding details, bounded pagination/search, automatic Safe
 Scan, stopped discovery, stale events/cancellation and assessment error isolation.
 The browser verification script covers summary/details, default/minimum layouts,
@@ -83,7 +91,7 @@ All HTTP tests use loopback fixtures; no test relies on a public target.
 
 ## 7. Verification results
 
-- Frontend: **235 tests passed**, including existing packaging/updater tests.
+- Frontend: **240 tests passed**, including existing packaging/updater tests.
 - Installed Rust workspace: **124 passed** (100 existing + 24 security tests).
 - Portable Rust workspace: **124 passed**.
 - Rustfmt and Clippy with warnings denied: installed and portable checked.
@@ -110,6 +118,13 @@ backend through Cargo feature unification. Insecure certificate inspection is
 client-scoped; updater verification remains unchanged.
 
 ## 9. Known limitations
+
+- PR dependency CI still flags Rust advisories in versions inherited from the
+  base repository: rustls 0.23.45, rustls-webpki 0.103.15,
+  webpki-root-certs 1.0.9 and zip 4.6.1. The npm audit is clean; the Rust audit
+  remains a merge/release blocker and has not been suppressed. Resolving the
+  ZIP advisories requires reviewing Tauri's transitive dependency constraints.
+  The Scan Web Exposure action adds no dependencies.
 
 - Provisional PHP2Shell intelligence requires vendor verification before it is
   treated as authoritative. Banner matches cannot establish exploitability,
@@ -174,6 +189,7 @@ client-scoped; updater verification remains unchanged.
 - `src-tauri/src/ports.rs`
 - `src-tauri/src/runtime.rs`
 - `src-tauri/src/security.rs`
+- `src/App.test.tsx`
 - `src/App.tsx`
 - `src/components/DeviceDrawer.tsx`
 - `src/components/ResultsTable.tsx`

@@ -254,6 +254,14 @@ MIT. See [LICENSE](LICENSE).
 
 ## Security assessment
 
+Click **Scan Web Exposure** beside the Scanner/Security tabs to scan every
+address in the current target and assess the services it finds. It includes
+common web ports (80, 443, 5000, 5001, 8000, 8080, 8443, 8888) alongside your
+selected service ports, even when ordinary service scanning is disabled. Your
+saved settings stay unchanged. Progress and Stop are available in Security;
+stopping discovery prevents automatic follow-up checks. Exposure means reachable
+from the computer running the scan, not confirmed Internet exposure.
+
 After device discovery, **Security** automatically runs a local Safe Scan of
 available web services. It identifies likely technologies, exposed management
 pages, PHP indicators and TLS certificate concerns, then presents evidence,

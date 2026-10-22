@@ -16,12 +16,24 @@ const page = await context.newPage();
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
 try {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "exp-ip-scanner-settings",
+      JSON.stringify({
+        portSpec: "22,9001",
+        scanServices: false,
+        theme: "light",
+      }),
+    );
+  });
   await page.goto(process.env.EXP_URL ?? "http://localhost:4173");
-  await page.locator('form button[type="submit"]').click();
+  await page
+    .getByRole("button", { name: "Scan Web Exposure", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Stop", exact: true })
     .waitFor({ state: "detached", timeout: 30000 });
-  await page.getByRole("button", { name: "Security", exact: true }).click();
+  await page.getByRole("region", { name: "Security assessment" }).waitFor();
   await page.getByText("Demo Safe Scan", { exact: false }).waitFor();
   assert.match(
     await page
@@ -92,11 +104,40 @@ try {
   assert.equal(report.schema_version, 1);
   assert.ok(report.summary.devices_assessed > 0);
   assert.match(report.intelligence_notice, /unverified/);
+  for (const port of [80, 443, 5000, 5001, 8000, 8080, 8443, 8888, 9001]) {
+    assert.ok(
+      report.discovery.ports_scanned.includes(port),
+      `Missing exposure port ${port}`,
+    );
+  }
+  const settings = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("exp-ip-scanner-settings")),
+  );
+  assert.equal(settings.portSpec, "22,9001");
+  assert.equal(settings.scanServices, false);
   await page.getByRole("button", { name: "Scanner", exact: true }).click();
   assert.ok((await page.locator("tbody tr").count()) > 0);
+  await page
+    .getByRole("button", { name: "Scan Web Exposure", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Stop discovery", exact: true })
+    .click();
+  await page
+    .getByText(
+      "Discovery stopped. Start Safe Scan to assess these partial results.",
+      { exact: true },
+    )
+    .waitFor();
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Export JSON", exact: true })
+      .isDisabled(),
+    true,
+  );
   assert.deepEqual(errors, []);
   console.log(
-    "PASS Security summary, details, minimum/default layout, consent, JSON report, return to scanner",
+    "PASS Web exposure discovery, preset/saved settings, cancellation, Security details/layout/consent/JSON, return to scanner",
   );
 } finally {
   await browser.close();

@@ -35,6 +35,7 @@ export function SecurityView({
   onStart,
   onError,
   focusIp,
+  discovery = null,
 }: {
   source: ScanResult | null;
   devices: DeviceAssessment[];
@@ -45,6 +46,7 @@ export function SecurityView({
   onStart: (deep?: boolean) => Promise<void>;
   onError: (message: string) => void;
   focusIp: string | null;
+  discovery?: { target: string; done: number; total: number | null } | null;
 }) {
   const [selectedIp, setSelectedIp] = useState<string | null>(focusIp);
   const [finding, setFinding] = useState<Finding | null>(null);
@@ -117,14 +119,16 @@ export function SecurityView({
           <p className="mt-1 text-xs text-ink-muted">
             {source
               ? `Target ${source.target} · ${source.hosts.length} discovered devices${source.cancelled ? " · partial discovery" : ""}`
-              : "Discover devices to begin automatic Safe Scan."}
+              : discovery
+                ? `Target ${discovery.target} · discovering services`
+                : "Discover devices to begin automatic Safe Scan."}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {busy ? (
+          {busy || discovery ? (
             <button className="btn btn-stop" onClick={onStop}>
               <Square size={13} />
-              Stop assessment
+              {discovery ? "Stop discovery" : "Stop assessment"}
             </button>
           ) : (
             <button
@@ -156,6 +160,12 @@ export function SecurityView({
           </button>
         </div>
       </div>
+      <p className="mb-3 text-xs text-ink-soft">
+        Use Scan Web Exposure above to check every address in the current
+        target. Common web ports and your selected services are included.
+        Exposure means reachable from this computer; Internet reachability is
+        not established.
+      </p>
       {!api.native ? (
         <p className="mb-3 rounded-md border border-line bg-surface p-2 text-xs text-ink-soft">
           Browser demo · illustrative findings only. No network security checks
@@ -180,7 +190,14 @@ export function SecurityView({
         role="status"
         className="mb-3 flex items-center gap-2 text-xs text-ink-soft"
       >
-        {busy ? (
+        {discovery ? (
+          <>
+            <Loader2 size={14} className="animate-spin" />
+            Discovering services: {discovery.done}
+            {discovery.total != null ? ` / ${discovery.total}` : ""} addresses
+            checked. Safe Scan follows when discovery completes.
+          </>
+        ) : busy ? (
           <>
             <Loader2 size={14} className="animate-spin" />
             Analyzing {devices.length} / {source?.hosts.length ?? 0} devices…
@@ -239,11 +256,13 @@ export function SecurityView({
         <div className="min-w-0 flex-1 space-y-2">
           {filtered.length === 0 ? (
             <div className="panel p-6 text-sm text-ink-soft">
-              {source
-                ? busy
-                  ? "Assessments will appear here as devices complete."
-                  : "No matching assessed devices."
-                : "Run a network scan to assess discovered web services."}
+              {discovery
+                ? "Checking the target for devices and open services…"
+                : source
+                  ? busy
+                    ? "Assessments will appear here as devices complete."
+                    : "No matching assessed devices."
+                  : "Run a network scan to assess discovered web services."}
             </div>
           ) : (
             visible.map((device) => {

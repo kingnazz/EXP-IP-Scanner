@@ -4,7 +4,27 @@ import type {
   Finding,
   Severity,
 } from "../security-types";
-import type { ScanResult } from "../types";
+import type { ScanOptions, ScanResult } from "../types";
+
+/** Discovery preset, not a port sweep: supplement the technician's selected
+ * services with the common web ports covered by Safe Scan. */
+const WEB_EXPOSURE_PORTS = [80, 443, 5000, 5001, 8000, 8080, 8443, 8888];
+
+export function webExposureScanOptions(
+  options: ScanOptions,
+  defaultPorts: readonly number[],
+): ScanOptions {
+  return {
+    ...options,
+    scan_services: true,
+    ports: [
+      ...new Set([
+        ...(options.ports.length ? options.ports : defaultPorts),
+        ...WEB_EXPOSURE_PORTS,
+      ]),
+    ].sort((a, b) => a - b),
+  };
+}
 
 export const actionable = (f: Finding) =>
   f.status !== "NotAffected" && f.status !== "Informational";

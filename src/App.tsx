@@ -7,6 +7,7 @@
 // anything that could be tested without a browser.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ShieldCheck } from "lucide-react";
 import { AboutDialog } from "./components/AboutDialog";
 import { ContextMenu } from "./components/ContextMenu";
 import { DeviceDrawer } from "./components/DeviceDrawer";
@@ -38,6 +39,7 @@ import {
 import { parsePorts, setServiceCatalog } from "./lib/format";
 import type { DeviceRow } from "./lib/live";
 import { loadRecentTargets, pushRecentTarget } from "./lib/prefs";
+import { webExposureScanOptions } from "./lib/security";
 import type { UpdateCheckResult } from "./lib/update";
 import {
   cellText,
@@ -94,6 +96,7 @@ export default function App() {
   const security = useSecurity(scan.securitySource);
   const [view, setView] = useState<"scanner" | "security">("scanner");
   const [securityFocusIp, setSecurityFocusIp] = useState<string | null>(null);
+  const [exposureViewRevision, setExposureViewRevision] = useState(0);
   const assessments = useMemo(() => new Map(security.devices.map((d) => [d.device_ip, d])), [security.devices]);
   const openSecurity = useCallback((ip: string) => { setSecurityFocusIp(ip); setView("security"); }, []);
   const menu = useContextMenu<DeviceRow>();
@@ -300,6 +303,26 @@ export default function App() {
     setRecentTargets(pushRecentTarget(trimmed));
     void scan.run({ ...scanOptions, target: trimmed });
   }, [scan, scanOptions, target, targetError, triggerWatchNow, watchActive]);
+
+  const startWebExposure = useCallback(() => {
+    const trimmed = target.trim();
+    if (!trimmed || targetError || scan.scanning || watchActive || security.busy) return;
+    setSelected(new Set());
+    setFocusedIp(null);
+    setDrawerIp(null);
+    setPingResult(null);
+    setSecurityFocusIp(null);
+    setExposureViewRevision((revision) => revision + 1);
+    setQuery("");
+    setFilter("all");
+    setView("security");
+    setRecentTargets(pushRecentTarget(trimmed));
+    // Uses the entire target, independently of row selection/search. Settings
+    // remain unchanged; useScan/useSecurity own discovery, assessment and Stop.
+    void scan.run(
+      webExposureScanOptions({ ...scanOptions, target: trimmed }, defaultPorts),
+    );
+  }, [defaultPorts, scan, scanOptions, security.busy, target, targetError, watchActive]);
 
   const toggleWatch = useCallback(() => {
     if (watchActive) {
@@ -663,10 +686,38 @@ export default function App() {
       <nav aria-label="Main navigation" className="flex items-center gap-2 border-b border-line bg-surface px-3 py-2">
         <button className={`btn btn-sm ${view === "scanner" ? "btn-primary" : "btn-ghost"}`} aria-current={view === "scanner" ? "page" : undefined} onClick={() => setView("scanner")}>Scanner</button>
         <button className={`btn btn-sm ${view === "security" ? "btn-primary" : "btn-ghost"}`} aria-current={view === "security" ? "page" : undefined} onClick={() => { setSecurityFocusIp(null); setView("security"); }}>Security</button>
-        {security.busy ? <span className="ml-2 text-xs text-ink-muted" role="status">{security.run?.mode ?? "Security assessment"} in progress…</span> : null}
+        {security.busy ? <span className="ml-2 min-w-0 flex-1 truncate text-xs text-ink-muted" role="status">{security.run?.mode ?? "Security assessment"} in progress…</span> : null}
+        <button
+          type="button"
+          className="btn btn-sm btn-secondary ml-auto"
+          disabled={!target.trim() || Boolean(targetError) || scan.scanning || watchActive || security.busy}
+          onClick={startWebExposure}
+          title={watchActive ? "Stop Watch Mode before starting a web exposure scan" : "Discover all addresses in the current target, then safely assess reachable web services. Includes common web ports and your selected services."}
+        >
+          <ShieldCheck size={13} aria-hidden />
+          Scan Web Exposure
+        </button>
       </nav>
 
-      {view === "security" ? <SecurityView key={securityFocusIp ?? "all"} source={scan.securitySource} devices={security.devices} run={security.run} busy={security.busy} error={security.error} onStop={security.cancel} onStart={security.start} onError={onScanError} focusIp={securityFocusIp} /> : <div className="flex min-h-0 flex-1">
+      {view === "security" ? (
+        <SecurityView
+          key={`${securityFocusIp ?? "all"}:${exposureViewRevision}`}
+          source={scan.securitySource}
+          devices={security.devices}
+          run={security.run}
+          busy={security.busy}
+          error={security.error}
+          onStop={scan.scanning ? stopScan : security.cancel}
+          onStart={security.start}
+          onError={onScanError}
+          focusIp={securityFocusIp}
+          discovery={scan.scanning ? {
+            target: scan.started?.target ?? target.trim(),
+            done: scan.progress?.done ?? 0,
+            total: scan.progress?.total ?? scan.started?.total ?? addressCount,
+          } : null}
+        />
+      ) : <div className="flex min-h-0 flex-1">
         <main className="flex min-h-0 min-w-0 flex-1 flex-col">
           {showResults ? (
             <>

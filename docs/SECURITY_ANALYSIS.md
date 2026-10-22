@@ -34,6 +34,23 @@ rejecting late events/completion. A backend cancellation watermark also rejects
 cancelled requests that arrive late. Native work is globally bounded, including
 when a replacement assessment overlaps cleanup of an old one.
 
+## Scan Web Exposure action
+
+The navigation's Scan Web Exposure button uses the existing discovery and Safe
+Scan pipeline for the entire current target. `webExposureScanOptions` adds the
+common web ports to selected ports (or the default consultant set), enables
+service detection for that run and preserves timeout/concurrency/name settings.
+It does not save those overrides. Table filters and selected rows do not narrow
+its target. Existing workload/port limits still apply; this is not a 65,535-port
+sweep. Ordinary Scan and Watch Mode keep their existing settings and behavior.
+
+The action opens Security immediately. The view shows discovery progress and a
+Stop discovery action, followed by the existing assessment progress/Stop action.
+Stopping discovery returns partial results without automatically making web
+requests. The exposure action is disabled during discovery, assessment or Watch
+Mode to prevent overlapping work. Reachability is measured from the scanner's
+computer and does not establish Internet exposure.
+
 ## Safe Scan network behavior
 
 - Uses only open ports already found by discovery. Defaults now also cover
