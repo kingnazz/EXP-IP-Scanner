@@ -6,6 +6,30 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.4.0
+
+### Added
+
+- A passive **Security** pass checks every discovered device with a supported HTTP or HTTPS service and highlights systems that need attention.
+- PHP2Shell assessment for **CVE-2026-109618** and **CVE-2026-109619**, including fixed-version checks for supported PHP 8.2 through 8.5 branches.
+- A **Website** check accepts a hostname or HTTP/HTTPS URL and preserves the real hostname for HTTPS SNI and virtual hosting.
+- Results show **Critical**, **Needs Review**, **Clear**, or **Unknown** instead of treating every PHP indicator as a confirmed vulnerability.
+- An **Issues** filter and subtle red or amber shield indicators make affected or uncertain devices easy to isolate after a network-wide security pass.
+- Passive fingerprinting recognizes Synology DSM, WordPress, phpMyAdmin, Apache, nginx, and generic PHP web applications.
+
+### Changed
+
+- Security checks run silently in the background on Windows, so the operating-system curl client no longer flashes Command Prompt windows during a scan.
+- Network-wide security checks are capped at four devices at a time to keep the scan responsive and avoid hammering customer infrastructure.
+- Synology DSM ports 5000 and 5001 are included in the default service scan.
+- Hidden PHP versions and legacy or vendor-managed PHP builds are sent to review instead of being labeled vulnerable without enough evidence.
+- Rust security dependencies were refreshed, including patched rustls and webpki versions. The updater is pinned to an exact official Tauri source revision that uses the patched ZIP 9 dependency line.
+
+### Notes
+
+- The PHP2Shell check is passive. It sends ordinary HTTP/HTTPS requests and does not send exploit payloads or attempt remote code execution.
+- A Clear result means the checked service did not expose an affected upstream PHP version. Hidden or embedded PHP may still require direct server or vendor verification.
+
 ## 1.3.0
 
 ### Added
