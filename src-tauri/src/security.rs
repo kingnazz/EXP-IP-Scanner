@@ -18,6 +18,9 @@ const MAX_BODY_CHARS: usize = 64 * 1024;
 const WEB_PORTS: [u16; 9] = [80, 443, 5000, 5001, 8000, 8008, 8080, 8443, 8888];
 const PHP2SHELL_CVES: [&str; 2] = ["CVE-2026-109618", "CVE-2026-109619"];
 
+type HeaderPairs = Vec<(String, String)>;
+type ParsedHttpResponse = (u16, HeaderPairs, String);
+
 #[derive(Debug, Clone, Serialize)]
 pub struct WebServiceFingerprint {
     pub port: u16,
@@ -103,7 +106,19 @@ async fn fingerprint_service(ip: Ipv4Addr, port: u16) -> WebServiceFingerprint {
     let scheme = if is_tls_port(port) { "https" } else { "http" };
     let url = format!("{scheme}://{ip}:{port}/");
 
-    let output = Command::new(curl_binary())
+    let mut command = Command::new(curl_binary());
+
+    // Windows normally gives a console window to a console-subsystem child
+    // process. The scanner is a GUI application, so a passive curl probe must
+    // stay invisible instead of flashing a Command Prompt for every web port.
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        command.as_std_mut().creation_flags(CREATE_NO_WINDOW);
+    }
+
+    let output = command
         .args([
             "--insecure",
             "--silent",
@@ -204,7 +219,7 @@ fn curl_binary() -> &'static str {
     }
 }
 
-fn parse_http_output(raw: &str) -> Option<(u16, Vec<(String, String)>, String)> {
+fn parse_http_output(raw: &str) -> Option<ParsedHttpResponse> {
     let normalized = raw.replace("\r\n", "\n");
     let parts: Vec<&str> = normalized.split("\n\n").collect();
     let mut last_header_index = None;
