@@ -1,0 +1,42 @@
+name: Temporary Tauri JavaScript version sync
+
+on:
+  push:
+    branches: ["feat/web-exposure-security"]
+    paths:
+      - .github/workflows/sync-tauri-js.yml
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: feat/web-exposure-security
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Sync Tauri plugin versions
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+          path = Path('package.json')
+          package = json.loads(path.read_text())
+          package['dependencies']['@tauri-apps/plugin-dialog'] = '^2.8.3'
+          package['dependencies']['@tauri-apps/plugin-process'] = '^2.4.0'
+          path.write_text(json.dumps(package, indent=2) + '\n')
+      - run: npm install --package-lock-only --ignore-scripts
+      - name: Commit version sync
+        shell: bash
+        run: |
+          set -euxo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "Sync Tauri JavaScript plugin versions"
+          git push origin HEAD:feat/web-exposure-security
