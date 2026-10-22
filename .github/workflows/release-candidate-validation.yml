@@ -1,5 +1,6 @@
 name: Temporary v1.4.0 release candidate validation
 
+# Final RC validation after syncing Tauri JavaScript plugin versions.
 on:
   push:
     branches: ["feat/web-exposure-security"]
