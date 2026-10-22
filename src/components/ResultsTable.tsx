@@ -1,10 +1,18 @@
 import { memo, useCallback, useMemo, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, CirclePlus, CircleSlash, RefreshCw } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  CirclePlus,
+  CircleSlash,
+  RefreshCw,
+  ShieldAlert,
+} from "lucide-react";
 import { useVirtualRows } from "../hooks/useVirtualRows";
 import { formatLatency, isActionablePort, serviceName } from "../lib/format";
 import { isResponding, rowName, type DeviceRow } from "../lib/live";
 import { COLUMNS, type ColumnDef, type ColumnKey, type SortDir } from "../lib/table";
 import type { ColumnWidths, Density } from "../lib/prefs";
+import type { SecurityAssessment } from "../types";
 import { NoValue } from "../ui/primitives";
 
 /** Row heights, matching the two density settings in index.css. */
@@ -21,6 +29,7 @@ export interface ResultsTableProps {
   density: Density;
   selected: ReadonlySet<string>;
   focusedIp: string | null;
+  securityStatuses: Readonly<Record<string, SecurityAssessment["status"]>>;
   onRowClick: (row: DeviceRow, index: number, event: React.MouseEvent) => void;
   onRowActivate: (row: DeviceRow) => void;
   onRowContextMenu: (event: React.MouseEvent, row: DeviceRow, column: ColumnKey | null) => void;
@@ -51,6 +60,7 @@ export function ResultsTable({
   density,
   selected,
   focusedIp,
+  securityStatuses,
   onRowClick,
   onRowActivate,
   onRowContextMenu,
@@ -141,6 +151,7 @@ export function ResultsTable({
               columns={columns}
               selected={selected.has(row.host.ip)}
               focused={focusedIp === row.host.ip}
+              securityStatus={securityStatuses[row.host.ip]}
               onClick={onRowClick}
               onActivate={onRowActivate}
               onContextMenu={onRowContextMenu}
@@ -248,6 +259,7 @@ interface RowProps {
   columns: ColumnDef[];
   selected: boolean;
   focused: boolean;
+  securityStatus?: SecurityAssessment["status"];
   onClick: (row: DeviceRow, index: number, event: React.MouseEvent) => void;
   onActivate: (row: DeviceRow) => void;
   onContextMenu: (event: React.MouseEvent, row: DeviceRow, column: ColumnKey | null) => void;
@@ -262,7 +274,17 @@ interface RowProps {
  * builds a new host object for every update.
  */
 const Row = memo(
-  function Row({ row, index, columns, selected, focused, onClick, onActivate, onContextMenu }: RowProps) {
+  function Row({
+    row,
+    index,
+    columns,
+    selected,
+    focused,
+    securityStatus,
+    onClick,
+    onActivate,
+    onContextMenu,
+  }: RowProps) {
     return (
       <tr
         id={rowDomId(row.host.ip)}
@@ -282,7 +304,7 @@ const Row = memo(
         }
       >
         {columns.map((column) => (
-          <Cell key={column.key} row={row} column={column} />
+          <Cell key={column.key} row={row} column={column} securityStatus={securityStatus} />
         ))}
       </tr>
     );
@@ -290,6 +312,7 @@ const Row = memo(
   (prev, next) =>
     prev.selected === next.selected &&
     prev.focused === next.focused &&
+    prev.securityStatus === next.securityStatus &&
     prev.index === next.index &&
     prev.columns === next.columns &&
     prev.row.pending === next.row.pending &&
@@ -327,14 +350,22 @@ function sameHost(a: DeviceRow, b: DeviceRow): boolean {
   );
 }
 
-function Cell({ row, column }: { row: DeviceRow; column: ColumnDef }) {
+function Cell({
+  row,
+  column,
+  securityStatus,
+}: {
+  row: DeviceRow;
+  column: ColumnDef;
+  securityStatus?: SecurityAssessment["status"];
+}) {
   const align = column.align === "right" ? { textAlign: "right" as const } : undefined;
 
   switch (column.key) {
     case "status":
       return (
         <td style={align}>
-          <StatusDot row={row} />
+          <StatusDot row={row} securityStatus={securityStatus} />
         </td>
       );
 
@@ -430,7 +461,46 @@ function Cell({ row, column }: { row: DeviceRow; column: ColumnDef }) {
   }
 }
 
-function StatusDot({ row }: { row: DeviceRow }) {
+function StatusDot({
+  row,
+  securityStatus,
+}: {
+  row: DeviceRow;
+  securityStatus?: SecurityAssessment["status"];
+}) {
+  if (row.watchState === "offline") {
+    return (
+      <span
+        className="inline-flex text-danger"
+        title="Not found in the latest Watch scan"
+        aria-label="Offline device"
+      >
+        <CircleSlash size={14} aria-hidden />
+      </span>
+    );
+  }
+  if (securityStatus === "critical") {
+    return (
+      <span
+        className="inline-flex text-danger"
+        title="Critical security finding. Double-click for details."
+        aria-label="Critical security finding"
+      >
+        <ShieldAlert size={14} aria-hidden />
+      </span>
+    );
+  }
+  if (securityStatus === "attention") {
+    return (
+      <span
+        className="inline-flex text-warn"
+        title="Security finding needs review. Double-click for details."
+        aria-label="Security finding needs review"
+      >
+        <ShieldAlert size={13} aria-hidden />
+      </span>
+    );
+  }
   if (row.watchState === "new") {
     return (
       <span
@@ -450,17 +520,6 @@ function StatusDot({ row }: { row: DeviceRow }) {
         aria-label="Changed device"
       >
         <RefreshCw size={13} aria-hidden />
-      </span>
-    );
-  }
-  if (row.watchState === "offline") {
-    return (
-      <span
-        className="inline-flex text-danger"
-        title="Not found in the latest Watch scan"
-        aria-label="Offline device"
-      >
-        <CircleSlash size={14} aria-hidden />
       </span>
     );
   }
