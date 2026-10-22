@@ -17,16 +17,11 @@ function statusStyle(status: SecurityAssessment["status"]) {
   }
 }
 
-export function WebsiteCheckDialog({
-  onClose,
-  onError,
-}: {
-  onClose: () => void;
-  onError: (message: string) => void;
-}) {
+export function WebsiteCheckDialog({ onClose }: { onClose: () => void }) {
   const [target, setTarget] = useState("");
   const [checking, setChecking] = useState(false);
   const [assessment, setAssessment] = useState<SecurityAssessment | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const phpVersions = useMemo(
     () =>
@@ -54,10 +49,11 @@ export function WebsiteCheckDialog({
     if (!value || checking) return;
     setChecking(true);
     setAssessment(null);
+    setError(null);
     try {
       setAssessment(await websiteSecurityAssessment(value));
-    } catch (error) {
-      onError(error instanceof Error ? error.message : String(error));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : String(caught));
     } finally {
       setChecking(false);
     }
@@ -115,6 +111,12 @@ export function WebsiteCheckDialog({
         <div className="flex items-center gap-2 rounded-md border border-line px-3 py-3 text-[12px] text-ink-soft">
           <Loader2 size={14} className="animate-spin" aria-hidden />
           Reading ordinary website response headers and metadata…
+        </div>
+      ) : null}
+
+      {error ? (
+        <div role="alert" className="rounded-md border border-danger/40 bg-danger/5 px-3 py-2.5 text-[12px] text-danger">
+          {error}
         </div>
       ) : null}
 
