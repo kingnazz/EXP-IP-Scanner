@@ -112,13 +112,8 @@ pub async fn website_security_assessment(target: String) -> Result<SecurityAsses
 
     let mut services = Vec::new();
     for candidate in candidates {
-        let service = fingerprint_url(
-            &candidate.url,
-            candidate.port,
-            &candidate.scheme,
-            None,
-        )
-        .await;
+        let service =
+            fingerprint_url(&candidate.url, candidate.port, &candidate.scheme, None).await;
         let answered = service.status.is_some();
         services.push(service);
 
@@ -218,7 +213,10 @@ async fn fingerprint_url(
     let Some((status, headers, body)) = parsed else {
         let note = if stderr.to_ascii_lowercase().contains("timed out") {
             "Web service did not answer the passive HTTP request before timeout."
-        } else if stderr.to_ascii_lowercase().contains("could not resolve host") {
+        } else if stderr
+            .to_ascii_lowercase()
+            .contains("could not resolve host")
+        {
             "The website hostname could not be resolved."
         } else {
             "The target did not return a normal HTTP/HTTPS response that could be fingerprinted."
@@ -245,8 +243,8 @@ async fn fingerprint_url(
         .and_then(extract_php_version)
         .or_else(|| server.as_deref().and_then(extract_php_version))
         .or_else(|| extract_php_version(&body));
-    let product = detect_product(port, server.as_deref(), powered_by.as_deref(), &body)
-        .or(fallback_product);
+    let product =
+        detect_product(port, server.as_deref(), powered_by.as_deref(), &body).or(fallback_product);
     let title = extract_title(&body);
 
     WebServiceFingerprint {
@@ -274,7 +272,10 @@ fn website_candidates(input: &str) -> Result<(String, Vec<WebsiteCandidate>), St
     if trimmed.len() > MAX_URL_CHARS {
         return Err("Website URL is too long.".into());
     }
-    if trimmed.chars().any(|ch| ch.is_control() || ch.is_whitespace()) {
+    if trimmed
+        .chars()
+        .any(|ch| ch.is_control() || ch.is_whitespace())
+    {
         return Err("Website URLs cannot contain spaces or control characters.".into());
     }
 
