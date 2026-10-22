@@ -197,7 +197,11 @@ async fn fingerprint_service(ip: Ipv4Addr, port: u16) -> WebServiceFingerprint {
 }
 
 fn curl_binary() -> &'static str {
-    if cfg!(windows) { "curl.exe" } else { "curl" }
+    if cfg!(windows) {
+        "curl.exe"
+    } else {
+        "curl"
+    }
 }
 
 fn parse_http_output(raw: &str) -> Option<(u16, Vec<(String, String)>, String)> {
@@ -216,7 +220,10 @@ fn parse_http_output(raw: &str) -> Option<(u16, Vec<(String, String)>, String)> 
             }
             continue;
         }
-        status = first.split_whitespace().nth(1).and_then(|value| value.parse().ok());
+        status = first
+            .split_whitespace()
+            .nth(1)
+            .and_then(|value| value.parse().ok());
         headers = lines
             .filter_map(|line| {
                 let (name, value) = line.split_once(':')?;
@@ -354,10 +361,9 @@ fn build_findings(services: &[WebServiceFingerprint]) -> Vec<SecurityFinding> {
             .powered_by
             .as_deref()
             .is_some_and(|value| value.to_ascii_lowercase().contains("php"))
-            || service
-                .product
-                .as_deref()
-                .is_some_and(|product| matches!(product, "PHP web application" | "WordPress" | "phpMyAdmin"))
+            || service.product.as_deref().is_some_and(|product| {
+                matches!(product, "PHP web application" | "WordPress" | "phpMyAdmin")
+            })
         {
             php_indicator_without_version = true;
         }
@@ -457,7 +463,10 @@ fn assessment_summary(
     services: &[WebServiceFingerprint],
     findings: &[SecurityFinding],
 ) -> (String, String) {
-    if findings.iter().any(|finding| finding.severity == "critical") {
+    if findings
+        .iter()
+        .any(|finding| finding.severity == "critical")
+    {
         return (
             "critical".into(),
             "Critical PHP2Shell exposure indicator found. Review the disclosed PHP version and patch path immediately.".into(),
@@ -478,7 +487,8 @@ fn assessment_summary(
     if services.iter().any(|service| service.php_version.is_some()) {
         return (
             "clear".into(),
-            "No vulnerable upstream PHP 8.2-8.5 version was disclosed by the checked web services.".into(),
+            "No vulnerable upstream PHP 8.2-8.5 version was disclosed by the checked web services."
+                .into(),
         );
     }
     (
@@ -488,7 +498,10 @@ fn assessment_summary(
 }
 
 fn cves() -> Vec<String> {
-    PHP2SHELL_CVES.iter().map(|value| (*value).to_string()).collect()
+    PHP2SHELL_CVES
+        .iter()
+        .map(|value| (*value).to_string())
+        .collect()
 }
 
 fn join_ports(ports: &[u16]) -> String {
@@ -503,7 +516,11 @@ fn truncate(value: &str, max: usize) -> String {
     if value.chars().count() <= max {
         return value.to_string();
     }
-    value.chars().take(max.saturating_sub(1)).collect::<String>() + "…"
+    value
+        .chars()
+        .take(max.saturating_sub(1))
+        .collect::<String>()
+        + "…"
 }
 
 #[cfg(test)]
@@ -527,7 +544,10 @@ mod tests {
     #[test]
     fn extracts_common_php_version_forms() {
         assert_eq!(extract_php_version("PHP/8.2.34"), Some("8.2.34".into()));
-        assert_eq!(extract_php_version("PHP Version 8.4.27"), Some("8.4.27".into()));
+        assert_eq!(
+            extract_php_version("PHP Version 8.4.27"),
+            Some("8.4.27".into())
+        );
         assert_eq!(extract_php_version("nginx"), None);
     }
 
@@ -552,7 +572,10 @@ mod tests {
             ("8.5.11", "critical"),
             ("8.5.12", "info"),
         ] {
-            assert_eq!(php_version_finding(version, &service(Some(version))).severity, expected);
+            assert_eq!(
+                php_version_finding(version, &service(Some(version))).severity,
+                expected
+            );
         }
     }
 
