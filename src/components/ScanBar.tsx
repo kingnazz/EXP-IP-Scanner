@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
-import { ChevronDown, Play, Radio, RefreshCw, Square } from "lucide-react";
+import { ChevronDown, Globe2, Play, Radio, RefreshCw, Square } from "lucide-react";
 import type { LocalNetwork } from "../types";
 import { InterfacePicker } from "./InterfacePicker";
 
@@ -29,6 +29,7 @@ export const ScanBar = forwardRef<
     onWatchIntervalChange: (intervalMs: number) => void;
     onScan: () => void;
     onStop: () => void;
+    onWebsiteCheck?: () => void;
   }
 >(function ScanBar(
   {
@@ -47,6 +48,7 @@ export const ScanBar = forwardRef<
     onWatchIntervalChange,
     onScan,
     onStop,
+    onWebsiteCheck,
   },
   ref,
 ) {
@@ -131,6 +133,19 @@ export const ScanBar = forwardRef<
             </div>
           ) : null}
         </div>
+
+        {onWebsiteCheck ? (
+          <button
+            type="button"
+            className="btn btn-lg btn-secondary shrink-0"
+            onClick={onWebsiteCheck}
+            disabled={scanning || watching}
+            title="Check a website URL for PHP2Shell exposure indicators"
+          >
+            <Globe2 size={13} aria-hidden />
+            Website
+          </button>
+        ) : null}
 
         <button
           type="button"
