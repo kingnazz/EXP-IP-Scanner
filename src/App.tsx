@@ -22,6 +22,7 @@ import { useContextMenu } from "./hooks/useContextMenu";
 import { useHotkeys } from "./hooks/useHotkeys";
 import { usePublicIp } from "./hooks/usePublicIp";
 import { useScan } from "./hooks/useScan";
+import { useSecurityScan } from "./hooks/useSecurityScan";
 import { useSettings } from "./hooks/useSettings";
 import { useTheme } from "./hooks/useTheme";
 import type { DeviceAction } from "./lib/actions";
@@ -89,6 +90,7 @@ export default function App() {
 
   const onScanError = useCallback((message: string) => toasts.error(message), [toasts]);
   const scan = useScan({ onError: onScanError });
+  const security = useSecurityScan(scan.rows);
   const menu = useContextMenu<DeviceRow>();
   // Deliberately outside the startup effect below: the window is usable, and a
   // scan can already be running, while this is still in flight.
@@ -244,9 +246,20 @@ export default function App() {
 
   const columns = useMemo(() => visibleColumns(settings.hiddenColumns), [settings.hiddenColumns]);
 
-  const rows = useMemo(
+  const preparedRows = useMemo(
     () => prepareRows(scan.rows, filter, query, settings.sortKey, settings.sortDir),
     [scan.rows, filter, query, settings.sortKey, settings.sortDir],
+  );
+
+  const rows = useMemo(
+    () =>
+      security.flaggedOnly
+        ? preparedRows.filter((row) => {
+            const status = security.statuses[row.host.ip];
+            return status === "critical" || status === "attention";
+          })
+        : preparedRows,
+    [preparedRows, security.flaggedOnly, security.statuses],
   );
 
   const filterCounts = useMemo(
@@ -272,11 +285,11 @@ export default function App() {
   // --- Scanning ------------------------------------------------------------
 
   const triggerWatchNow = useCallback(() => {
-    if (!watchActive || scan.scanning) return;
+    if (!watchActive || scan.scanning || security.scanning) return;
     scan.clearFailure();
     watchImmediate.current = true;
     setWatchKick((value) => value + 1);
-  }, [scan, watchActive]);
+  }, [scan, security.scanning, watchActive]);
 
   const startScan = useCallback(() => {
     if (watchActive) {
@@ -285,14 +298,15 @@ export default function App() {
     }
 
     const trimmed = target.trim();
-    if (!trimmed || targetError || scan.scanning) return;
+    if (!trimmed || targetError || scan.scanning || security.scanning) return;
+    security.clear();
     setSelected(new Set());
     setFocusedIp(null);
     setDrawerIp(null);
     setPingResult(null);
     setRecentTargets(pushRecentTarget(trimmed));
     void scan.run({ ...scanOptions, target: trimmed });
-  }, [scan, scanOptions, target, targetError, triggerWatchNow, watchActive]);
+  }, [scan, scanOptions, security, target, targetError, triggerWatchNow, watchActive]);
 
   const toggleWatch = useCallback(() => {
     if (watchActive) {
@@ -304,14 +318,15 @@ export default function App() {
     }
 
     const trimmed = target.trim();
-    if (!trimmed || targetError || scan.scanning) return;
+    if (!trimmed || targetError || scan.scanning || security.scanning) return;
+    security.clear();
     scan.clearFailure();
     watchOptions.current = { ...scanOptions, target: trimmed };
     setRecentTargets(pushRecentTarget(trimmed));
     watchImmediate.current = true;
     setWatchActive(true);
     setWatchKick((value) => value + 1);
-  }, [scan, scanOptions, target, targetError, watchActive]);
+  }, [scan, scanOptions, security, target, targetError, watchActive]);
 
   const stopScan = useCallback(() => {
     if (watchActive) {
@@ -321,6 +336,33 @@ export default function App() {
     }
     void scan.cancel();
   }, [scan, watchActive]);
+
+  const runSecurityScan = useCallback(async () => {
+    if (scan.scanning || security.scanning) return;
+    if (security.eligibleCount === 0) {
+      toasts.info("No supported HTTP/HTTPS services were found to security-check.");
+      return;
+    }
+
+    const summary = await security.runAll();
+    if (!summary) return;
+
+    if (summary.critical > 0) {
+      toasts.error(
+        `${summary.critical} critical ${summary.critical === 1 ? "device" : "devices"} found. Use the Issues filter to review them.`,
+      );
+    } else if (summary.attention > 0) {
+      toasts.info(
+        `${summary.attention} ${summary.attention === 1 ? "device needs" : "devices need"} security review.`,
+      );
+    } else if (summary.unknown > 0) {
+      toasts.info(
+        `Security scan finished. ${summary.unknown} ${summary.unknown === 1 ? "device could not be classified" : "devices could not be classified"}.`,
+      );
+    } else {
+      toasts.success(`Security scan finished. No critical PHP exposure indicators were found on ${summary.total} checked ${summary.total === 1 ? "device" : "devices"}.`);
+    }
+  }, [scan.scanning, security, toasts]);
 
   const onSelectNetwork = useCallback(
     (network: LocalNetwork) => {
@@ -669,14 +711,26 @@ export default function App() {
                 hiddenColumns={settings.hiddenColumns}
                 onToggleColumn={toggleColumn}
                 onResetColumns={resetColumnWidths}
+                securityEligibleCount={security.eligibleCount}
+                securityCheckedCount={security.checkedCount}
+                securityCriticalCount={security.counts.critical}
+                securityAttentionCount={security.counts.attention}
+                securityScanning={security.scanning}
+                securityProgress={security.progress}
+                securityOnly={security.flaggedOnly}
+                securityScanDisabled={scan.scanning || security.scanning || security.eligibleCount === 0}
+                onSecurityScan={() => void runSecurityScan()}
+                onSecurityOnlyChange={security.setFlaggedOnly}
                 onExport={() => void exportCsv()}
                 onCopy={() => void copyRows()}
                 onCopyIps={() => void copyIps()}
                 onClear={() => {
+                  if (security.scanning) return;
                   watchOptions.current = null;
                   setWatchActive(false);
                   scan.endWatch();
                   scan.clear();
+                  security.clear();
                   setSelected(new Set());
                   setFocusedIp(null);
                   setDrawerIp(null);
@@ -695,6 +749,7 @@ export default function App() {
                   density={settings.density}
                   selected={selected}
                   focusedIp={focusedIp}
+                  securityStatuses={security.statuses}
                   onRowClick={onRowClick}
                   onRowActivate={openDrawer}
                   onRowContextMenu={(event, row, column) => {
@@ -729,6 +784,8 @@ export default function App() {
             pingResult={pingResult}
             pinging={pinging}
             watchActive={watchActive}
+            securityAssessment={security.assessments[drawerRow.host.ip] ?? null}
+            onSecurityAssessment={security.recordAssessment}
           />
         ) : null}
       </div>
