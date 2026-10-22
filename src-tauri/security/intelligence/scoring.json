@@ -1,0 +1,9 @@
+{
+  "Critical": 30,
+  "High": 15,
+  "Medium": 7,
+  "Low": 3,
+  "Informational": 0,
+  "expired_tls": 8,
+  "admin_interface": 5
+}

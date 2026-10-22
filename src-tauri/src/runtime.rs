@@ -7,7 +7,7 @@
 //!
 //! EXP IP Scanner has no database. Scan results live in memory for the life of
 //! the window and are written to disk only when a consultant explicitly
-//! exports a CSV. That is deliberate: the same copy of this tool is pointed at
+//! exports a CSV or security JSON report. That is deliberate: the same copy of this tool is pointed at
 //! many unrelated customer networks, and one customer's device list has no
 //! business persisting into the next site visit. It is also what makes the
 //! portable story simple -- there is no data store to relocate, clean up or

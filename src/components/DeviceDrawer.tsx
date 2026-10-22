@@ -4,6 +4,8 @@ import { deviceActions, primaryAction, type DeviceAction } from "../lib/actions"
 import { formatLatency, formatTime, isActionablePort, serviceName } from "../lib/format";
 import type { DeviceRow } from "../lib/live";
 import type { LocalNetwork, PingOutcome } from "../types";
+import type { DeviceAssessment } from "../security-types";
+import { counts } from "../lib/security";
 import { DetailRow, NoValue, SectionTitle } from "../ui/primitives";
 
 /**
@@ -22,8 +24,12 @@ export function DeviceDrawer({
   pingResult,
   pinging,
   watchActive = false,
+  assessment,
+  onSecurity,
 }: {
   row: DeviceRow;
+  assessment?: DeviceAssessment;
+  onSecurity?: () => void;
   /** The interface the scan ran from, for the network context section. */
   network: LocalNetwork | null;
   onClose: () => void;
@@ -34,6 +40,7 @@ export function DeviceDrawer({
 }) {
   const panel = useRef<HTMLElement>(null);
   const { host } = row;
+  const securityCounts = assessment ? counts([assessment]) : null;
   const actions = deviceActions(host);
   const primary = primaryAction(host);
   const connect = actions.filter((a) => a.group === "connect");
@@ -87,6 +94,12 @@ export function DeviceDrawer({
           </button>
         ) : null}
 
+        {assessment ? <section className="mb-4 rounded-md border border-line p-2">
+          <SectionTitle>Security</SectionTitle>
+          <p className="text-xs">EXP assessment score: {assessment.score.value} / 100</p>
+          <p className="mt-1 text-xs text-ink-soft">Critical {securityCounts?.Critical} · High {securityCounts?.High} · Medium {securityCounts?.Medium}{assessment.complete ? "" : " · Limited coverage"}</p>
+          <button className="btn btn-ghost btn-sm mt-1" onClick={onSecurity}>Security Details</button>
+        </section> : null}
         <dl className="mb-4">
           <DetailRow label="IP address" mono>
             {host.ip}

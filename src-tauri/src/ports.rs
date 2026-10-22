@@ -27,9 +27,9 @@ pub const MAX_PORTS: usize = 1_024;
 /// seconds. Not a security sweep: every port here exists because knowing it is
 /// open tells a consultant what the device is or gives them a way in to
 /// administer it.
-pub const DEFAULT_PORTS: [u16; 32] = [
+pub const DEFAULT_PORTS: [u16; 35] = [
     20, 21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 389, 443, 445, 515, 587, 631, 993, 995, 1433,
-    1723, 3306, 3389, 5060, 5432, 5900, 5985, 5986, 8000, 8080, 8443, 9100,
+    1723, 3306, 3389, 5000, 5001, 5060, 5432, 5900, 5985, 5986, 8000, 8080, 8443, 8888, 9100,
 ];
 
 /// Validate, de-duplicate and sort a port list coming from the interface.
@@ -163,7 +163,8 @@ pub fn service_name(port: u16) -> Option<&'static str> {
         3128 => "Proxy",
         3306 => "MySQL",
         3389 => "RDP",
-        5000 => "UPnP",
+        5000 => "HTTP / UPnP",
+        5001 => "HTTPS alt",
         5060 | 5061 => "SIP",
         5222 => "XMPP",
         5353 => "mDNS",
@@ -173,7 +174,7 @@ pub fn service_name(port: u16) -> Option<&'static str> {
         5985 => "WinRM",
         5986 => "WinRM TLS",
         6379 => "Redis",
-        8000 | 8008 | 8081..=8090 => "HTTP alt",
+        8000 | 8008 | 8888 | 8081..=8090 => "HTTP alt",
         8080 => "HTTP alt",
         8443 | 4443 => "HTTPS alt",
         8883 => "MQTTS",

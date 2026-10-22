@@ -1,10 +1,12 @@
 import { memo, useCallback, useMemo, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, CirclePlus, CircleSlash, RefreshCw } from "lucide-react";
+import { ArrowDown, ArrowUp, CirclePlus, CircleSlash, RefreshCw, ShieldAlert } from "lucide-react";
 import { useVirtualRows } from "../hooks/useVirtualRows";
 import { formatLatency, isActionablePort, serviceName } from "../lib/format";
 import { isResponding, rowName, type DeviceRow } from "../lib/live";
 import { COLUMNS, type ColumnDef, type ColumnKey, type SortDir } from "../lib/table";
 import type { ColumnWidths, Density } from "../lib/prefs";
+import type { DeviceAssessment } from "../security-types";
+import { counts } from "../lib/security";
 import { NoValue } from "../ui/primitives";
 
 /** Row heights, matching the two density settings in index.css. */
@@ -12,6 +14,8 @@ const ROW_HEIGHT: Record<Density, number> = { compact: 28, comfortable: 34 };
 
 export interface ResultsTableProps {
   rows: DeviceRow[];
+  assessments?: ReadonlyMap<string, DeviceAssessment>;
+  onSecurity?: (ip: string) => void;
   columns: ColumnDef[];
   columnWidths: ColumnWidths;
   onColumnWidth: (key: ColumnKey, width: number) => void;
@@ -42,6 +46,8 @@ export interface ResultsTableProps {
  */
 export function ResultsTable({
   rows,
+  assessments,
+  onSecurity,
   columns,
   columnWidths,
   onColumnWidth,
@@ -137,6 +143,8 @@ export function ResultsTable({
             <Row
               key={row.host.ip}
               row={row}
+              assessment={assessments?.get(row.host.ip)}
+              onSecurity={onSecurity}
               index={window_.start + offset}
               columns={columns}
               selected={selected.has(row.host.ip)}
@@ -244,6 +252,8 @@ function HeaderCell({
 
 interface RowProps {
   row: DeviceRow;
+  assessment?: DeviceAssessment;
+  onSecurity?: (ip: string) => void;
   index: number;
   columns: ColumnDef[];
   selected: boolean;
@@ -262,7 +272,7 @@ interface RowProps {
  * builds a new host object for every update.
  */
 const Row = memo(
-  function Row({ row, index, columns, selected, focused, onClick, onActivate, onContextMenu }: RowProps) {
+  function Row({ row, assessment, onSecurity, index, columns, selected, focused, onClick, onActivate, onContextMenu }: RowProps) {
     return (
       <tr
         id={rowDomId(row.host.ip)}
@@ -282,12 +292,14 @@ const Row = memo(
         }
       >
         {columns.map((column) => (
-          <Cell key={column.key} row={row} column={column} />
+          <Cell key={column.key} row={row} column={column} assessment={assessment} onSecurity={onSecurity} />
         ))}
       </tr>
     );
   },
   (prev, next) =>
+    prev.assessment === next.assessment &&
+    prev.onSecurity === next.onSecurity &&
     prev.selected === next.selected &&
     prev.focused === next.focused &&
     prev.index === next.index &&
@@ -327,7 +339,8 @@ function sameHost(a: DeviceRow, b: DeviceRow): boolean {
   );
 }
 
-function Cell({ row, column }: { row: DeviceRow; column: ColumnDef }) {
+function Cell({ row, column, assessment, onSecurity }: { row: DeviceRow; column: ColumnDef; assessment?: DeviceAssessment; onSecurity?: (ip: string) => void }) {
+  const securityCounts = assessment && column.key === "ip" ? counts([assessment]) : null;
   const align = column.align === "right" ? { textAlign: "right" as const } : undefined;
 
   switch (column.key) {
@@ -342,6 +355,7 @@ function Cell({ row, column }: { row: DeviceRow; column: ColumnDef }) {
       return (
         <td className="mono" style={align}>
           {row.host.ip}
+          {securityCounts && securityCounts.Critical + securityCounts.High + securityCounts.Medium > 0 ? <button className="ml-1 inline-flex align-middle text-warn" aria-label={`Security findings for ${row.host.ip}`} title={`Critical ${securityCounts.Critical} · High ${securityCounts.High} · Medium ${securityCounts.Medium}`} onClick={(event) => { event.stopPropagation(); onSecurity?.(row.host.ip); }}><ShieldAlert size={12} /></button> : null}
         </td>
       );
 

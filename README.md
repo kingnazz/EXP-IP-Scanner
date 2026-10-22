@@ -74,8 +74,8 @@ release carries a `SHA256SUMS.txt`.
 Scanning happens on your computer, and scan results are not uploaded anywhere.
 There is no account, no telemetry, no analytics and no cloud service.
 
-The application makes exactly two requests of its own. Neither sends scan
-results or discovered-device data:
+Two online features contact services outside the scan target. Neither sends
+scan results or discovered-device data:
 
 - **The public IP lookup** in the network summary asks a plain-text service what
   address this network appears as from outside. It runs when the window opens
@@ -87,6 +87,10 @@ results or discovered-device data:
   "Check now". If a signed updater manifest is available the app can install it
   in place; otherwise it opens the normal download page. The portable edition does not contain the
   updater at all.
+
+Local Safe Scan also makes ordinary, bounded HTTP/HTTPS requests to discovered
+services. Those responses are analyzed on your computer; no vulnerability lookup
+service receives them.
 
 The full notes are on the
 [privacy page](https://expipscanner.com/privacy.html).
@@ -173,8 +177,8 @@ python3 scripts/generate_oui.py        # refresh the embedded IEEE OUI registry
 
 ```
 src/                     React 19 + TypeScript, strict
-  components/            One screen, composed from focused pieces
-  hooks/                 useScan (streaming), usePublicIp, useSettings, useTheme
+  components/            Scanner and Security views, focused UI pieces
+  hooks/                 useScan, useSecurity (streaming), usePublicIp, settings/theme
   lib/                   api (the only Tauri boundary), table, live, export,
                          actions, format, prefs, publicip, demo (the browser
                          backend)
@@ -188,6 +192,8 @@ src-tauri/src/
   launch.rs              Consultant actions, and the validation boundary
   commands.rs            The Tauri command surface
   runtime.rs             Which edition this is, and where preferences live
+  security.rs            Narrow assessment IPC and generation/cancellation
+src-tauri/security/      Rust security models, transport, fingerprints, rules/tests
 site/                    The static download website
 brand/                   The supplied logo, and the SVG traced from it
 scripts/                 Version sync, packaging, verification, screenshots
@@ -196,7 +202,7 @@ scripts/                 Version sync, packaging, verification, screenshots
 Two decisions shape the rest:
 
 **There is no database.** Scan results exist in memory until the window closes
-or a CSV is exported. That keeps one customer's device list out of the next
+or a CSV or security JSON report is exported. That keeps one customer's device list out of the next
 site visit, and it is what makes the portable edition simple — there is no data
 store to relocate, clean up or leave behind.
 
@@ -245,3 +251,31 @@ Actions**.
 ## Licence
 
 MIT. See [LICENSE](LICENSE).
+
+## Security assessment
+
+After device discovery, **Security** automatically runs a local Safe Scan of
+available web services. It identifies likely technologies, exposed management
+pages, PHP indicators and TLS certificate concerns, then presents evidence,
+remediation and a per-device EXP-IP-Scanner assessment score. A small shield in
+the results table opens security details. Discovery and existing device actions
+remain available while assessment continues; you can stop assessment separately.
+
+Safe Scan uses bounded, ordinary HTTP/HTTPS requests to discovered ports. It does
+not log in, upload files, execute commands or send exploits. Redirects are not
+followed. Coverage limits and failed requests are shown, and a score of 100 does
+not prove a device is secure. Results stay in memory unless you export a JSON
+security report from the Security view.
+
+PHP2Shell classifications currently use supplied, **unverified** CVE identifiers
+and version thresholds. A possible match requires vendor review. “Patched” means
+at or above the supplied threshold, not verified package status; vendor backports
+and hidden versions cannot be established remotely.
+
+**Deep Scan** is an explicit authorization boundary. This phase only repeats the
+same low-impact checks after confirmation; no intrusive validation is included.
+Only scan systems you own or are authorized to test.
+
+See the [architecture audit](docs/SECURITY_ARCHITECTURE_AUDIT.md) and
+[security developer guide](docs/SECURITY_ANALYSIS.md) for limits, intelligence
+format, scoring, tests and extension points.

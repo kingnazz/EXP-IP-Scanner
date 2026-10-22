@@ -1,4 +1,4 @@
-// The one screen.
+// Application composition.
 //
 // App composes and owns cross-cutting state -- which network, which devices
 // are selected, what is open -- and delegates everything else. Scan mechanics
@@ -17,6 +17,8 @@ import { ResultsTable } from "./components/ResultsTable";
 import { ResultsToolbar } from "./components/ResultsToolbar";
 import { ScanBar } from "./components/ScanBar";
 import { SettingsDialog } from "./components/SettingsDialog";
+import { SecurityView } from "./components/SecurityView";
+import { useSecurity } from "./hooks/useSecurity";
 import { TopBar } from "./components/TopBar";
 import { useContextMenu } from "./hooks/useContextMenu";
 import { useHotkeys } from "./hooks/useHotkeys";
@@ -89,6 +91,11 @@ export default function App() {
 
   const onScanError = useCallback((message: string) => toasts.error(message), [toasts]);
   const scan = useScan({ onError: onScanError });
+  const security = useSecurity(scan.securitySource);
+  const [view, setView] = useState<"scanner" | "security">("scanner");
+  const [securityFocusIp, setSecurityFocusIp] = useState<string | null>(null);
+  const assessments = useMemo(() => new Map(security.devices.map((d) => [d.device_ip, d])), [security.devices]);
+  const openSecurity = useCallback((ip: string) => { setSecurityFocusIp(ip); setView("security"); }, []);
   const menu = useContextMenu<DeviceRow>();
   // Deliberately outside the startup effect below: the window is usable, and a
   // scan can already be running, while this is still in flight.
@@ -653,7 +660,13 @@ export default function App() {
         onCopy={(value, what) => void copyText(value, what)}
       />
 
-      <div className="flex min-h-0 flex-1">
+      <nav aria-label="Main navigation" className="flex items-center gap-2 border-b border-line bg-surface px-3 py-2">
+        <button className={`btn btn-sm ${view === "scanner" ? "btn-primary" : "btn-ghost"}`} aria-current={view === "scanner" ? "page" : undefined} onClick={() => setView("scanner")}>Scanner</button>
+        <button className={`btn btn-sm ${view === "security" ? "btn-primary" : "btn-ghost"}`} aria-current={view === "security" ? "page" : undefined} onClick={() => { setSecurityFocusIp(null); setView("security"); }}>Security</button>
+        {security.busy ? <span className="ml-2 text-xs text-ink-muted" role="status">{security.run?.mode ?? "Security assessment"} in progress…</span> : null}
+      </nav>
+
+      {view === "security" ? <SecurityView key={securityFocusIp ?? "all"} source={scan.securitySource} devices={security.devices} run={security.run} busy={security.busy} error={security.error} onStop={security.cancel} onStart={security.start} onError={onScanError} focusIp={securityFocusIp} /> : <div className="flex min-h-0 flex-1">
         <main className="flex min-h-0 min-w-0 flex-1 flex-col">
           {showResults ? (
             <>
@@ -686,6 +699,8 @@ export default function App() {
               {rows.length > 0 ? (
                 <ResultsTable
                   rows={rows}
+                  assessments={assessments}
+                  onSecurity={openSecurity}
                   columns={columns}
                   columnWidths={columnWidths}
                   onColumnWidth={setColumnWidth}
@@ -723,6 +738,8 @@ export default function App() {
         {drawerRow ? (
           <DeviceDrawer
             row={drawerRow}
+            assessment={assessments.get(drawerRow.host.ip)}
+            onSecurity={() => openSecurity(drawerRow.host.ip)}
             network={selectedNetwork}
             onClose={() => setDrawerIp(null)}
             onAction={(action) => void runAction(action, drawerRow.host)}
@@ -731,7 +748,7 @@ export default function App() {
             watchActive={watchActive}
           />
         ) : null}
-      </div>
+      </div>}
 
       <ProgressStrip
         scanning={scan.scanning}

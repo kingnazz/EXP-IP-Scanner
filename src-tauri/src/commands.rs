@@ -119,6 +119,7 @@ struct RemovedEvent {
 /// scan out of the next one's table.
 #[tauri::command]
 pub async fn scan_network(window: Window, opts: ScanOptions) -> Result<ScanResult, String> {
+    crate::security::reset();
     let scan_id = scanner::next_scan_id();
     // Bounded: when the bridge cannot keep up the scanner waits for capacity,
     // dropping only advisory progress events, so event memory cannot grow
@@ -162,6 +163,9 @@ pub async fn scan_network(window: Window, opts: ScanOptions) -> Result<ScanResul
     // device event by the time the promise resolves, so the streamed table and
     // the returned result cannot disagree.
     let _ = bridge.await;
+    if let Ok(ref completed) = result {
+        crate::security::remember(completed);
+    }
     result
 }
 
@@ -175,7 +179,7 @@ pub fn cancel_scan() {
 /// Extensions an export may use. Everything else is refused, so this command
 /// cannot be used to drop an arbitrary file type even from a compromised
 /// webview.
-const EXPORT_EXTENSIONS: [&str; 1] = ["csv"];
+const EXPORT_EXTENSIONS: [&str; 2] = ["csv", "json"];
 
 /// Largest export accepted, as a plain sanity bound. A /16 of devices is far
 /// below this; anything larger did not come from this application.
@@ -192,12 +196,12 @@ fn validate_export_path(path: &str) -> Result<(), String> {
         .map(|e| EXPORT_EXTENSIONS.contains(&e.to_ascii_lowercase().as_str()))
         .unwrap_or(false);
     if !ok {
-        return Err("Exports can only be saved as a .csv file.".into());
+        return Err("Exports can only be saved as a .csv or .json file.".into());
     }
     Ok(())
 }
 
-/// Write an already-formatted CSV, built in the interface, to the path the
+/// Write an already-formatted CSV or security JSON report, built in the interface, to the path the
 /// consultant chose in the native save dialog.
 #[tauri::command]
 pub fn save_text(path: String, contents: String) -> Result<(), String> {
@@ -279,7 +283,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn export_paths_are_restricted_to_csv_files_chosen_in_the_dialog() {
+    fn export_paths_are_restricted_to_csv_and_json_files_chosen_in_the_dialog() {
         let root = if cfg!(windows) {
             "C:\\exports\\"
         } else {
@@ -287,18 +291,12 @@ mod tests {
         };
         assert!(validate_export_path(&format!("{root}scan.csv")).is_ok());
         assert!(validate_export_path(&format!("{root}scan.CSV")).is_ok());
+        assert!(validate_export_path(&format!("{root}security.json")).is_ok());
 
         // A relative path did not come from the save dialog.
         assert!(validate_export_path("scan.csv").is_err());
-        // And nothing that is not a spreadsheet may be written.
-        for bad in [
-            "scan",
-            "scan.exe",
-            "scan.bat",
-            "scan.ps1",
-            ".bashrc",
-            "scan.json",
-        ] {
+        // Executable or unrelated file types must never be written.
+        for bad in ["scan", "scan.exe", "scan.bat", "scan.ps1", ".bashrc"] {
             assert!(
                 validate_export_path(&format!("{root}{bad}")).is_err(),
                 "accepted {bad}"
