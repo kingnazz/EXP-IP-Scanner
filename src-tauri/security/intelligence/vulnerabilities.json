@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "definitions": [{
+    "id": "php2shell",
+    "title": "PHP2Shell exposure assessment",
+    "severity": "Critical",
+    "affected_product": "PHP",
+    "cve_ids": ["CVE-2026-109618", "CVE-2026-109619"],
+    "affected_versions": [
+      {"branch": "8.2", "from_inclusive": "8.2.0", "patched_from": "8.2.35"},
+      {"branch": "8.3", "from_inclusive": "8.3.0", "patched_from": "8.3.36"},
+      {"branch": "8.4", "from_inclusive": "8.4.0", "patched_from": "8.4.27"}
+    ],
+    "description": "Potential PHP2Shell exposure inferred only from an exposed PHP version. These CVE identifiers and version thresholds are user-supplied and have not been independently verified. A banner does not establish exploitability, configuration, or vendor backport status.",
+    "remediation": "Verify the advisory and package status with the vendor. Upgrade PHP to a patched release supported by the vendor; restrict unnecessary web exposure.",
+    "references": ["https://www.php.net/supported-versions.php", "https://www.cve.org/CVERecord?id=CVE-2026-109618", "https://www.cve.org/CVERecord?id=CVE-2026-109619"],
+    "detection_type": "exposed_version",
+    "verified": false,
+    "provenance": "User-supplied PHP2Shell cases; public CVEProject records returned 404 on 2026-10-22. Thresholds are provisional, not vendor-confirmed."
+  }]
+}

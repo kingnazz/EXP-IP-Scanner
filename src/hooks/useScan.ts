@@ -60,6 +60,7 @@ export interface UseScanOptions {
  * Offline useful instead of making the table flicker every few seconds.
  */
 export function useScan({ onError }: UseScanOptions) {
+  const [securitySource, setSecuritySource] = useState<ScanResult | null>(null);
   const [rows, setRows] = useState<DeviceRow[]>([]);
   const [mode, setMode] = useState<ScanMode>("idle");
   const [stopping, setStopping] = useState(false);
@@ -128,6 +129,7 @@ export function useScan({ onError }: UseScanOptions) {
       // Claiming the slot before the first await means a second Scan while this
       // one is starting cannot interleave two sets of events.
       activeScanId.current = null;
+      setSecuritySource(null);
       clearQueue();
 
       if (!watch) {
@@ -188,6 +190,7 @@ export function useScan({ onError }: UseScanOptions) {
           setRows(settled);
         }
 
+        setSecuritySource(result);
         setMode("finished");
         setStopping(false);
         setSummary({
@@ -248,6 +251,7 @@ export function useScan({ onError }: UseScanOptions) {
     watchBaseline.current = null;
     watchOffline.current.clear();
     setRows([]);
+    setSecuritySource(null);
     setProgress(null);
     setStarted(null);
     setSummary(null);
@@ -256,6 +260,7 @@ export function useScan({ onError }: UseScanOptions) {
   }, [clearQueue]);
 
   return {
+    securitySource,
     rows,
     mode,
     scanning: mode === "scanning",

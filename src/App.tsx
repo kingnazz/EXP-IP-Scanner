@@ -1,4 +1,4 @@
-// The one screen.
+// Application composition.
 //
 // App composes and owns cross-cutting state -- which network, which devices
 // are selected, what is open -- and delegates everything else. Scan mechanics
@@ -7,6 +7,7 @@
 // anything that could be tested without a browser.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ShieldCheck } from "lucide-react";
 import { AboutDialog } from "./components/AboutDialog";
 import { ContextMenu } from "./components/ContextMenu";
 import { DeviceDrawer } from "./components/DeviceDrawer";
@@ -17,6 +18,8 @@ import { ResultsTable } from "./components/ResultsTable";
 import { ResultsToolbar } from "./components/ResultsToolbar";
 import { ScanBar } from "./components/ScanBar";
 import { SettingsDialog } from "./components/SettingsDialog";
+import { SecurityView } from "./components/SecurityView";
+import { useSecurity } from "./hooks/useSecurity";
 import { TopBar } from "./components/TopBar";
 import { useContextMenu } from "./hooks/useContextMenu";
 import { useHotkeys } from "./hooks/useHotkeys";
@@ -36,6 +39,7 @@ import {
 import { parsePorts, setServiceCatalog } from "./lib/format";
 import type { DeviceRow } from "./lib/live";
 import { loadRecentTargets, pushRecentTarget } from "./lib/prefs";
+import { webExposureScanOptions } from "./lib/security";
 import type { UpdateCheckResult } from "./lib/update";
 import {
   cellText,
@@ -89,6 +93,12 @@ export default function App() {
 
   const onScanError = useCallback((message: string) => toasts.error(message), [toasts]);
   const scan = useScan({ onError: onScanError });
+  const security = useSecurity(scan.securitySource);
+  const [view, setView] = useState<"scanner" | "security">("scanner");
+  const [securityFocusIp, setSecurityFocusIp] = useState<string | null>(null);
+  const [exposureViewRevision, setExposureViewRevision] = useState(0);
+  const assessments = useMemo(() => new Map(security.devices.map((d) => [d.device_ip, d])), [security.devices]);
+  const openSecurity = useCallback((ip: string) => { setSecurityFocusIp(ip); setView("security"); }, []);
   const menu = useContextMenu<DeviceRow>();
   // Deliberately outside the startup effect below: the window is usable, and a
   // scan can already be running, while this is still in flight.
@@ -293,6 +303,26 @@ export default function App() {
     setRecentTargets(pushRecentTarget(trimmed));
     void scan.run({ ...scanOptions, target: trimmed });
   }, [scan, scanOptions, target, targetError, triggerWatchNow, watchActive]);
+
+  const startWebExposure = useCallback(() => {
+    const trimmed = target.trim();
+    if (!trimmed || targetError || scan.scanning || watchActive || security.busy) return;
+    setSelected(new Set());
+    setFocusedIp(null);
+    setDrawerIp(null);
+    setPingResult(null);
+    setSecurityFocusIp(null);
+    setExposureViewRevision((revision) => revision + 1);
+    setQuery("");
+    setFilter("all");
+    setView("security");
+    setRecentTargets(pushRecentTarget(trimmed));
+    // Uses the entire target, independently of row selection/search. Settings
+    // remain unchanged; useScan/useSecurity own discovery, assessment and Stop.
+    void scan.run(
+      webExposureScanOptions({ ...scanOptions, target: trimmed }, defaultPorts),
+    );
+  }, [defaultPorts, scan, scanOptions, security.busy, target, targetError, watchActive]);
 
   const toggleWatch = useCallback(() => {
     if (watchActive) {
@@ -653,7 +683,41 @@ export default function App() {
         onCopy={(value, what) => void copyText(value, what)}
       />
 
-      <div className="flex min-h-0 flex-1">
+      <nav aria-label="Main navigation" className="flex items-center gap-2 border-b border-line bg-surface px-3 py-2">
+        <button className={`btn btn-sm ${view === "scanner" ? "btn-primary" : "btn-ghost"}`} aria-current={view === "scanner" ? "page" : undefined} onClick={() => setView("scanner")}>Scanner</button>
+        <button className={`btn btn-sm ${view === "security" ? "btn-primary" : "btn-ghost"}`} aria-current={view === "security" ? "page" : undefined} onClick={() => { setSecurityFocusIp(null); setView("security"); }}>Security</button>
+        {security.busy ? <span className="ml-2 min-w-0 flex-1 truncate text-xs text-ink-muted" role="status">{security.run?.mode ?? "Security assessment"} in progress…</span> : null}
+        <button
+          type="button"
+          className="btn btn-sm btn-secondary ml-auto"
+          disabled={!target.trim() || Boolean(targetError) || scan.scanning || watchActive || security.busy}
+          onClick={startWebExposure}
+          title={watchActive ? "Stop Watch Mode before starting a web exposure scan" : "Discover all addresses in the current target, then safely assess reachable web services. Includes common web ports and your selected services."}
+        >
+          <ShieldCheck size={13} aria-hidden />
+          Scan Web Exposure
+        </button>
+      </nav>
+
+      {view === "security" ? (
+        <SecurityView
+          key={`${securityFocusIp ?? "all"}:${exposureViewRevision}`}
+          source={scan.securitySource}
+          devices={security.devices}
+          run={security.run}
+          busy={security.busy}
+          error={security.error}
+          onStop={scan.scanning ? stopScan : security.cancel}
+          onStart={security.start}
+          onError={onScanError}
+          focusIp={securityFocusIp}
+          discovery={scan.scanning ? {
+            target: scan.started?.target ?? target.trim(),
+            done: scan.progress?.done ?? 0,
+            total: scan.progress?.total ?? scan.started?.total ?? addressCount,
+          } : null}
+        />
+      ) : <div className="flex min-h-0 flex-1">
         <main className="flex min-h-0 min-w-0 flex-1 flex-col">
           {showResults ? (
             <>
@@ -686,6 +750,8 @@ export default function App() {
               {rows.length > 0 ? (
                 <ResultsTable
                   rows={rows}
+                  assessments={assessments}
+                  onSecurity={openSecurity}
                   columns={columns}
                   columnWidths={columnWidths}
                   onColumnWidth={setColumnWidth}
@@ -723,6 +789,8 @@ export default function App() {
         {drawerRow ? (
           <DeviceDrawer
             row={drawerRow}
+            assessment={assessments.get(drawerRow.host.ip)}
+            onSecurity={() => openSecurity(drawerRow.host.ip)}
             network={selectedNetwork}
             onClose={() => setDrawerIp(null)}
             onAction={(action) => void runAction(action, drawerRow.host)}
@@ -731,7 +799,7 @@ export default function App() {
             watchActive={watchActive}
           />
         ) : null}
-      </div>
+      </div>}
 
       <ProgressStrip
         scanning={scan.scanning}

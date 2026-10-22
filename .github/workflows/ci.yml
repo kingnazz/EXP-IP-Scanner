@@ -58,13 +58,13 @@ jobs:
 
       - name: Format
         working-directory: src-tauri
-        run: cargo fmt --check
+        run: cargo fmt --all --check
       - name: Test
         working-directory: src-tauri
-        run: cargo test
+        run: cargo test --workspace
       - name: Clippy
         working-directory: src-tauri
-        run: cargo clippy --all-targets -- -D warnings
+        run: cargo clippy --workspace --all-targets -- -D warnings
 
       # The portable edition is a different binary: no updater plugin, a
       # different capability set, and the portable profile path compiled in. It
@@ -77,12 +77,12 @@ jobs:
         working-directory: src-tauri
         env:
           CARGO_TARGET_DIR: target-portable
-        run: cargo test --no-default-features --features portable
+        run: cargo test --workspace --no-default-features --features portable
       - name: Clippy the portable edition
         working-directory: src-tauri
         env:
           CARGO_TARGET_DIR: target-portable
-        run: cargo clippy --all-targets --no-default-features --features portable -- -D warnings
+        run: cargo clippy --workspace --all-targets --no-default-features --features portable -- -D warnings
 
       # Enabling both edition features would compile a binary that reports
       # itself portable while carrying the installer updater. Cargo.toml makes
@@ -130,6 +130,9 @@ jobs:
         run: npx --yes wait-on http://localhost:4173/ --timeout 60000
       - name: Verify the interface
         run: node scripts/verify-ui.mjs
+
+      - name: Verify Security assessment interface
+        run: node scripts/verify-security.mjs
 
       # The website is plain static files with no build step, so it only needs
       # a static server. It carries the version, the download logic and the

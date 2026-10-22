@@ -7,6 +7,10 @@ license = "MIT"
 edition = "2021"
 rust-version = "1.82"
 
+[workspace]
+members = ["security"]
+resolver = "2"
+
 [lib]
 # The `_lib` suffix avoids a name collision with the binary on Windows.
 name = "exp_ip_scanner_lib"
@@ -16,6 +20,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
+exp-security = { path = "security" }
 tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
 tauri-plugin-opener = "2"

@@ -448,7 +448,7 @@ function osHint(ttl: number | null): string | null {
  * device answering on a port the real scanner never asks about. */
 const DEFAULT_PORTS = [
   20, 21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 389, 443, 445, 515, 587, 631, 993, 995, 1433,
-  1723, 3306, 3389, 5060, 5432, 5900, 5985, 5986, 8000, 8080, 8443, 9100,
+  1723, 3306, 3389, 5000, 5001, 5060, 5432, 5900, 5985, 5986, 8000, 8080, 8443, 8888, 9100,
 ];
 
 const SERVICES: ServiceInfo[] = [
@@ -476,7 +476,8 @@ const SERVICES: ServiceInfo[] = [
   { port: 1723, name: "PPTP" },
   { port: 3306, name: "MySQL" },
   { port: 3389, name: "RDP" },
-  { port: 5000, name: "UPnP" },
+  { port: 5000, name: "HTTP / UPnP" },
+  { port: 5001, name: "HTTPS alt" },
   { port: 5060, name: "SIP" },
   { port: 5432, name: "PostgreSQL" },
   { port: 5900, name: "VNC" },
@@ -485,6 +486,7 @@ const SERVICES: ServiceInfo[] = [
   { port: 8000, name: "HTTP alt" },
   { port: 8080, name: "HTTP alt" },
   { port: 8443, name: "HTTPS alt" },
+  { port: 8888, name: "HTTP alt" },
   { port: 9100, name: "Print" },
 ];
 

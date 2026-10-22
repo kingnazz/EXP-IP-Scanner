@@ -6,6 +6,7 @@ mod oui;
 mod ports;
 mod runtime;
 mod scanner;
+mod security;
 
 use tauri::{Manager, WebviewWindowBuilder};
 
@@ -84,6 +85,8 @@ pub fn run() {
             commands::preview_scan,
             commands::scan_network,
             commands::cancel_scan,
+            security::assess_security,
+            security::cancel_security,
             commands::save_text,
             commands::open_web,
             commands::open_smb,
@@ -104,6 +107,7 @@ pub fn run() {
             // sweep going in a process that is on its way out.
             if matches!(event, tauri::RunEvent::ExitRequested { .. } | tauri::RunEvent::Exit) {
                 scanner::request_cancel();
+                security::reset();
             }
         });
 }

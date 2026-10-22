@@ -19,6 +19,7 @@ import type {
   ScanStarted,
   ServiceInfo,
 } from "../types";
+import type { AssessmentRun, SecurityEvent } from "../security-types";
 import { demo } from "./demo";
 import { fetchPublicIp, type PublicIpResult } from "./publicip";
 import { fetchLatestRelease, isNewerVersion, type UpdateCheckResult } from "./update";
@@ -114,6 +115,35 @@ export const api = {
     demo.cancelScan();
   },
 
+  async assessSecurity(source: ScanResult, assessmentId: number, deep: boolean, onDevice: (event: SecurityEvent) => void): Promise<AssessmentRun> {
+    if (!isTauri()) {
+      const { demoAssessment } = await import("./security-demo");
+      return demoAssessment(source, assessmentId, deep, onDevice);
+    }
+    const { listen } = await import("@tauri-apps/api/event");
+    const off = await listen<SecurityEvent>("security:device", (event) => onDevice(event.payload));
+    try {
+      return await invoke<AssessmentRun>("assess_security", { scanId: source.scan_id, assessmentId, deep, confirmed: deep });
+    } finally { off(); }
+  },
+
+  async cancelSecurity(assessmentId: number): Promise<void> {
+    if (isTauri()) await invoke<void>("cancel_security", { assessmentId });
+  },
+
+  async saveSecurityJson(filename: string, contents: string): Promise<boolean> {
+    if (isTauri()) {
+      const { save } = await import("@tauri-apps/plugin-dialog");
+      const path = await save({ defaultPath: filename, filters: [{ name: "Security report JSON", extensions: ["json"] }] });
+      if (!path) return false;
+      await invoke<void>("save_text", { path, contents });
+      return true;
+    }
+    const url = URL.createObjectURL(new Blob([contents], { type: "application/json" }));
+    const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url);
+    return true;
+  },
+
   async ping(ip: string): Promise<PingOutcome> {
     if (isTauri()) return invoke<PingOutcome>("ping_host", { ip });
     return demo.ping(ip);
@@ -122,13 +152,8 @@ export const api = {
   /**
    * This network's public IP address, or null if no service answered.
    *
-   * The only outbound request the application makes on its own, and the only
-   * one that does not go through a Rust command. It stays in the webview
-   * deliberately: `connect-src` in `tauri.conf.json` names the two hosts it may
-   * reach, which is a stronger and more auditable limit than a constant in
-   * Rust, and it keeps an HTTP client and a TLS stack out of the portable
-   * binary, which has neither and is 1.9 MB because of it. Nothing is sent, and
-   * the reply is validated as an address before it is shown.
+   * Public-IP lookup uses the webview's restricted connect-src. Local security
+   * requests use a separate bounded Rust service and never send scan data out.
    */
   async publicIp(): Promise<PublicIpResult | null> {
     if (isTauri()) return fetchPublicIp();
