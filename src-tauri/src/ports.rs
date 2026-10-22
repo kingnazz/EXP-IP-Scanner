@@ -27,9 +27,9 @@ pub const MAX_PORTS: usize = 1_024;
 /// seconds. Not a security sweep: every port here exists because knowing it is
 /// open tells a consultant what the device is or gives them a way in to
 /// administer it.
-pub const DEFAULT_PORTS: [u16; 32] = [
+pub const DEFAULT_PORTS: [u16; 34] = [
     20, 21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 389, 443, 445, 515, 587, 631, 993, 995, 1433,
-    1723, 3306, 3389, 5060, 5432, 5900, 5985, 5986, 8000, 8080, 8443, 9100,
+    1723, 3306, 3389, 5000, 5001, 5060, 5432, 5900, 5985, 5986, 8000, 8080, 8443, 9100,
 ];
 
 /// Validate, de-duplicate and sort a port list coming from the interface.
@@ -163,7 +163,8 @@ pub fn service_name(port: u16) -> Option<&'static str> {
         3128 => "Proxy",
         3306 => "MySQL",
         3389 => "RDP",
-        5000 => "UPnP",
+        5000 => "UPnP / DSM",
+        5001 => "DSM HTTPS",
         5060 | 5061 => "SIP",
         5222 => "XMPP",
         5353 => "mDNS",
@@ -245,13 +246,15 @@ mod tests {
             );
         }
         // And the ports that identify the device classes a consultant meets
-        // most: printers, domain controllers, databases, phones.
+        // most: printers, domain controllers, databases, phones, NAS devices.
         for (port, what) in [
             (9100u16, "raw printing"),
             (515, "line printer daemon"),
             (631, "IPP printing"),
             (389, "LDAP"),
             (1433, "SQL Server"),
+            (5000, "Synology DSM HTTP"),
+            (5001, "Synology DSM HTTPS"),
             (5060, "SIP"),
             (5985, "WinRM"),
         ] {
@@ -325,6 +328,8 @@ mod tests {
     fn known_services_resolve_and_unknown_ones_do_not() {
         assert_eq!(service_name(443), Some("HTTPS"));
         assert_eq!(service_name(3389), Some("RDP"));
+        assert_eq!(service_name(5000), Some("UPnP / DSM"));
+        assert_eq!(service_name(5001), Some("DSM HTTPS"));
         assert_eq!(service_name(5901), Some("VNC"));
         assert_eq!(service_name(5985), Some("WinRM"));
         assert_eq!(service_name(9100), Some("Print"));
