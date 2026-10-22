@@ -6,6 +6,7 @@ mod oui;
 mod ports;
 mod runtime;
 mod scanner;
+mod security;
 
 use tauri::{Manager, WebviewWindowBuilder};
 
@@ -96,6 +97,7 @@ pub fn run() {
             commands::open_site,
             commands::open_releases,
             commands::open_privacy,
+            security::security_assessment,
         ])
         .build(tauri::generate_context!())
         .expect("error while building EXP IP Scanner")
