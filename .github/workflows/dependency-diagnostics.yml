@@ -1,0 +1,27 @@
+name: Temporary Rust dependency diagnostics
+
+on:
+  push:
+    branches: ["feat/web-exposure-security"]
+    paths:
+      - .github/workflows/dependency-diagnostics.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Show vulnerable dependency parents
+        working-directory: src-tauri
+        shell: bash
+        run: |
+          set -euxo pipefail
+          cargo tree -i zip@4.6.1 || true
+          cargo tree -i rustls@0.23.45 || true
+          cargo tree -i rustls-webpki@0.103.15 || true
+          cargo tree -i webpki-root-certs@1.0.9 || true
+          cargo tree -p tauri-plugin-updater --depth 3 || true
