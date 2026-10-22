@@ -213,7 +213,10 @@ fn parse_http_output(raw: &str) -> Option<(u16, Vec<(String, String)>, String)> 
 
     for (index, block) in parts.iter().enumerate() {
         let mut lines = block.lines();
-        let first = lines.next()?.trim();
+        let Some(first) = lines.next() else {
+            continue;
+        };
+        let first = first.trim();
         if !first.starts_with("HTTP/") {
             if last_header_index.is_some() {
                 break;
@@ -345,11 +348,7 @@ fn build_findings(services: &[WebServiceFingerprint]) -> Vec<SecurityFinding> {
     let mut synology_ports = Vec::new();
 
     for service in services {
-        if service
-            .product
-            .as_deref()
-            .is_some_and(|product| product.contains("Synology"))
-        {
+        if service.product.as_deref() == Some("Synology DSM") {
             synology_ports.push(service.port);
         }
 
