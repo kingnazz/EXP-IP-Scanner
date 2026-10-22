@@ -91,6 +91,9 @@ All HTTP tests use loopback fixtures; no test relies on a public target.
   filtering, selection, actions, export, Watch Mode, layout and responsiveness).
 - Security browser flow: passed at 1180×780 and 860×560.
 - Public version consistency: passed at 1.3.0.
+- Dependency audit: zero npm vulnerabilities after compatible development-tool
+  patches (Vite 8.3.5, Vitest 5.0.5 and source-map-js 1.2.2). Existing vulnerable
+  locked versions initially blocked PR CI; no application version bump.
 
 ## 8. Build and packaging
 
@@ -146,6 +149,7 @@ client-scoped; updater verification remains unchanged.
 - `docs/SECURITY_ANALYSIS.md`
 - `docs/SECURITY_ARCHITECTURE_AUDIT.md`
 - `docs/SECURITY_IMPLEMENTATION_REPORT.md`
+- `package-lock.json`
 - `scripts/verify-security.mjs`
 - `src-tauri/Cargo.lock`
 - `src-tauri/Cargo.toml`
