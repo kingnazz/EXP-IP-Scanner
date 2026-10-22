@@ -1,5 +1,18 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
-import { Check, Columns3, Copy, Download, Info, List, Search, Trash2, X } from "lucide-react";
+import {
+  Check,
+  Columns3,
+  Copy,
+  Download,
+  Info,
+  List,
+  Loader2,
+  Search,
+  ShieldAlert,
+  ShieldCheck,
+  Trash2,
+  X,
+} from "lucide-react";
 import { FILTER_MODES, TOGGLEABLE_COLUMNS, type ColumnKey, type FilterMode } from "../lib/table";
 import { formatCount } from "../lib/format";
 
@@ -28,6 +41,16 @@ export const ResultsToolbar = forwardRef<
     onCopy: () => void;
     onCopyIps: () => void;
     onClear: () => void;
+    securityEligibleCount: number;
+    securityCheckedCount: number;
+    securityCriticalCount: number;
+    securityAttentionCount: number;
+    securityScanning: boolean;
+    securityProgress: { done: number; total: number };
+    securityOnly: boolean;
+    securityScanDisabled: boolean;
+    onSecurityScan: () => void;
+    onSecurityOnlyChange: (next: boolean) => void;
   }
 >(function ResultsToolbar(
   {
@@ -45,6 +68,16 @@ export const ResultsToolbar = forwardRef<
     onCopy,
     onCopyIps,
     onClear,
+    securityEligibleCount,
+    securityCheckedCount,
+    securityCriticalCount,
+    securityAttentionCount,
+    securityScanning,
+    securityProgress,
+    securityOnly,
+    securityScanDisabled,
+    onSecurityScan,
+    onSecurityOnlyChange,
   },
   ref,
 ) {
@@ -68,10 +101,17 @@ export const ResultsToolbar = forwardRef<
   }, [columnsOpen]);
 
   const hasRows = rowCount > 0;
+  const flaggedCount = securityCriticalCount + securityAttentionCount;
   const copyLabel =
     selectedCount > 0
       ? `Copy ${formatCount(selectedCount)} selected ${selectedCount === 1 ? "row" : "rows"}`
       : "Copy every row shown, tab separated for pasting into a ticket or spreadsheet";
+  const securityTitle = securityScanning
+    ? `Checking ${securityProgress.done} of ${securityProgress.total} web devices`
+    : securityEligibleCount > 0
+      ? `Passively check ${securityEligibleCount} ${securityEligibleCount === 1 ? "device" : "devices"} with discovered web services`
+      : "No supported HTTP/HTTPS services were found in this scan";
+  const issuesTitle = `${securityCriticalCount} critical · ${securityAttentionCount} need review`;
 
   return (
     <div className="results-toolbar flex h-9 shrink-0 items-center gap-2 border-b border-line bg-surface-raised px-3">
@@ -124,6 +164,47 @@ export const ResultsToolbar = forwardRef<
           </button>
         ))}
       </div>
+
+      <button
+        type="button"
+        className="btn btn-sm btn-secondary shrink-0"
+        disabled={securityScanDisabled}
+        onClick={onSecurityScan}
+        title={securityTitle}
+      >
+        {securityScanning ? (
+          <Loader2 size={13} className="animate-spin" aria-hidden />
+        ) : (
+          <ShieldCheck size={13} aria-hidden />
+        )}
+        <span className="toolbar-text">Security</span>
+        {securityScanning ? (
+          <span className="count-badge">
+            {securityProgress.done}/{securityProgress.total}
+          </span>
+        ) : securityCheckedCount > 0 ? (
+          <span className="count-badge">{formatCount(securityCheckedCount)}</span>
+        ) : null}
+      </button>
+
+      {securityCheckedCount > 0 ? (
+        <button
+          type="button"
+          className={`btn btn-sm shrink-0 ${securityOnly ? "btn-primary" : "btn-secondary"}`}
+          aria-pressed={securityOnly}
+          onClick={() => onSecurityOnlyChange(!securityOnly)}
+          title={issuesTitle}
+          disabled={flaggedCount === 0}
+        >
+          <ShieldAlert
+            size={13}
+            className={securityCriticalCount > 0 ? "text-danger" : "text-warn"}
+            aria-hidden
+          />
+          <span className="toolbar-text">Issues</span>
+          <span className="count-badge">{formatCount(flaggedCount)}</span>
+        </button>
+      ) : null}
 
       <span
         className="results-interaction-hint shrink-0 items-center gap-1.5 text-[11px] text-ink-muted"
