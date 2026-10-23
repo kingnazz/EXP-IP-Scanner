@@ -13,8 +13,6 @@ use chrono::Utc;
 use serde::Serialize;
 use tokio::process::Command;
 
-mod gitlab;
-
 const MAX_BODY_CHARS: usize = 64 * 1024;
 const MAX_URL_CHARS: usize = 2_048;
 const WEB_PORTS: [u16; 9] = [80, 443, 5000, 5001, 8000, 8008, 8080, 8443, 8888];
@@ -245,9 +243,8 @@ async fn fingerprint_url(
         .and_then(extract_php_version)
         .or_else(|| server.as_deref().and_then(extract_php_version))
         .or_else(|| extract_php_version(&body));
-    let product = gitlab::product_label(&headers, &body)
-        .or_else(|| detect_product(port, server.as_deref(), powered_by.as_deref(), &body))
-        .or(fallback_product);
+    let product =
+        detect_product(port, server.as_deref(), powered_by.as_deref(), &body).or(fallback_product);
     let title = extract_title(&body);
 
     WebServiceFingerprint {
@@ -498,27 +495,12 @@ fn parse_version(version: &str) -> Option<(u16, u16, u16)> {
 fn build_findings(services: &[WebServiceFingerprint]) -> Vec<SecurityFinding> {
     let mut findings = Vec::new();
     let mut seen_versions = HashSet::new();
-    let mut seen_gitlab = HashSet::new();
-    let mut gitlab_version_disclosed = false;
     let mut php_indicator_without_version = false;
     let mut synology_ports = Vec::new();
 
     for service in services {
         if service.product.as_deref() == Some("Synology DSM") {
             synology_ports.push(service.port);
-        }
-
-        if let Some(product) = service
-            .product
-            .as_deref()
-            .filter(|product| gitlab::is_gitlab_product(product))
-        {
-            if product != "GitLab" {
-                gitlab_version_disclosed = true;
-            }
-            if seen_gitlab.insert(product.to_string()) {
-                findings.push(gitlab::finding(product, service));
-            }
         }
 
         if let Some(version) = service.php_version.as_deref() {
@@ -535,10 +517,6 @@ fn build_findings(services: &[WebServiceFingerprint]) -> Vec<SecurityFinding> {
         {
             php_indicator_without_version = true;
         }
-    }
-
-    if gitlab_version_disclosed {
-        findings.retain(|finding| finding.id != "gitlab-rce-version-hidden");
     }
 
     if php_indicator_without_version && seen_versions.is_empty() {
@@ -641,13 +619,13 @@ fn assessment_summary(
     {
         return (
             "critical".into(),
-            "Critical web exposure indicator found. Review the affected product/version and patch immediately.".into(),
+            "Critical PHP2Shell exposure indicator found. Review the disclosed PHP version and patch path immediately.".into(),
         );
     }
     if findings.iter().any(|finding| finding.severity == "high") {
         return (
             "attention".into(),
-            "A detected web runtime or product needs patch verification. The passive check could not prove a safe patch level.".into(),
+            "A PHP runtime may need patch verification. The passive check could not prove a safe patch level.".into(),
         );
     }
     if services.is_empty() || services.iter().all(|service| service.status.is_none()) {
@@ -656,15 +634,16 @@ fn assessment_summary(
             "The passive HTTP check could not read a website response.".into(),
         );
     }
-    if findings.iter().any(|finding| !finding.cves.is_empty()) {
+    if services.iter().any(|service| service.php_version.is_some()) {
         return (
             "clear".into(),
-            "No affected version was identified in the disclosed versions covered by the current PHP and GitLab security rules.".into(),
+            "No vulnerable upstream PHP 8.2-8.5 version was disclosed by the checked web service."
+                .into(),
         );
     }
     (
         "clear".into(),
-        "No affected PHP or GitLab version was identified in the passive web fingerprint. Hidden or backend components can still require direct vendor/version verification.".into(),
+        "No PHP runtime was identified in the passive web fingerprint. Hidden or embedded PHP can still require direct vendor/version verification.".into(),
     )
 }
 
