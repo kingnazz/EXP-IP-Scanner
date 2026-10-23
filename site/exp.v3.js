@@ -19,7 +19,7 @@
 
   var REPO = "nazar-exp/EXP-IP-Scanner";
   var RELEASES = "https://github.com/" + REPO + "/releases";
-  var SCREENSHOT_VERSION = "1.4.3";
+  var SCREENSHOT_VERSION = "1.4.4";
 
   // ----------------------------------------------------- screenshot switcher
 
