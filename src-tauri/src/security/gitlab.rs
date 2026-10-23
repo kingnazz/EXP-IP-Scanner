@@ -25,7 +25,10 @@ pub(super) fn is_gitlab_product(product: &str) -> bool {
 }
 
 pub(super) fn finding(product: &str, service: &WebServiceFingerprint) -> SecurityFinding {
-    let version = product.strip_prefix("GitLab ").map(str::trim).filter(|value| !value.is_empty());
+    let version = product
+        .strip_prefix("GitLab ")
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
     let endpoint = format!("{} service on port {}", service.scheme, service.port);
 
     match version.and_then(parse_version) {
@@ -125,7 +128,8 @@ fn value_after_marker(original: &str, lower: &str, marker: &str) -> Option<Strin
     let bytes = original.as_bytes();
     let mut index = start;
 
-    while index < bytes.len() && matches!(bytes[index], b' ' | b'\t' | b':' | b'=' | b'\"' | b'\'') {
+    while index < bytes.len() && matches!(bytes[index], b' ' | b'\t' | b':' | b'=' | b'\"' | b'\'')
+    {
         index += 1;
     }
 
@@ -191,7 +195,10 @@ mod tests {
     #[test]
     fn detects_gitlab_from_response_header() {
         let result = product_label(
-            &headers(&[("x-gitlab-meta", "{\"correlation_id\":\"abc\",\"version\":\"1\"}")]),
+            &headers(&[(
+                "x-gitlab-meta",
+                "{\"correlation_id\":\"abc\",\"version\":\"1\"}",
+            )]),
             "<html></html>",
         );
         assert_eq!(result.as_deref(), Some("GitLab"));
@@ -200,8 +207,11 @@ mod tests {
     #[test]
     fn detects_gitlab_login_page_without_false_positive_article_text() {
         assert_eq!(
-            product_label(&Vec::new(), "<title>Sign in · GitLab</title><a href=\"/users/sign_in\">Sign in</a>")
-                .as_deref(),
+            product_label(
+                &Vec::new(),
+                "<title>Sign in · GitLab</title><a href=\"/users/sign_in\">Sign in</a>"
+            )
+            .as_deref(),
             Some("GitLab")
         );
         assert_eq!(

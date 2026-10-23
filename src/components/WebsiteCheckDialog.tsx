@@ -63,12 +63,12 @@ export function WebsiteCheckDialog({ onClose }: { onClose: () => void }) {
   const StatusIcon = visual?.icon ?? ShieldCheck;
 
   return (
-    <Modal title="Website PHP Security Check" onClose={onClose} width="620px">
+    <Modal title="Website Security Check" onClose={onClose} width="620px">
       <div className="mb-4 rounded-lg border border-line bg-surface-raised p-3">
         <div className="mb-2 flex items-center gap-2">
           <Globe2 size={15} className="text-accent-text" aria-hidden />
           <div>
-            <p className="text-[12.5px] font-medium">Check a website for PHP2Shell exposure indicators</p>
+            <p className="text-[12.5px] font-medium">Check a website for PHP2Shell and critical web-product CVEs</p>
             <p className="text-[11.5px] text-ink-muted">
               Passive HTTP/HTTPS fingerprint only. No exploit payloads are sent.
             </p>
@@ -195,7 +195,7 @@ export function WebsiteCheckDialog({ onClose }: { onClose: () => void }) {
           ) : null}
 
           <p className="text-[10.5px] leading-relaxed text-ink-muted">
-            A clear passive result means the checked page did not expose an affected PHP version. It does not prove that hidden or backend PHP is patched.
+            A clear passive result means the checked page did not expose a version affected by the security rules EXP IP Scanner currently knows. Hidden or backend components may still require direct verification.
           </p>
         </div>
       ) : null}
