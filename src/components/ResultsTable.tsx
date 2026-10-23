@@ -10,6 +10,7 @@ import {
 import { useVirtualRows } from "../hooks/useVirtualRows";
 import { formatLatency, isActionablePort, serviceName } from "../lib/format";
 import { isResponding, rowName, type DeviceRow } from "../lib/live";
+import { phpServiceChip } from "../lib/phpService";
 import { COLUMNS, type ColumnDef, type ColumnKey, type SortDir } from "../lib/table";
 import type { ColumnWidths, Density } from "../lib/prefs";
 import type { SecurityAssessment } from "../types";
@@ -30,6 +31,7 @@ export interface ResultsTableProps {
   selected: ReadonlySet<string>;
   focusedIp: string | null;
   securityStatuses: Readonly<Record<string, SecurityAssessment["status"]>>;
+  securityAssessments: Readonly<Record<string, SecurityAssessment>>;
   onRowClick: (row: DeviceRow, index: number, event: React.MouseEvent) => void;
   onRowActivate: (row: DeviceRow) => void;
   onRowContextMenu: (event: React.MouseEvent, row: DeviceRow, column: ColumnKey | null) => void;
@@ -61,6 +63,7 @@ export function ResultsTable({
   selected,
   focusedIp,
   securityStatuses,
+  securityAssessments,
   onRowClick,
   onRowActivate,
   onRowContextMenu,
@@ -152,6 +155,7 @@ export function ResultsTable({
               selected={selected.has(row.host.ip)}
               focused={focusedIp === row.host.ip}
               securityStatus={securityStatuses[row.host.ip]}
+              securityAssessment={securityAssessments[row.host.ip]}
               onClick={onRowClick}
               onActivate={onRowActivate}
               onContextMenu={onRowContextMenu}
@@ -260,6 +264,7 @@ interface RowProps {
   selected: boolean;
   focused: boolean;
   securityStatus?: SecurityAssessment["status"];
+  securityAssessment?: SecurityAssessment;
   onClick: (row: DeviceRow, index: number, event: React.MouseEvent) => void;
   onActivate: (row: DeviceRow) => void;
   onContextMenu: (event: React.MouseEvent, row: DeviceRow, column: ColumnKey | null) => void;
@@ -281,6 +286,7 @@ const Row = memo(
     selected,
     focused,
     securityStatus,
+    securityAssessment,
     onClick,
     onActivate,
     onContextMenu,
@@ -304,7 +310,13 @@ const Row = memo(
         }
       >
         {columns.map((column) => (
-          <Cell key={column.key} row={row} column={column} securityStatus={securityStatus} />
+          <Cell
+            key={column.key}
+            row={row}
+            column={column}
+            securityStatus={securityStatus}
+            securityAssessment={securityAssessment}
+          />
         ))}
       </tr>
     );
@@ -313,6 +325,7 @@ const Row = memo(
     prev.selected === next.selected &&
     prev.focused === next.focused &&
     prev.securityStatus === next.securityStatus &&
+    prev.securityAssessment === next.securityAssessment &&
     prev.index === next.index &&
     prev.columns === next.columns &&
     prev.row.pending === next.row.pending &&
@@ -354,10 +367,12 @@ function Cell({
   row,
   column,
   securityStatus,
+  securityAssessment,
 }: {
   row: DeviceRow;
   column: ColumnDef;
   securityStatus?: SecurityAssessment["status"];
+  securityAssessment?: SecurityAssessment;
 }) {
   const align = column.align === "right" ? { textAlign: "right" as const } : undefined;
 
@@ -455,7 +470,11 @@ function Cell({
     case "ports":
       return (
         <td style={align}>
-          <ServiceList ports={row.host.open_ports} pending={row.pending} />
+          <ServiceList
+            ports={row.host.open_ports}
+            pending={row.pending}
+            assessment={securityAssessment}
+          />
         </td>
       );
   }
@@ -558,12 +577,12 @@ function StatusDot({
 }
 
 /**
- * The Open Ports cell.
+ * The Services cell.
  *
- * Every port is shown with its service word, because `445 SMB` tells a
- * consultant something `445` does not. The ports that lead to an action are
- * tinted, which is what makes a server, a printer and a switch
- * distinguishable while scrolling a full table.
+ * Open ports keep their service word (`445 SMB`) and the explicit Security pass
+ * can enrich the same row with detected application runtimes such as PHP. PHP
+ * is never stored as a fake port: the chip is derived from the assessment and
+ * clearly labelled as a detected technology.
  */
 /**
  * How many service chips one cell shows before the rest are summarised.
@@ -572,21 +591,32 @@ function StatusDot({
  * more than fits. Silently clipping them at the cell edge would leave a
  * consultant unsure whether they were seeing everything, so the overflow is
  * counted explicitly and the full list is one double-click away in the details
- * panel.
+ * panel. A detected PHP chip is kept visible by reserving one slot for it.
  */
 const MAX_CHIPS = 6;
 
-function ServiceList({ ports, pending }: { ports: number[]; pending: boolean }) {
-  if (ports.length === 0) {
+function ServiceList({
+  ports,
+  pending,
+  assessment,
+}: {
+  ports: number[];
+  pending: boolean;
+  assessment?: SecurityAssessment;
+}) {
+  const phpChip = phpServiceChip(assessment);
+
+  if (ports.length === 0 && !phpChip) {
     return pending ? (
       <span className="no-value italic">scanning…</span>
     ) : (
-      <NoValue title="No open ports were found among the ports scanned" />
+      <NoValue title="No open ports or detected web runtimes were found" />
     );
   }
 
-  const shown = ports.slice(0, MAX_CHIPS);
-  const hidden = ports.slice(MAX_CHIPS);
+  const portSlots = phpChip ? Math.max(0, MAX_CHIPS - 1) : MAX_CHIPS;
+  const shown = ports.slice(0, portSlots);
+  const hidden = ports.slice(portSlots);
 
   return (
     <span className="flex items-center gap-1 overflow-hidden">
@@ -603,6 +633,15 @@ function ServiceList({ ports, pending }: { ports: number[]; pending: boolean }) 
           </span>
         );
       })}
+      {phpChip ? (
+        <span
+          className="service-chip"
+          title={`${phpChip.title} This is a detected runtime, not an open port.`}
+          aria-label={phpChip.label}
+        >
+          {phpChip.label}
+        </span>
+      ) : null}
       {hidden.length > 0 ? (
         <span
           className="service-chip"
