@@ -4,9 +4,9 @@ import { isTauri } from "./api";
 /**
  * Run the hostname-aware passive website assessment.
  *
- * Kept separate from the network-device API for this feature pass because a
- * website target is not a discovered HostResult. The native command preserves
- * the hostname in the URL so TLS SNI and HTTP virtual-host routing stay correct.
+ * Kept separate from the network-device API because a website target is not a
+ * discovered HostResult. The native command preserves the hostname in the URL
+ * so TLS SNI and HTTP virtual-host routing stay correct.
  */
 export async function websiteSecurityAssessment(target: string): Promise<SecurityAssessment> {
   if (!isTauri()) {
@@ -21,5 +21,5 @@ export async function websiteSecurityAssessment(target: string): Promise<Securit
   }
 
   const { invoke } = await import("@tauri-apps/api/core");
-  return invoke<SecurityAssessment>("website_security_assessment", { target });
+  return invoke<SecurityAssessment>("website_security_assessment_v141", { target });
 }
