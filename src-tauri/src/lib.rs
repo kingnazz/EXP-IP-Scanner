@@ -10,6 +10,7 @@ mod runtime;
 mod scanner;
 mod security;
 mod security_v141;
+mod synology_security;
 
 use tauri::{Manager, WebviewWindowBuilder};
 
