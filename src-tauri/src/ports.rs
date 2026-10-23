@@ -27,8 +27,13 @@ pub const MAX_PORTS: usize = 1_024;
 /// seconds. Not a security sweep: every port here exists because knowing it is
 /// open tells a consultant what the device is or gives them a way in to
 /// administer it.
-pub const DEFAULT_PORTS: [u16; 34] = [
-    20, 21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 389, 443, 445, 515, 587, 631, 993, 995, 1433,
+///
+/// TCP 53 is intentionally not in the default set. Some gateways transparently
+/// proxy or intercept DNS and will accept a TCP connection for every address in
+/// the subnet, which makes every host look like it is running a service. DNS is
+/// still available in the service catalog and can be scanned explicitly.
+pub const DEFAULT_PORTS: [u16; 33] = [
+    20, 21, 22, 23, 25, 80, 110, 135, 139, 143, 389, 443, 445, 515, 587, 631, 993, 995, 1433,
     1723, 3306, 3389, 5000, 5001, 5060, 5432, 5900, 5985, 5986, 8000, 8080, 8443, 9100,
 ];
 
@@ -236,6 +241,18 @@ mod tests {
     }
 
     #[test]
+    fn dns_is_available_but_not_scanned_by_default() {
+        assert!(
+            !DEFAULT_PORTS.contains(&53),
+            "DNS must stay out of default scans because gateways can proxy it for every address"
+        );
+        assert_eq!(parse_spec("53").unwrap(), vec![53]);
+        assert_eq!(sanitize(&[53]).unwrap(), vec![53]);
+        assert_eq!(service_name(53), Some("DNS"));
+        assert!(catalog().iter().any(|(port, name)| *port == 53 && *name == "DNS"));
+    }
+
+    #[test]
     fn the_default_set_covers_the_services_the_actions_depend_on() {
         // Every right-click action is gated on one of these being open, so a
         // port dropped from the defaults silently disables an action.
@@ -326,6 +343,7 @@ mod tests {
 
     #[test]
     fn known_services_resolve_and_unknown_ones_do_not() {
+        assert_eq!(service_name(53), Some("DNS"));
         assert_eq!(service_name(443), Some("HTTPS"));
         assert_eq!(service_name(3389), Some("RDP"));
         assert_eq!(service_name(5000), Some("UPnP / DSM"));
@@ -343,6 +361,8 @@ mod tests {
         assert!(catalog.len() > 60, "{} entries", catalog.len());
         assert!(catalog.iter().all(|(p, _)| service_name(*p).is_some()));
         assert!(!catalog.iter().any(|(p, _)| *p == 64999));
+        let dns = catalog.iter().find(|(p, _)| *p == 53).unwrap();
+        assert_eq!(dns.1, "DNS");
         let https = catalog.iter().find(|(p, _)| *p == 443).unwrap();
         assert_eq!(https.1, "HTTPS");
         // Sorted, so the settings list reads in port order.
