@@ -127,7 +127,7 @@ export const api = {
    */
   async securityAssessment(ip: string, openPorts: number[]): Promise<SecurityAssessment> {
     if (isTauri()) {
-      return invoke<SecurityAssessment>("security_assessment", { ip, openPorts });
+      return invoke<SecurityAssessment>("security_assessment_v141", { ip, openPorts });
     }
     return {
       target: ip,

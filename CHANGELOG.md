@@ -6,6 +6,24 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.4.1
+
+### Added
+
+- Passive Synology DSM assessment checks disclosed DSM builds against **Synology-SA-26:13** for **CVE-2026-13684** and **CVE-2026-13639**.
+- Synology-specific PHP2Shell package verification checks the published Package Center fix levels for PHP 7.4 through 8.4 when enough package revision detail is exposed.
+- Confirmed Synology systems with a hidden or incomplete DSM build are marked **Needs Review** instead of being labeled vulnerable without enough evidence.
+
+### Changed
+
+- The existing Security pass now enriches Synology NAS results with DSM and Package Center patch guidance while keeping the 1.4.0 PHP2Shell engine unchanged.
+- Device security copy now reflects PHP, Synology DSM, and Synology PHP package checks.
+
+### Notes
+
+- Synology checks remain passive. EXP IP Scanner sends ordinary HTTP/HTTPS requests only and does not attempt authentication or exploitation.
+- A Critical Synology result requires a disclosed affected build or package version; hidden patch levels remain Needs Review.
+
 ## 1.4.0
 
 ### Added
