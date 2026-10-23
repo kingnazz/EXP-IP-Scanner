@@ -1,4 +1,4 @@
-use crate::{security, synology_security, synology_version};
+use crate::security;
 use security::SecurityAssessment;
 
 #[tauri::command]
@@ -6,19 +6,12 @@ pub async fn security_assessment_v141(
     ip: String,
     open_ports: Vec<u16>,
 ) -> Result<SecurityAssessment, String> {
-    let mut assessment = security::security_assessment(ip, open_ports).await?;
-    synology_security::enrich_network(&mut assessment).await;
-    synology_version::enrich_network(&mut assessment).await;
-    Ok(assessment)
+    security::security_assessment(ip, open_ports).await
 }
 
 #[tauri::command]
 pub async fn website_security_assessment_v141(
     target: String,
 ) -> Result<SecurityAssessment, String> {
-    let original_target = target.clone();
-    let mut assessment = security::website_security_assessment(target).await?;
-    synology_security::enrich_website(&mut assessment, &original_target).await;
-    synology_version::enrich_website(&mut assessment, &original_target).await;
-    Ok(assessment)
+    security::website_security_assessment(target).await
 }
