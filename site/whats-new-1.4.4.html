@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>What’s new in EXP IP Scanner 1.4.4</title>
+    <meta name="description" content="EXP IP Scanner 1.4.4 removes TCP 53 from default scans to avoid false DNS service results on networks with transparent DNS proxying." />
+    <link rel="canonical" href="https://expipscanner.com/whats-new-1.4.4.html" />
+    <link rel="icon" href="assets/favicon.png" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'none'; connect-src 'self'; base-uri 'none'; form-action 'none'" />
+    <link rel="stylesheet" href="exp.v5.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap bar">
+        <a class="brand" href="./" aria-label="EXP IP Scanner home"><img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner" width="1874" height="347" /></a>
+        <nav aria-label="Site"><a href="./#features">Features</a><a href="./#security">Security</a><a href="./#screenshots">Screenshots</a><a href="releases.html">Changelog</a><a href="privacy.html">Privacy</a><a class="header-cta" href="./#download">Download</a></nav>
+      </div>
+    </header>
+    <main id="main">
+      <section>
+        <div class="wrap whats-new">
+          <p class="kicker">EXP IP Scanner 1.4.4</p>
+          <h1>Cleaner default scans on networks that intercept DNS.</h1>
+          <p class="lede">Version 1.4.4 removes TCP port 53 from the default service sweep. Some gateways transparently proxy or intercept DNS and accept a TCP connection for every address in the subnet, which can make unrelated devices look like they are running DNS.</p>
+          <h2>DNS is no longer probed by default</h2>
+          <p>The normal scan now checks 33 consultant-focused TCP ports without port 53, preventing gateway-level DNS behavior from creating misleading DNS service chips across the results table.</p>
+          <h2>Custom DNS scans still work</h2>
+          <p>DNS remains in the service catalog. If you explicitly include TCP 53 in a custom port list, EXP IP Scanner will scan it and identify it normally.</p>
+          <h2>No other default services were removed</h2>
+          <p>RDP, SMB, SSH, web management, printers, databases, Synology DSM, WinRM, SIP, and the other existing consultant-focused defaults remain unchanged.</p>
+          <h2>Why this is a patch release</h2>
+          <p>This is a targeted accuracy fix. It changes the default port selection only and does not alter vulnerability checks, device actions, update behavior, or stored scan data.</p>
+          <div class="cta-row"><a class="btn btn-primary" href="./#download">Download 1.4.4</a><a class="btn btn-secondary" href="releases.html">All releases</a></div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer"><div class="wrap"><div class="product-footer"><div class="product-footer-brand"><img src="assets/exp-ip-scanner-logo-light.svg" alt="EXP IP Scanner" width="1874" height="347" /><p>Fast network discovery and focused passive PHP vulnerability checks for consultants.</p></div><nav aria-label="Footer"><a href="./#security">Security</a><a href="./#download">Download</a><a href="releases.html">Changelog</a><a href="privacy.html">Privacy</a><a href="https://github.com/nazar-exp/EXP-IP-Scanner">GitHub</a></nav></div><div class="footer-bottom"><span>EXP IP Scanner · MIT licensed</span><span>Built by EXP Technical</span></div></div></footer>
+  </body>
+</html>

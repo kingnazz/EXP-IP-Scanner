@@ -6,6 +6,18 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.4.4
+
+### Fixed
+
+- Removed TCP port **53 (DNS)** from the default service scan so gateways that transparently proxy or intercept DNS do not make every address appear to expose DNS.
+- Kept TCP 53 available in the service catalog and in explicit custom port scans, so intentional DNS checks continue to work normally.
+
+### Notes
+
+- The default consultant service set now contains 33 TCP ports.
+- No other default services, device actions, PHP2Shell checks, or updater behavior changed in this patch.
+
 ## 1.4.3
 
 ### Added
