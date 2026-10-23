@@ -437,7 +437,7 @@ fn numeric_version_after(value: &str, start: usize) -> Option<String> {
         .take_while(|ch| ch.is_ascii_digit() || matches!(ch, '.' | '-'))
         .take(40)
         .collect();
-    let candidate = candidate.trim_end_matches(|ch| ch == '.' || ch == '-');
+    let candidate = candidate.trim_end_matches(['.', '-']);
     (!candidate.is_empty()).then(|| candidate.to_string())
 }
 
