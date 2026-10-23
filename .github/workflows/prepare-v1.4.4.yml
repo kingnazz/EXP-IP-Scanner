@@ -31,6 +31,7 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
+          import textwrap
 
           version = "1.4.4"
           notes_name = f"whats-new-{version}.html"
@@ -79,10 +80,7 @@ jobs:
             </body>
           </html>
           '''
-          # Remove the indentation introduced by the workflow block while
-          # keeping the page formatted like the existing release notes.
-          import textwrap
-          Path("site") .joinpath(notes_name).write_text(textwrap.dedent(notes), encoding="utf-8")
+          Path("site").joinpath(notes_name).write_text(textwrap.dedent(notes), encoding="utf-8")
 
           releases_path = Path("site/releases.html")
           releases = releases_path.read_text(encoding="utf-8")
@@ -97,34 +95,34 @@ jobs:
                 <a href="https://github.com/nazar-exp/EXP-IP-Scanner/releases/tag/v1.4.4">Downloads</a>
               </div>
             </article>
-'''
+          '''
           anchor = '          <div class="release-list">\n'
           if 'whats-new-1.4.4.html' not in releases:
               if anchor not in releases:
                   raise SystemExit("release-list anchor not found")
-              releases = releases.replace(anchor, anchor + card, 1)
+              releases = releases.replace(anchor, anchor + textwrap.dedent(card), 1)
               releases_path.write_text(releases, encoding="utf-8")
 
           changelog_path = Path("CHANGELOG.md")
           changelog = changelog_path.read_text(encoding="utf-8")
           section = '''## 1.4.4
 
-### Fixed
+          ### Fixed
 
-- Removed TCP port **53 (DNS)** from the default service scan so gateways that transparently proxy or intercept DNS do not make every address appear to expose DNS.
-- Kept TCP 53 available in the service catalog and in explicit custom port scans, so intentional DNS checks continue to work normally.
+          - Removed TCP port **53 (DNS)** from the default service scan so gateways that transparently proxy or intercept DNS do not make every address appear to expose DNS.
+          - Kept TCP 53 available in the service catalog and in explicit custom port scans, so intentional DNS checks continue to work normally.
 
-### Notes
+          ### Notes
 
-- The default consultant service set now contains 33 TCP ports.
-- No other default services, device actions, PHP2Shell checks, or updater behavior changed in this patch.
+          - The default consultant service set now contains 33 TCP ports.
+          - No other default services, device actions, PHP2Shell checks, or updater behavior changed in this patch.
 
-'''
+          '''
           if "## 1.4.4" not in changelog:
               anchor = "## 1.4.3\n"
               if anchor not in changelog:
                   raise SystemExit("1.4.3 changelog anchor not found")
-              changelog = changelog.replace(anchor, section + anchor, 1)
+              changelog = changelog.replace(anchor, textwrap.dedent(section) + anchor, 1)
               changelog_path.write_text(changelog, encoding="utf-8")
 
       - name: Verify release metadata
