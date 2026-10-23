@@ -26,21 +26,20 @@ struct DsmDiscovery {
 
 pub(crate) async fn enrich_network(assessment: &mut SecurityAssessment) {
     let target = assessment.target.clone();
+    let services: Vec<(u16, String)> = assessment
+        .web_services
+        .iter()
+        .filter(|service| confirmed_synology(service))
+        .map(|service| (service.port, service.scheme.clone()))
+        .collect();
 
-    for service in &mut assessment.web_services {
-        if !confirmed_synology(service) {
-            continue;
-        }
-
-        let url = format!(
-            "{}://{}:{}/webman/info.cgi?host=",
-            service.scheme, target, service.port
-        );
+    for (port, scheme) in services {
+        let url = format!("{scheme}://{target}:{port}/webman/info.cgi?host=");
         let Some(discovery) = discover(&url).await else {
             continue;
         };
 
-        apply_discovery(assessment, service.port, &discovery);
+        apply_discovery(assessment, port, &discovery);
     }
 }
 
@@ -108,7 +107,11 @@ fn build_finding(discovery: &DsmDiscovery, port: u16) -> SecurityFinding {
 
     match classify(discovery) {
         PatchStatus::Vulnerable => SecurityFinding {
-            id: format!("synology-dsm-critical-{}-{}", discovery.build, discovery.smallfix.unwrap_or(0)),
+            id: format!(
+                "synology-dsm-critical-{}-{}",
+                discovery.build,
+                discovery.smallfix.unwrap_or(0)
+            ),
             severity: "critical".into(),
             title: format!("Synology DSM {display} is below the critical DSM security fix"),
             summary: "The passively discovered DSM build is below Synology's fixed release for the critical DSM vulnerabilities covered by Synology-SA-26:13.".into(),
@@ -117,7 +120,11 @@ fn build_finding(discovery: &DsmDiscovery, port: u16) -> SecurityFinding {
             cves,
         },
         PatchStatus::Patched => SecurityFinding {
-            id: format!("synology-dsm-patched-{}-{}", discovery.build, discovery.smallfix.unwrap_or(0)),
+            id: format!(
+                "synology-dsm-patched-{}-{}",
+                discovery.build,
+                discovery.smallfix.unwrap_or(0)
+            ),
             severity: "info".into(),
             title: format!("Synology DSM {display} is at or above the critical DSM fix"),
             summary: "The passively discovered DSM build is at or above the fixed release EXP IP Scanner can verify for Synology-SA-26:13.".into(),
@@ -126,7 +133,11 @@ fn build_finding(discovery: &DsmDiscovery, port: u16) -> SecurityFinding {
             cves,
         },
         PatchStatus::Unknown => SecurityFinding {
-            id: format!("synology-dsm-build-review-{}-{}", discovery.build, discovery.smallfix.unwrap_or(0)),
+            id: format!(
+                "synology-dsm-build-review-{}-{}",
+                discovery.build,
+                discovery.smallfix.unwrap_or(0)
+            ),
             severity: "high".into(),
             title: format!("Synology DSM {display} needs update-level verification"),
             summary: "EXP IP Scanner discovered the DSM build, but Synology did not expose enough update-level detail to prove whether this exact build contains the critical fix.".into(),
@@ -339,7 +350,10 @@ fn origin_for_input(input: &str, fallback_scheme: &str, fallback_port: u16) -> O
     let has_explicit_port = authority
         .rsplit_once(':')
         .is_some_and(|(_, value)| value.parse::<u16>().is_ok());
-    if has_explicit_port || (scheme == "https" && fallback_port == 443) || (scheme == "http" && fallback_port == 80) {
+    if has_explicit_port
+        || (scheme == "https" && fallback_port == 443)
+        || (scheme == "http" && fallback_port == 80)
+    {
         Some(format!("{scheme}://{authority}"))
     } else {
         Some(format!("{scheme}://{authority}:{fallback_port}"))
