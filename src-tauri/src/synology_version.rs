@@ -447,7 +447,8 @@ mod tests {
                 cves: DSM_CVES.iter().map(|cve| (*cve).into()).collect(),
             }],
         };
-        let discovery = parse_info_response("major=7&minor=4&build=90080&junior=0&version=7.4").unwrap();
+        let discovery =
+            parse_info_response("major=7&minor=4&build=90080&junior=0&version=7.4").unwrap();
 
         apply_discovery(&mut assessment, 5001, &discovery);
 
