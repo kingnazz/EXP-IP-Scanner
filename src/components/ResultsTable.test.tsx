@@ -8,6 +8,7 @@ import {
   row,
 } from "../test/devices";
 import { prepareRows, visibleColumns, DEFAULT_HIDDEN_COLUMNS } from "../lib/table";
+import type { SecurityAssessment } from "../types";
 import { ResultsTable } from "./ResultsTable";
 
 function renderTable(overrides: Partial<Parameters<typeof ResultsTable>[0]> = {}) {
@@ -31,10 +32,34 @@ function renderTable(overrides: Partial<Parameters<typeof ResultsTable>[0]> = {}
     selected: new Set<string>(),
     focusedIp: null,
     securityStatuses: {},
+    securityAssessments: {},
     ...spies,
     ...overrides,
   };
   return { ...render(<ResultsTable {...props} />), spies };
+}
+
+function phpAssessment(version: string | null): SecurityAssessment {
+  return {
+    target: WINDOWS_SERVER.ip,
+    checked_at: "2026-10-23T00:00:00Z",
+    status: version ? "clear" : "attention",
+    summary: "test",
+    web_services: [
+      {
+        port: 80,
+        scheme: "http",
+        status: 200,
+        server: "nginx",
+        powered_by: version ? `PHP/${version}` : "PHP",
+        php_version: version,
+        product: "PHP web application",
+        title: null,
+        note: null,
+      },
+    ],
+    findings: [],
+  };
 }
 
 const bodyRows = () =>
@@ -64,7 +89,7 @@ describe("the rendered table", () => {
     expect(screen.getByRole("columnheader", { name: /MAC address/i })).toBeTruthy();
     expect(screen.getByRole("columnheader", { name: /Manufacturer/i })).toBeTruthy();
     expect(screen.getByRole("columnheader", { name: /Latency/i })).toBeTruthy();
-    expect(screen.getByRole("columnheader", { name: /Open ports/i })).toBeTruthy();
+    expect(screen.getByRole("columnheader", { name: /Services/i })).toBeTruthy();
     expect(screen.queryByRole("columnheader", { name: /Device type/i })).toBeNull();
   });
 
@@ -76,6 +101,26 @@ describe("the rendered table", () => {
     expect(ports?.textContent).toContain("RDP");
     expect(ports?.textContent).toContain("445");
     expect(ports?.textContent).toContain("SMB");
+  });
+
+  it("adds detected PHP beside the port services after a Security pass", () => {
+    renderTable({
+      securityAssessments: { [WINDOWS_SERVER.ip]: phpAssessment("8.2.35") },
+    });
+    const server = bodyRows().find((tr) => tr.cells[1]?.textContent === WINDOWS_SERVER.ip);
+    const services = server?.cells[server.cells.length - 1];
+    expect(services?.textContent).toContain("PHP 8.2.35");
+    expect(within(services as HTMLElement).getByLabelText("PHP 8.2.35")).toBeTruthy();
+  });
+
+  it("shows PHP without inventing a hidden version", () => {
+    renderTable({
+      securityAssessments: { [WINDOWS_SERVER.ip]: phpAssessment(null) },
+    });
+    const server = bodyRows().find((tr) => tr.cells[1]?.textContent === WINDOWS_SERVER.ip);
+    const services = server?.cells[server.cells.length - 1];
+    expect(within(services as HTMLElement).getByLabelText("PHP")).toBeTruthy();
+    expect(services?.textContent).not.toMatch(/PHP\s+\d/);
   });
 
   it("summarises the overflow rather than clipping it silently", () => {

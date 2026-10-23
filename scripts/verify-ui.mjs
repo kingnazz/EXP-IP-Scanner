@@ -100,15 +100,10 @@ await setTheme("light");
 // --- First run ------------------------------------------------------------
 
 await step("the window is branded, names its version, and shows nothing else", async () => {
-  // The heading is the logo rather than type, so it is checked by its
-  // accessible name: what a screen reader announces, and what stops the mark
-  // from being a picture of nothing.
   const heading = page.getByRole("heading", { name: "EXP IP Scanner", level: 1 });
   if ((await heading.count()) !== 1) throw new Error("no branded heading");
   if ((await heading.locator("svg").count()) !== 1) throw new Error("the heading is not the logo");
 
-  // The wordmark follows the theme; the oval does not. Both have to be true or
-  // the logo disappears into one of the two backgrounds.
   const fills = await heading.locator("svg g").evaluateAll((groups) =>
     groups.map((g) => getComputedStyle(g).fill),
   );
@@ -150,13 +145,9 @@ await step("the network summary reports where this machine is", async () => {
 });
 
 await step("the public IP arrives without holding anything else up", async () => {
-  // The lookup is asynchronous by design. The target was already detected and
-  // filled in, two checks ago, while this request was still in flight -- which
-  // is the property being verified as much as the address itself.
   const summary = page.getByLabel("Network summary", { exact: true });
   await summary.getByText("203.0.113.42").waitFor({ timeout: 10_000 });
 
-  // And it can be asked again.
   const again = page.getByRole("button", { name: "Look up the public IP address again" });
   if ((await again.count()) !== 1) throw new Error("no refresh control for the public IP");
   await again.click();
@@ -199,10 +190,8 @@ await step("the public IP lookup can be turned off, and says so", async () => {
   const summary = page.getByLabel("Network summary", { exact: true });
   await summary.waitFor({ timeout: 5_000 });
   const text = (await summary.innerText()).replace(/\s+/g, " ");
-  // "Off" rather than "Unavailable": nobody asked, so nothing failed.
   if (!/Public IP Off/.test(text)) throw new Error(`expected the lookup to read Off: ${text}`);
   if (/Unavailable/.test(text)) throw new Error("a deliberate choice is reported as a failure");
-  // The rest of the summary is unaffected.
   if (!/Gateway 192\.168\.50\.1/.test(text)) throw new Error(`the summary lost the gateway: ${text}`);
   return text.split("·").pop().trim();
 }, async () => {
@@ -219,7 +208,6 @@ await step("the empty state says what will be scanned and how much", async () =>
   const text = await page.locator("main").innerText();
   if (!/Ready to scan/.test(text)) throw new Error("no ready state");
   if (!/\d+ addresses/.test(text)) throw new Error(`no address count: ${text}`);
-  // Not an empty grid of column headings over nothing.
   if ((await page.locator("thead").count()) > 0) throw new Error("an empty table is on screen");
   return text.split("\n").slice(0, 2).join(" · ");
 });
@@ -238,13 +226,11 @@ await step("devices appear progressively while the scan is running", async () =>
   const early = await page.locator("tbody tr[aria-rowindex]").count();
   if (early === 0) throw new Error("no rows while scanning");
 
-  // The Scan button became Stop rather than sitting beside one.
   await page.getByRole("button", { name: "Stop" }).waitFor({ timeout: 5_000 });
   if ((await page.getByRole("button", { name: "Scan", exact: true }).count()) > 0) {
     throw new Error("Scan and Stop are both on screen");
   }
 
-  // And more arrive.
   await page.waitForTimeout(1_200);
   const later = await page.locator("tbody tr[aria-rowindex]").count();
   if (later <= early) throw new Error(`rows did not keep arriving (${early} then ${later})`);
@@ -263,14 +249,6 @@ await step("the progress strip reports addresses, devices and elapsed time", asy
 await step(
   "the interface stays usable while a scan runs",
   async () => {
-    // Typing in the search box mid-scan has to work, or the table is a
-    // spectator sport. Matched on an address and a service, which are known
-    // the moment a device is discovered -- a manufacturer is not, because it
-    // comes from the ARP pass at the end of the scan.
-    //
-    // Deliberately no comparison between two counts taken at different
-    // moments: devices are still arriving between them, so any such assertion
-    // would be a race rather than a check.
     const matching = async (query) => {
       await page.locator("#results-search").fill(query);
       await page.waitForTimeout(150);
@@ -313,14 +291,13 @@ await step("the completion summary reports devices, addresses and duration", asy
   const match = text.match(/(\d+) devices found[\s\S]{0,80}?(\d+) of (\d+) addresses scanned/);
   if (!match) throw new Error(`no completion summary: ${text.slice(-200)}`);
   if (!/\d+(\.\d+)? sec|\d+ ms/.test(text)) throw new Error("no duration in the summary");
-  // And no modal interrupting the consultant.
   if ((await page.getByRole("dialog").count()) > 0) throw new Error("a dialog opened on completion");
   return match[0].replace(/\s+/g, " ");
 });
 
 await step("every default column is present", async () => {
   const headers = await page.locator("thead th").allInnerTexts();
-  const expected = ["IP ADDRESS", "HOSTNAME", "MAC ADDRESS", "MANUFACTURER", "LATENCY", "OPEN PORTS"];
+  const expected = ["IP ADDRESS", "HOSTNAME", "MAC ADDRESS", "MANUFACTURER", "LATENCY", "SERVICES"];
   for (const name of expected) {
     if (!headers.some((h) => h.toUpperCase().includes(name))) {
       throw new Error(`no ${name} column in ${JSON.stringify(headers)}`);
@@ -352,8 +329,6 @@ await step("addresses sort numerically, not as text", async () => {
       throw new Error(`${addresses[i - 1]} sorted before ${addresses[i]}`);
     }
   }
-  // The case a string sort gets wrong has to be present for this to mean
-  // anything.
   const nine = addresses.findIndex((a) => a.endsWith(".9"));
   const hundred = addresses.findIndex((a) => a.endsWith(".100"));
   if (nine >= 0 && hundred >= 0 && nine > hundred) {
@@ -430,7 +405,6 @@ await step("double-clicking a device opens its details without leaving the scan"
   }
   if (!/OPEN PORTS/i.test(text)) throw new Error("the panel omits the open ports");
   if (!/Ethernet/.test(text)) throw new Error("the panel omits the network context");
-  // The table is still there behind it.
   if ((await page.locator("tbody tr[aria-rowindex]").count()) === 0) {
     throw new Error("the results went away");
   }
@@ -465,12 +439,9 @@ await step("right-clicking a device offers the actions its ports support", async
     const item = menu.getByRole("menuitem", { name });
     return (await item.count()) > 0 && (await item.first().isEnabled());
   };
-  // A domain controller: Remote Desktop and file shares, but no SSH.
   if (!(await enabled("Open Remote Desktop"))) throw new Error("Remote Desktop is disabled on 3389");
   if (!(await enabled("Open file shares"))) throw new Error("File shares are disabled on 445");
   if (await enabled("Open SSH")) throw new Error("SSH is offered with port 22 closed");
-  // Every action is listed whether or not it applies, so the menu never
-  // changes shape.
   for (const name of ["Open web interface", "Open VNC", "Ping", "Traceroute", "Copy IP address"]) {
     if ((await menu.getByRole("menuitem", { name }).count()) === 0) {
       throw new Error(`${name} is missing from the menu`);
@@ -651,7 +622,6 @@ await step("a settings change survives a restart", async () => {
   const density = await page.getByLabel("Row height").inputValue();
   await page.getByRole("button", { name: "Done" }).click();
   if (density !== "comfortable") throw new Error(`row height came back as ${density}`);
-  // Put it back for the theme checks below.
   await page.getByLabel("Settings").click();
   await page.getByRole("dialog").waitFor();
   await page.getByLabel("Row height").selectOption("compact");
@@ -690,7 +660,6 @@ for (const theme of ["light", "dark"]) {
     }));
     if (applied.dark !== (theme === "dark")) throw new Error("the dark class does not match");
 
-    // Text on the window background has to be legible in both.
     const parse = (value) => value.match(/\d+/g).slice(0, 3).map(Number);
     const luminance = (rgb) =>
       rgb
@@ -712,18 +681,14 @@ for (const size of SIZES) {
       x: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       y: document.documentElement.scrollHeight - document.documentElement.clientHeight,
     }));
-    // The window itself never scrolls; the table scrolls inside it.
     if (overflow.x > 0) throw new Error(`the window overflows horizontally by ${overflow.x}px`);
     if (overflow.y > 0) throw new Error(`the window overflows vertically by ${overflow.y}px`);
-    // The controls that matter are still reachable.
     if (!(await page.locator("#scan-target").isVisible())) throw new Error("the target field is hidden");
     if (!(await page.locator("#results-search").isVisible())) throw new Error("search is hidden");
     if ((await page.locator("tbody tr[aria-rowindex]").count()) === 0) {
       throw new Error("no rows are rendered");
     }
 
-    // The summary gives up its address count as the window narrows, never an
-    // address: half of an IP address is not a smaller IP address.
     const summary = (await page.getByLabel("Network summary", { exact: true }).innerText()).replace(/\s+/g, " ");
     for (const address of ["192.168.50.37", "192.168.50.1", "203.0.113.42"]) {
       if (!summary.includes(address)) throw new Error(`${address} is cut off: ${summary}`);
@@ -758,8 +723,6 @@ await step("a larger target stays responsive", async () => {
   const rows = await page.locator("tbody tr[aria-rowindex]").count();
   if (rows === 0) throw new Error("no devices found on a /23");
 
-  // Scrolling the table has to stay smooth, which is what the row windowing is
-  // for. Measured as: a scroll and a repaint inside one animation frame budget.
   const scrollTime = await page.evaluate(() => {
     const grid = document.querySelector('[role="grid"]');
     if (!grid) return 0;

@@ -40,7 +40,7 @@ export interface ColumnDef {
  * Column order.
  *
  * Status, address and hostname first, because that is the order a consultant
- * reads a row in: is it alive, where is it, what is it called. Open ports last
+ * reads a row in: is it alive, where is it, what is it called. Services last
  * and flexible, because it is the widest and most variable value and benefits
  * from whatever space is left.
  */
@@ -61,7 +61,14 @@ export const COLUMNS: ColumnDef[] = [
   },
   // Flexible and last, so the widest and most variable value gets whatever
   // room is left on a wide window and keeps a usable minimum on a narrow one.
-  { key: "ports", label: "Open ports", width: 300, minWidth: 140, flexible: true },
+  {
+    key: "ports",
+    label: "Services",
+    width: 300,
+    minWidth: 140,
+    flexible: true,
+    hint: "Open ports plus runtimes detected by the passive Security pass",
+  },
 ];
 
 export const COLUMN_BY_KEY: Record<ColumnKey, ColumnDef> = Object.fromEntries(

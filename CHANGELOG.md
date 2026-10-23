@@ -6,6 +6,23 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.4.3
+
+### Added
+
+- The results table now surfaces positively detected PHP runtimes directly in the **Services** column after a passive Security pass.
+- Disclosed versions appear as **PHP X.Y.Z**; PHP that is positively identified without a reliable version appears simply as **PHP**.
+
+### Changed
+
+- The results-table column is renamed from **Open ports** to **Services** because it can now show both port-backed services and detected web runtimes.
+- PHP runtime chips reserve a visible slot even when a device exposes many open ports, so the security-relevant runtime is not hidden behind the overflow count.
+
+### Notes
+
+- PHP is never assigned a fake port. The chip is derived from the existing passive HTTP/HTTPS fingerprint data and only appears when there is positive PHP evidence.
+- Ordinary nginx or Apache responses without PHP evidence do not receive a PHP chip.
+
 ## 1.4.2
 
 ### Changed
