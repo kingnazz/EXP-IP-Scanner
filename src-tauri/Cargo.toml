@@ -1,11 +1,11 @@
 [package]
 name = "exp-ip-scanner"
-version = "1.3.0"
+version = "1.4.0"
 description = "A fast, lightweight Windows network scanner for everyday IT work"
 authors = ["EXP"]
 license = "MIT"
 edition = "2021"
-rust-version = "1.82"
+rust-version = "1.90"
 
 [lib]
 # The `_lib` suffix avoids a name collision with the binary on Windows.
@@ -37,7 +37,7 @@ if-addrs = "0.13"
 # feed, verifies the signature, installs and relaunches). Deliberately not
 # compiled into the portable edition -- see the `portable` feature below.
 [target."cfg(not(any(target_os = \"android\", target_os = \"ios\")))".dependencies]
-tauri-plugin-updater = { version = "2", optional = true }
+tauri-plugin-updater = { git = "https://github.com/tauri-apps/plugins-workspace", rev = "df594206ce03f67e25da04283dea023815a45058", optional = true }
 tauri-plugin-process = { version = "2", optional = true }
 
 [features]

@@ -17,6 +17,7 @@ import type {
   ScanProgress,
   ScanResult,
   ScanStarted,
+  SecurityAssessment,
   ServiceInfo,
 } from "../types";
 import { demo } from "./demo";
@@ -117,6 +118,25 @@ export const api = {
   async ping(ip: string): Promise<PingOutcome> {
     if (isTauri()) return invoke<PingOutcome>("ping_host", { ip });
     return demo.ping(ip);
+  },
+
+  /**
+   * Run a bounded, non-exploit web exposure check against a discovered device.
+   * Only ordinary HTTP/HTTPS requests are used. The native backend limits the
+   * check to common web ports that the network scan already found open.
+   */
+  async securityAssessment(ip: string, openPorts: number[]): Promise<SecurityAssessment> {
+    if (isTauri()) {
+      return invoke<SecurityAssessment>("security_assessment", { ip, openPorts });
+    }
+    return {
+      target: ip,
+      checked_at: new Date().toISOString(),
+      status: "unknown",
+      summary: "Web exposure checks run in the Windows desktop application.",
+      web_services: [],
+      findings: [],
+    };
   },
 
   /**

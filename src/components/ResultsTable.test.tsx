@@ -30,6 +30,7 @@ function renderTable(overrides: Partial<Parameters<typeof ResultsTable>[0]> = {}
     density: "compact",
     selected: new Set<string>(),
     focusedIp: null,
+    securityStatuses: {},
     ...spies,
     ...overrides,
   };
@@ -100,6 +101,12 @@ describe("the rendered table", () => {
     renderTable();
     const self = bodyRows().find((tr) => tr.cells[1]?.textContent === THIS_COMPUTER.ip);
     expect(within(self as HTMLElement).getByLabelText("This computer")).toBeTruthy();
+  });
+
+  it("surfaces a critical security result in the status column", () => {
+    renderTable({ securityStatuses: { [WINDOWS_SERVER.ip]: "critical" } });
+    const server = bodyRows().find((tr) => tr.cells[1]?.textContent === WINDOWS_SERVER.ip);
+    expect(within(server as HTMLElement).getByLabelText("Critical security finding")).toBeTruthy();
   });
 
   it("shows a dash, not a blank, where a device has no value", () => {

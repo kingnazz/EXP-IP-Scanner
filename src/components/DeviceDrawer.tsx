@@ -1,10 +1,13 @@
-import { useEffect, useRef } from "react";
-import { Loader2, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { AlertTriangle, CheckCircle2, Loader2, ShieldCheck, X } from "lucide-react";
 import { deviceActions, primaryAction, type DeviceAction } from "../lib/actions";
+import { api } from "../lib/api";
 import { formatLatency, formatTime, isActionablePort, serviceName } from "../lib/format";
 import type { DeviceRow } from "../lib/live";
-import type { LocalNetwork, PingOutcome } from "../types";
+import type { LocalNetwork, PingOutcome, SecurityAssessment } from "../types";
 import { DetailRow, NoValue, SectionTitle } from "../ui/primitives";
+
+const WEB_SECURITY_PORTS = new Set([80, 443, 5000, 5001, 8000, 8008, 8080, 8443, 8888]);
 
 /**
  * The device details panel.
@@ -22,6 +25,8 @@ export function DeviceDrawer({
   pingResult,
   pinging,
   watchActive = false,
+  securityAssessment = null,
+  onSecurityAssessment,
 }: {
   row: DeviceRow;
   /** The interface the scan ran from, for the network context section. */
@@ -31,6 +36,9 @@ export function DeviceDrawer({
   pingResult: PingOutcome | null;
   pinging: boolean;
   watchActive?: boolean;
+  /** Cached result from a network-wide security pass, when one exists. */
+  securityAssessment?: SecurityAssessment | null;
+  onSecurityAssessment?: (assessment: SecurityAssessment) => void;
 }) {
   const panel = useRef<HTMLElement>(null);
   const { host } = row;
@@ -38,6 +46,11 @@ export function DeviceDrawer({
   const primary = primaryAction(host);
   const connect = actions.filter((a) => a.group === "connect");
   const diagnostics = actions.filter((a) => a.group === "diagnostics");
+  const hasWebPort = host.open_ports.some((port) => WEB_SECURITY_PORTS.has(port));
+  const [localSecurity, setLocalSecurity] = useState<SecurityAssessment | null>(null);
+  const [securityLoading, setSecurityLoading] = useState(false);
+  const [securityError, setSecurityError] = useState<string | null>(null);
+  const security = securityAssessment ?? localSecurity;
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -46,6 +59,27 @@ export function DeviceDrawer({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
+
+  useEffect(() => {
+    setLocalSecurity(null);
+    setSecurityError(null);
+    setSecurityLoading(false);
+  }, [host.ip]);
+
+  const runSecurityCheck = async () => {
+    if (securityLoading || !hasWebPort || row.watchState === "offline") return;
+    setSecurityLoading(true);
+    setSecurityError(null);
+    try {
+      const assessment = await api.securityAssessment(host.ip, host.open_ports);
+      setLocalSecurity(assessment);
+      onSecurityAssessment?.(assessment);
+    } catch (error) {
+      setSecurityError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setSecurityLoading(false);
+    }
+  };
 
   return (
     <aside
@@ -171,6 +205,106 @@ export function DeviceDrawer({
         </section>
 
         <section className="mb-4">
+          <SectionTitle>Security</SectionTitle>
+          <button
+            type="button"
+            className="btn btn-sm btn-secondary w-full justify-center"
+            disabled={!hasWebPort || securityLoading || row.watchState === "offline"}
+            onClick={() => void runSecurityCheck()}
+            title={
+              hasWebPort
+                ? "Passive HTTP/HTTPS fingerprinting only. No exploit payloads are sent."
+                : "No supported web port was found in this scan."
+            }
+          >
+            {securityLoading ? (
+              <Loader2 size={13} className="animate-spin" aria-hidden />
+            ) : (
+              <ShieldCheck size={13} aria-hidden />
+            )}
+            {securityLoading
+              ? "Checking web exposure…"
+              : hasWebPort
+                ? security
+                  ? "Run security check again"
+                  : "Check web exposure"
+                : "No web services found"}
+          </button>
+          <p className="mt-1.5 text-[11px] leading-snug text-ink-muted">
+            Safe scan: fingerprints HTTP/HTTPS, PHP patch level and Synology indicators. It does not
+            attempt exploitation.
+          </p>
+
+          {securityError ? (
+            <div className="mt-2 rounded-sm border border-danger/30 bg-danger/5 px-2 py-1.5 text-[11.5px] text-danger" role="alert">
+              {securityError}
+            </div>
+          ) : null}
+
+          {security ? (
+            <div className="mt-2.5" aria-live="polite">
+              <div className="rounded-sm border border-line bg-surface px-2.5 py-2">
+                <div className="flex items-center gap-2">
+                  {security.status === "critical" || security.status === "attention" ? (
+                    <AlertTriangle size={14} className={security.status === "critical" ? "text-danger" : "text-warn"} aria-hidden />
+                  ) : (
+                    <CheckCircle2 size={14} className="text-ok" aria-hidden />
+                  )}
+                  <span className={`badge ${securityBadgeClass(security.status)}`}>
+                    {securityStatusLabel(security.status)}
+                  </span>
+                </div>
+                <p className="mt-1.5 text-[11.5px] leading-snug text-ink-soft">{security.summary}</p>
+              </div>
+
+              {security.web_services.length > 0 ? (
+                <div className="mt-2">
+                  <p className="mb-1 text-[10.5px] font-semibold uppercase tracking-wide text-ink-muted">Web services</p>
+                  <div className="flex flex-col gap-1">
+                    {security.web_services.map((service) => (
+                      <div key={`${service.scheme}-${service.port}`} className="rounded-sm bg-surface-sunken px-2 py-1.5 text-[11.5px]">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-medium text-ink">
+                            {service.product ?? `${service.scheme.toUpperCase()} service`}
+                          </span>
+                          <span className="mono text-ink-muted">:{service.port}</span>
+                        </div>
+                        <p className="mt-0.5 text-ink-muted">
+                          {service.php_version ? `PHP ${service.php_version}` : service.server ?? service.note ?? "Responded"}
+                          {service.status != null ? ` · HTTP ${service.status}` : ""}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {security.findings.length > 0 ? (
+                <div className="mt-2 flex flex-col gap-1.5">
+                  {security.findings.map((finding) => (
+                    <div key={finding.id} className="rounded-sm border border-line px-2 py-1.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-[11.5px] font-semibold leading-snug text-ink">{finding.title}</p>
+                        <span className={`badge shrink-0 ${findingSeverityClass(finding.severity)}`}>
+                          {finding.severity}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[11px] leading-snug text-ink-soft">{finding.summary}</p>
+                      {finding.cves.length > 0 ? (
+                        <p className="mono mt-1 text-[10.5px] text-ink-muted">{finding.cves.join(" · ")}</p>
+                      ) : null}
+                      <p className="mt-1 text-[10.5px] leading-snug text-ink-muted">
+                        Fix: {finding.remediation}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </section>
+
+        <section className="mb-4">
           <SectionTitle>Connect</SectionTitle>
           <div className="grid grid-cols-2 gap-1.5">
             {connect.map((action) => (
@@ -238,6 +372,27 @@ export function DeviceDrawer({
       </div>
     </aside>
   );
+}
+
+function securityStatusLabel(status: SecurityAssessment["status"]): string {
+  if (status === "critical") return "Critical";
+  if (status === "attention") return "Needs review";
+  if (status === "clear") return "No issue found";
+  return "Unknown";
+}
+
+function securityBadgeClass(status: SecurityAssessment["status"]): string {
+  if (status === "critical") return "badge-danger";
+  if (status === "attention") return "badge-warn";
+  if (status === "clear") return "badge-ok";
+  return "";
+}
+
+function findingSeverityClass(severity: string): string {
+  if (severity === "critical") return "badge-danger";
+  if (severity === "high" || severity === "medium") return "badge-warn";
+  if (severity === "info") return "badge-accent";
+  return "";
 }
 
 /** Button labels in the drawer drop the leading verb, which the heading says. */

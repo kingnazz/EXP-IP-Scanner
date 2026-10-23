@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>What’s new in EXP IP Scanner 1.4.0</title>
+    <meta name="description" content="EXP IP Scanner 1.4.0 adds passive PHP2Shell checks for discovered devices and public website URLs." />
+    <link rel="canonical" href="https://expipscanner.com/whats-new-1.4.0.html" />
+    <link rel="icon" href="assets/favicon.png" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'none'; connect-src 'self'; base-uri 'none'; form-action 'none'" />
+    <link rel="stylesheet" href="exp.v5.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap bar">
+        <a class="brand" href="./" aria-label="EXP IP Scanner home">
+          <img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner" width="1874" height="347" />
+        </a>
+        <nav aria-label="Site">
+          <a href="./#features">Features</a>
+          <a href="./#screenshots">Screenshots</a>
+          <a href="releases.html">Changelog</a>
+          <a href="privacy.html">Privacy</a>
+          <a class="header-cta" href="./#download">Download</a>
+        </nav>
+      </div>
+    </header>
+    <main id="main">
+      <section>
+        <div class="wrap whats-new">
+          <p class="kicker">EXP IP Scanner 1.4.0</p>
+          <h1>Find PHP2Shell exposure without turning the scanner into an exploit tool.</h1>
+          <p class="lede">Version 1.4.0 adds a focused passive security layer for PHP2Shell. Check every web-enabled device found on a network, or paste a website URL and check it directly.</p>
+
+          <h2>Check the whole network after discovery</h2>
+          <p>After a normal network scan, press <strong>Security</strong> to check discovered HTTP and HTTPS services. EXP IP Scanner runs a bounded passive assessment, shows progress, and marks Critical or Needs Review devices with subtle shield indicators. Use the <strong>Issues</strong> filter to isolate them immediately.</p>
+
+          <h2>Know when an exposed PHP version is below the fix</h2>
+          <p>The scanner looks for PHP runtime indicators and disclosed versions, then compares supported PHP 8.2 through 8.5 branches with the upstream fixed releases for CVE-2026-109618 and CVE-2026-109619. A positively affected disclosed version is Critical. A hidden version is Needs Review rather than a guess.</p>
+
+          <h2>Check a public website by hostname</h2>
+          <p>The new <strong>Website</strong> check accepts a bare hostname or a full HTTP/HTTPS URL. It keeps the original hostname through HTTPS so SNI, reverse proxies, Cloudflare, and virtual-hosted sites are checked the way a browser reaches them.</p>
+
+          <h2>Passive by design</h2>
+          <p>The security pass uses ordinary HTTP and HTTPS requests only. It does not send exploit payloads, execute code, or automatically perform destructive validation. A Clear result means no affected upstream PHP version was exposed by the checked response, not that hidden backend software is guaranteed patched.</p>
+
+          <h2>Better field behavior</h2>
+          <p>Web fingerprinting now runs without flashing Command Prompt windows. Network-wide checks are limited to four devices at a time, and Synology DSM ports 5000 and 5001 are included in the default scan so common NAS management surfaces are easier to identify.</p>
+
+          <h2>Security maintenance under the hood</h2>
+          <p>The Rust dependency set was refreshed for current TLS and certificate-validation fixes. The desktop updater is pinned to an exact official Tauri source revision that uses the patched ZIP 9 dependency line.</p>
+
+          <div class="cta-row">
+            <a class="btn btn-primary" href="./#download">Download 1.4.0</a>
+            <a class="btn btn-secondary" href="releases.html">All releases</a>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <div class="product-footer">
+          <div class="product-footer-brand">
+            <img src="assets/exp-ip-scanner-logo-light.svg" alt="EXP IP Scanner" width="1874" height="347" />
+            <p>Fast, local network discovery for consultants.</p>
+          </div>
+          <nav aria-label="Footer">
+            <a href="./#download">Download</a>
+            <a href="releases.html">Changelog</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="https://github.com/nazar-exp/EXP-IP-Scanner">GitHub</a>
+          </nav>
+        </div>
+        <div class="footer-bottom">
+          <span>EXP IP Scanner · MIT licensed</span>
+          <span>Built by EXP Technical</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
