@@ -7,6 +7,9 @@ use crate::security::{SecurityAssessment, SecurityFinding, WebServiceFingerprint
 const CVE: &str = "CVE-2026-110264";
 const MAX_BODY_CHARS: usize = 32 * 1024;
 
+type HeaderPairs = Vec<(String, String)>;
+type HttpResponse = (u16, HeaderPairs, String);
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum PatchStatus {
     Vulnerable,
@@ -151,7 +154,7 @@ async fn probe_gitlab(url: &str) -> Option<GitLabProbe> {
     Some(GitLabProbe { version })
 }
 
-async fn fetch(url: &str) -> Option<(u16, Vec<(String, String)>, String)> {
+async fn fetch(url: &str) -> Option<HttpResponse> {
     let mut command = Command::new(curl_binary());
 
     #[cfg(windows)]
@@ -190,7 +193,7 @@ async fn fetch(url: &str) -> Option<(u16, Vec<(String, String)>, String)> {
     parse_http_output(&stdout)
 }
 
-fn parse_http_output(raw: &str) -> Option<(u16, Vec<(String, String)>, String)> {
+fn parse_http_output(raw: &str) -> Option<HttpResponse> {
     let normalized = raw.replace("\r\n", "\n");
     let parts: Vec<&str> = normalized.split("\n\n").collect();
     let mut last_header_index = None;
