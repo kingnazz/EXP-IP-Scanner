@@ -750,6 +750,7 @@ export default function App() {
                   selected={selected}
                   focusedIp={focusedIp}
                   securityStatuses={security.statuses}
+                  securityAssessments={security.assessments}
                   onRowClick={onRowClick}
                   onRowActivate={openDrawer}
                   onRowContextMenu={(event, row, column) => {
