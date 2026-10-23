@@ -6,6 +6,20 @@ form built for reading, is on the
 
 This project uses [semantic versioning](https://semver.org/).
 
+## 1.4.2
+
+### Changed
+
+- Removed Synology DSM CVE and package-specific vulnerability verdicts from the Security pass after real-world testing showed the passive DSM assessment added more noise than value.
+- Synology devices and web services are still identified normally, but no longer receive DSM-specific Critical, Needs Review, patched, or informational vulnerability cards.
+- Device and Website Security copy is refocused on the existing PHP/PHP2Shell checks.
+- The website vulnerability-scanning showcase now describes the PHP-focused passive checks without advertising DSM patch assessment.
+
+### Notes
+
+- PHP2Shell checks for **CVE-2026-109618** and **CVE-2026-109619** remain unchanged and passive.
+- Version 1.4.1 remains in the historical changelog because it did ship the Synology assessment; 1.4.2 is the supported replacement.
+
 ## 1.4.1
 
 ### Added

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>EXP IP Scanner by EXP Technical | Free Windows Network Scanner</title>
-  <meta name="description" content="EXP IP Scanner is a free Windows network scanner with focused passive vulnerability checks for PHP2Shell and Synology DSM patch exposure. Built for IT consultants." />
+  <meta name="description" content="EXP IP Scanner is a free Windows network scanner with focused passive PHP2Shell vulnerability checks. Built for IT consultants." />
   <meta name="author" content="EXP Technical" />
   <link rel="canonical" href="https://expipscanner.com/" />
   <link rel="icon" href="assets/favicon.png" />
@@ -12,13 +12,13 @@
   <meta name="theme-color" content="#ffffff" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https://api.github.com; base-uri 'none'; form-action 'none'" />
   <link rel="stylesheet" href="exp.v5.css" />
-  <link rel="preload" as="image" href="assets/shots/scan-dark.webp?v=1.4.1" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/shots/scan-dark.webp?v=1.4.2" fetchpriority="high" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="EXP IP Scanner by EXP Technical" />
   <meta property="og:url" content="https://expipscanner.com/" />
   <meta property="og:title" content="EXP IP Scanner by EXP Technical | Free Windows Network Scanner" />
-  <meta property="og:description" content="Fast Windows network discovery with focused passive checks for PHP2Shell and Synology DSM patch exposure." />
-  <meta property="og:image" content="https://expipscanner.com/assets/shots/scan-dark.webp?v=1.4.1" />
+  <meta property="og:description" content="Fast Windows network discovery with focused passive PHP2Shell vulnerability checks." />
+  <meta property="og:image" content="https://expipscanner.com/assets/shots/scan-dark.webp?v=1.4.2" />
   <meta property="og:image:alt" content="EXP IP Scanner showing discovered network devices." />
   <meta name="twitter:card" content="summary_large_image" />
   <script type="application/ld+json">
@@ -35,10 +35,10 @@
         "@id":"https://expipscanner.com/#software",
         "name":"EXP IP Scanner",
         "alternateName":"EXP Technical IP Scanner",
-        "description":"A free Windows network scanner with focused passive vulnerability checks for PHP2Shell and Synology DSM patch exposure.",
+        "description":"A free Windows network scanner with focused passive PHP2Shell vulnerability checks.",
         "applicationCategory":"UtilitiesApplication",
         "operatingSystem":"Windows 10, Windows 11",
-        "softwareVersion":"1.4.1",
+        "softwareVersion":"1.4.2",
         "url":"https://expipscanner.com/",
         "downloadUrl":"https://github.com/nazar-exp/EXP-IP-Scanner/releases/latest",
         "isAccessibleForFree":true,
@@ -88,15 +88,15 @@
       <div>
         <h1>EXP IP Scanner</h1>
         <p class="tagline">Scan the network. Find the device. Get to work.</p>
-        <p class="lede">EXP IP Scanner is a free Windows network scanner built by EXP Technical for consultants who need answers quickly. It detects the active subnet, finds devices as the scan runs, identifies vendors and common services, and adds focused passive vulnerability checks for PHP2Shell and Synology DSM patch exposure.</p>
+        <p class="lede">EXP IP Scanner is a free Windows network scanner built by EXP Technical for consultants who need answers quickly. It detects the active subnet, finds devices as the scan runs, identifies vendors and common services, and adds focused passive PHP2Shell vulnerability checks.</p>
         <div class="cta-row">
           <a class="btn btn-primary" id="hero-download" href="https://github.com/nazar-exp/EXP-IP-Scanner/releases/latest">Download portable</a>
           <a class="btn btn-secondary" href="#security">Explore security checks</a>
         </div>
-        <p class="release-line"><span id="release-line-version">v1.4.1</span><span id="download-count-wrap" hidden><span aria-hidden="true"> · </span><span id="download-count"></span></span><span aria-hidden="true"> · </span><a id="release-notes-link" href="whats-new-1.4.1.html">What changed in 1.4.1</a><span aria-hidden="true"> · </span><a href="releases.html">All releases</a></p>
+        <p class="release-line"><span id="release-line-version">v1.4.2</span><span id="download-count-wrap" hidden><span aria-hidden="true"> · </span><span id="download-count"></span></span><span aria-hidden="true"> · </span><a id="release-notes-link" href="whats-new-1.4.2.html">What changed in 1.4.2</a><span aria-hidden="true"> · </span><a href="releases.html">All releases</a></p>
       </div>
       <div class="hero-visual">
-        <img src="assets/shots/scan-dark.webp?v=1.4.1" alt="EXP IP Scanner results showing discovered network devices" width="1180" height="780" />
+        <img src="assets/shots/scan-dark.webp?v=1.4.2" alt="EXP IP Scanner results showing discovered network devices" width="1180" height="780" />
         <div class="hero-note"><strong>One screen.</strong>Discover devices, inspect services, and run focused security checks.</div>
       </div>
     </div>
@@ -105,9 +105,9 @@
   <div class="wrap facts-wrap">
     <ul class="facts">
       <li><span class="fact-title">Built for consultants</span><span class="fact-text">Built to get from unknown network to useful answer quickly.</span></li>
-      <li><span class="fact-title">Focused vulnerability checks</span><span class="fact-text">PHP2Shell and Synology DSM patch exposure, without exploit payloads.</span></li>
+      <li><span class="fact-title">Focused vulnerability checks</span><span class="fact-text">PHP2Shell patch exposure, without exploit payloads.</span></li>
       <li><span class="fact-title">No account, no telemetry</span><span class="fact-text">No account, no analytics, and scan results stay local.</span></li>
-      <li><span class="fact-title"><span id="version-fallback">v1.4.1</span><span id="release-meta"></span></span><span class="fact-text">Windows 10 and 11, x64.</span></li>
+      <li><span class="fact-title"><span id="version-fallback">v1.4.2</span><span id="release-meta"></span></span><span class="fact-text">Windows 10 and 11, x64.</span></li>
     </ul>
   </div>
 
@@ -121,7 +121,7 @@
       <div class="services-grid">
         <article class="service-card"><span class="service-num">01</span><h3>Automatic network detection</h3><p>Starts with the active subnet already selected, and puts the adapter, your local IP, the default gateway, the scan range and your public IP address on one line above the results. Copy the whole network summary in one click, or copy an individual address directly.</p></article>
         <article class="service-card"><span class="service-num">02</span><h3>Fast device discovery</h3><p>Uses more than ping alone, combining ICMP, TCP, and ARP to find the kinds of devices consultants actually run into.</p></article>
-        <article class="service-card"><span class="service-num">03</span><h3>Identify what you found</h3><p>See hostname, MAC address, manufacturer, latency, and common services without opening another tool. Run a passive web security check for PHP and Synology patch exposure when you need it.</p></article>
+        <article class="service-card"><span class="service-num">03</span><h3>Identify what you found</h3><p>See hostname, MAC address, manufacturer, latency, and common services without opening another tool. Run a passive PHP security check across discovered web services when you need it.</p></article>
         <article class="service-card"><span class="service-num">04</span><h3>Connect in one click</h3><p>When a device exposes RDP, SMB, SSH, VNC, or web management, the matching action is ready from the result.</p></article>
       </div>
     </div>
@@ -135,12 +135,12 @@
       <div class="exp-way-copy">
         <p class="eyebrow">An EXP Technical tool</p>
         <h2>Built by EXP Technical for real field work</h2>
-        <p>EXP Technical built EXP IP Scanner as a focused field utility for consultants who need fast answers on unfamiliar networks. It gives you the network context and device details you need right now, plus selected vulnerability checks that help surface high-value patch risk without turning a quick scan into a heavyweight vulnerability platform.</p>
+        <p>EXP Technical built EXP IP Scanner as a focused field utility for consultants who need fast answers on unfamiliar networks. It gives you the network context and device details you need right now, plus a targeted PHP vulnerability check without turning a quick scan into a heavyweight vulnerability platform.</p>
         <div class="exp-way-list">
           <div class="exp-way-item"><b>01</b><div><strong>Launch and scan</strong><span>The active subnet is detected and ready.</span></div></div>
           <div class="exp-way-item"><b>02</b><div><strong>Identify the device</strong><span>See the details that help you recognize the device.</span></div></div>
-          <div class="exp-way-item"><b>03</b><div><strong>Check exposure</strong><span>Run focused passive security checks against discovered web services.</span></div></div>
-          <div class="exp-way-item"><b>04</b><div><strong>Take action</strong><span>Connect to the service or patch the system when the scan finds something actionable.</span></div></div>
+          <div class="exp-way-item"><b>03</b><div><strong>Check PHP exposure</strong><span>Run a focused passive PHP2Shell check against discovered web services.</span></div></div>
+          <div class="exp-way-item"><b>04</b><div><strong>Take action</strong><span>Connect to the service or patch the runtime when the scan finds something actionable.</span></div></div>
         </div>
       </div>
     </div>
@@ -150,18 +150,18 @@
     <div class="wrap">
       <div class="section-head">
         <p class="eyebrow">Focused vulnerability scanning</p>
-        <h2>Find exposed patch risk while you scan.</h2>
-        <p class="section-lede">The Security pass inspects discovered web services and website URLs with read-only HTTP/HTTPS requests. It currently checks PHP2Shell exposure and Synology DSM/package patch status, then separates confirmed risk from systems that simply need manual review.</p>
+        <h2>Check PHP patch exposure while you scan.</h2>
+        <p class="section-lede">The Security pass inspects discovered web services and website URLs with read-only HTTP/HTTPS requests. It looks for PHP version evidence and checks known PHP2Shell affected versions when the patch level is visible, while keeping hidden versions in manual-review territory instead of guessing.</p>
       </div>
       <div class="stats">
-        <div class="stat"><strong>PHP</strong><span>Detects PHP version evidence and flags known PHP2Shell affected versions when the patch level can be verified.</span></div>
-        <div class="stat"><strong>DSM</strong><span>Discovers Synology DSM builds and compares them with published fixed releases for selected critical CVEs.</span></div>
-        <div class="stat"><strong>LAN</strong><span>Run Security across discovered devices or check a hostname or website directly when you need a focused answer.</span></div>
+        <div class="stat"><strong>PHP</strong><span>Detects exposed PHP version evidence and checks it against the PHP2Shell patch thresholds.</span></div>
+        <div class="stat"><strong>WEB</strong><span>Run Security across discovered devices or check a hostname or website directly when you need a focused answer.</span></div>
+        <div class="stat"><strong>2</strong><span>PHP2Shell CVEs currently covered by the focused passive rules.</span></div>
         <div class="stat"><strong>0</strong><span>Exploit payloads, password attempts, authentication attacks, or destructive changes.</span></div>
       </div>
       <div class="cta-row">
-        <a class="btn btn-primary" href="#download">Download v1.4.1</a>
-        <a class="btn btn-secondary" href="whats-new-1.4.1.html">See the security release notes</a>
+        <a class="btn btn-primary" href="#download">Download EXP IP Scanner</a>
+        <a class="btn btn-secondary" href="whats-new-1.4.0.html">See the PHP2Shell release notes</a>
       </div>
     </div>
   </section>
@@ -181,7 +181,7 @@
           <button class="shot-tab" id="tab-empty" type="button" role="tab" aria-selected="false" aria-controls="shot-panel" data-shot="ready-light" data-caption="On launch the network is already detected. One button to press.">First run</button>
         </div>
         <figure id="shot-panel" role="tabpanel" aria-labelledby="tab-scan-dark">
-          <img id="shot-image" src="assets/shots/scan-dark.webp?v=1.4.1" alt="A finished scan of a small business network, in dark mode." width="1180" height="780" />
+          <img id="shot-image" src="assets/shots/scan-dark.webp?v=1.4.2" alt="A finished scan of a small business network, in dark mode." width="1180" height="780" />
           <figcaption id="shot-caption">A finished scan of a small business network, in dark mode.</figcaption>
         </figure>
       </div>
@@ -202,7 +202,7 @@
           <p>Best for field work and shared consultant toolkits. Extract it, run it, and keep moving.</p>
           <ul><li>No installation</li><li>No administrator rights</li><li>Runs from Downloads, a tools folder, or USB media</li><li>Update by downloading the next ZIP</li></ul>
           <a class="btn btn-primary" data-field="link" href="https://github.com/nazar-exp/EXP-IP-Scanner/releases/latest">Download portable ZIP</a>
-          <dl class="dl-meta"><div><dt hidden>Version</dt><dd>v<span data-field="version">1.4.1</span></dd></div><div><dt hidden>Size</dt><dd><span data-field="size">see release page</span></dd></div><div><dt hidden>Notes</dt><dd><a data-field="notes" href="https://github.com/nazar-exp/EXP-IP-Scanner/releases/latest">Release notes</a></dd></div></dl>
+          <dl class="dl-meta"><div><dt hidden>Version</dt><dd>v<span data-field="version">1.4.2</span></dd></div><div><dt hidden>Size</dt><dd><span data-field="size">see release page</span></dd></div><div><dt hidden>Notes</dt><dd><a data-field="notes" href="https://github.com/nazar-exp/EXP-IP-Scanner/releases/latest">Release notes</a></dd></div></dl>
         </article>
         <article class="dl" data-kind="installer">
           <div class="dl-head"><h3>Installer</h3></div>
@@ -210,7 +210,7 @@
           <p>Best for a workstation where you want the scanner installed and ready every day.</p>
           <ul><li>Windows installer</li><li>Start Menu entry</li><li>Checks quietly for updates after launch</li><li>Standard Windows uninstaller</li></ul>
           <a class="btn btn-secondary" data-field="link" href="https://github.com/nazar-exp/EXP-IP-Scanner/releases/latest">Download installer</a>
-          <dl class="dl-meta"><div><dt hidden>Version</dt><dd>v<span data-field="version">1.4.1</span></dd></div><div><dt hidden>Size</dt><dd><span data-field="size">see release page</span></dd></div><div><dt hidden>Notes</dt><dd><a data-field="notes" href="https://github.com/nazar-exp/EXP-IP-Scanner/releases/latest">Release notes</a></dd></div></dl>
+          <dl class="dl-meta"><div><dt hidden>Version</dt><dd>v<span data-field="version">1.4.2</span></dd></div><div><dt hidden>Size</dt><dd><span data-field="size">see release page</span></dd></div><div><dt hidden>Notes</dt><dd><a data-field="notes" href="https://github.com/nazar-exp/EXP-IP-Scanner/releases/latest">Release notes</a></dd></div></dl>
         </article>
       </div>
       <p class="download-note" id="download-status">Both editions use Microsoft Edge WebView2 Runtime. The current build is not code-signed, so Windows SmartScreen may show an unknown-publisher warning the first time.</p>
@@ -249,7 +249,7 @@
         <article class="faq-item"><h3>Does it upload scan results?</h3><p>No. Scans run on your computer. Results are not uploaded, and there is no account, telemetry, or analytics.</p></article>
         <article class="faq-item"><h3>How does it know my public IP?</h3><p>It asks a plain-text lookup service what address you appear as. Like any HTTPS request, that service sees your public address, but the app sends no identifier, scan results, or discovered-device data. You can turn the lookup off in Settings. See the <a href="privacy.html">privacy notice</a>.</p></article>
         <article class="faq-item"><h3>Does it need administrator rights?</h3><p>No for normal scanning. The portable edition can be extracted and run without installation or elevation.</p></article>
-        <article class="faq-item"><h3>Is this a vulnerability scanner?</h3><p>It includes focused passive vulnerability checks, not a broad vulnerability suite. The current Security pass checks selected PHP2Shell and Synology DSM/package exposure using read-only web requests. It does not test passwords, send exploit payloads, or make destructive changes.</p></article>
+        <article class="faq-item"><h3>Is this a vulnerability scanner?</h3><p>It includes a focused passive vulnerability check, not a broad vulnerability suite. The current Security pass checks selected PHP2Shell exposure using read-only web requests. It does not test passwords, send exploit payloads, or make destructive changes.</p></article>
         <article class="faq-item"><h3>Why no inventory history?</h3><p>Because this is a field scanner, not an inventory system. One environment&rsquo;s device list should not follow you into the next job.</p></article>
       </div>
     </div>
@@ -259,7 +259,7 @@
     <div class="wrap cta-panel">
       <div>
         <p class="eyebrow">Ready when you are</p>
-        <h2>Open it. Scan the network. Check the risk. Get the answer.</h2>
+        <h2>Open it. Scan the network. Check PHP exposure. Get the answer.</h2>
         <p>EXP IP Scanner is free, local-first, and built for everyday consultant work.</p>
       </div>
       <a class="btn" href="#download">Download EXP IP Scanner</a>
@@ -272,7 +272,7 @@
     <div class="product-footer">
       <div class="product-footer-brand">
         <img src="assets/exp-ip-scanner-logo-light.svg" alt="EXP IP Scanner" width="1874" height="347" />
-        <p>Fast network discovery and focused passive vulnerability checks for consultants.</p>
+        <p>Fast network discovery and focused passive PHP vulnerability checks for consultants.</p>
       </div>
       <nav aria-label="Footer">
         <a href="#security">Security</a>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>What’s new in EXP IP Scanner 1.4.2</title>
+    <meta name="description" content="EXP IP Scanner 1.4.2 refocuses passive vulnerability scanning on PHP2Shell and removes noisy Synology DSM vulnerability verdicts." />
+    <link rel="canonical" href="https://expipscanner.com/whats-new-1.4.2.html" />
+    <link rel="icon" href="assets/favicon.png" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'none'; connect-src 'self'; base-uri 'none'; form-action 'none'" />
+    <link rel="stylesheet" href="exp.v5.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap bar">
+        <a class="brand" href="./" aria-label="EXP IP Scanner home">
+          <img src="assets/exp-ip-scanner-logo.svg" alt="EXP IP Scanner" width="1874" height="347" />
+        </a>
+        <nav aria-label="Site">
+          <a href="./#features">Features</a>
+          <a href="./#security">Security</a>
+          <a href="./#screenshots">Screenshots</a>
+          <a href="releases.html">Changelog</a>
+          <a href="privacy.html">Privacy</a>
+          <a class="header-cta" href="./#download">Download</a>
+        </nav>
+      </div>
+    </header>
+    <main id="main">
+      <section>
+        <div class="wrap whats-new">
+          <p class="kicker">EXP IP Scanner 1.4.2</p>
+          <h1>Cleaner security results, focused on the checks we can trust.</h1>
+          <p class="lede">Version 1.4.2 removes the Synology DSM vulnerability-verdict layer introduced in 1.4.1 after real-world testing showed that passive DSM metadata could create more noise than useful certainty. The proven PHP2Shell security checks remain.</p>
+
+          <h2>Synology still gets identified</h2>
+          <p>EXP IP Scanner still recognizes Synology DSM web services during passive HTTP and HTTPS fingerprinting. What is gone are the DSM-specific Critical, Needs Review, patched, and informational vulnerability cards.</p>
+
+          <h2>PHP2Shell remains the security focus</h2>
+          <p>The Security pass continues to look for PHP version evidence and assess the known PHP2Shell vulnerabilities <strong>CVE-2026-109618</strong> and <strong>CVE-2026-109619</strong> when enough patch-level evidence is exposed. Hidden or vendor-managed PHP still stays in manual-review territory rather than being guessed vulnerable.</p>
+
+          <h2>LAN and website checks are unchanged</h2>
+          <p>You can still run Security across discovered devices or open Website Security Check and enter a hostname or URL directly. The checks remain read-only and passive.</p>
+
+          <h2>No exploit traffic</h2>
+          <p>EXP IP Scanner does not try credentials, send exploit payloads, execute code, or make destructive changes. The vulnerability check uses ordinary HTTP and HTTPS response metadata for fast field triage.</p>
+
+          <div class="cta-row">
+            <a class="btn btn-primary" href="./#download">Download 1.4.2</a>
+            <a class="btn btn-secondary" href="releases.html">All releases</a>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <div class="product-footer">
+          <div class="product-footer-brand">
+            <img src="assets/exp-ip-scanner-logo-light.svg" alt="EXP IP Scanner" width="1874" height="347" />
+            <p>Fast network discovery and focused passive PHP vulnerability checks for consultants.</p>
+          </div>
+          <nav aria-label="Footer">
+            <a href="./#security">Security</a>
+            <a href="./#download">Download</a>
+            <a href="releases.html">Changelog</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="https://github.com/nazar-exp/EXP-IP-Scanner">GitHub</a>
+          </nav>
+        </div>
+        <div class="footer-bottom">
+          <span>EXP IP Scanner · MIT licensed</span>
+          <span>Built by EXP Technical</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

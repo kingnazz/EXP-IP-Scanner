@@ -68,7 +68,7 @@ export function WebsiteCheckDialog({ onClose }: { onClose: () => void }) {
         <div className="mb-2 flex items-center gap-2">
           <Globe2 size={15} className="text-accent-text" aria-hidden />
           <div>
-            <p className="text-[12.5px] font-medium">Check a website for PHP2Shell and critical web-product CVEs</p>
+            <p className="text-[12.5px] font-medium">Check a website for PHP2Shell exposure</p>
             <p className="text-[11.5px] text-ink-muted">
               Passive HTTP/HTTPS fingerprint only. No exploit payloads are sent.
             </p>
@@ -195,7 +195,7 @@ export function WebsiteCheckDialog({ onClose }: { onClose: () => void }) {
           ) : null}
 
           <p className="text-[10.5px] leading-relaxed text-ink-muted">
-            A clear passive result means the checked page did not expose a version affected by the security rules EXP IP Scanner currently knows. Hidden or backend components may still require direct verification.
+            A clear passive result means the checked page did not expose a PHP version affected by the PHP2Shell rules EXP IP Scanner currently knows. Hidden or backend components may still require direct verification.
           </p>
         </div>
       ) : null}
