@@ -48,19 +48,7 @@ pub(crate) async fn enrich_network(assessment: &mut SecurityAssessment) {
             continue;
         };
 
-        service.product = Some(
-            probe
-                .dsm_version
-                .as_deref()
-                .map(|version| format!("Synology DSM {version}"))
-                .unwrap_or_else(|| "Synology DSM".into()),
-        );
-
-        for finding in findings_for_service(service, &probe) {
-            if seen.insert(finding.id.clone()) {
-                findings.push(finding);
-            }
-        }
+        apply_probe(service, &probe, &mut findings, &mut seen);
     }
 
     merge_findings(assessment, findings);
@@ -80,22 +68,31 @@ pub(crate) async fn enrich_website(assessment: &mut SecurityAssessment, input: &
             continue;
         };
 
-        service.product = Some(
-            probe
-                .dsm_version
-                .as_deref()
-                .map(|version| format!("Synology DSM {version}"))
-                .unwrap_or_else(|| "Synology DSM".into()),
-        );
-
-        for finding in findings_for_service(service, &probe) {
-            if seen.insert(finding.id.clone()) {
-                findings.push(finding);
-            }
-        }
+        apply_probe(service, &probe, &mut findings, &mut seen);
     }
 
     merge_findings(assessment, findings);
+}
+
+fn apply_probe(
+    service: &mut WebServiceFingerprint,
+    probe: &SynologyProbe,
+    findings: &mut Vec<SecurityFinding>,
+    seen: &mut HashSet<String>,
+) {
+    service.product = Some(
+        probe
+            .dsm_version
+            .as_deref()
+            .map(|version| format!("Synology DSM {version}"))
+            .unwrap_or_else(|| "Synology DSM".into()),
+    );
+
+    for finding in findings_for_service(service, probe) {
+        if seen.insert(finding.id.clone()) {
+            findings.push(finding);
+        }
+    }
 }
 
 fn findings_for_service(
@@ -203,7 +200,6 @@ fn synology_php_finding(
     let endpoint = format!("{} service on port {}", service.scheme, service.port);
     let parsed = parse_php_package_version(version)?;
     let status = classify_synology_php(parsed, package_version.is_some());
-
     let cves = PHP2SHELL_CVES.iter().map(|cve| (*cve).into()).collect();
 
     Some(match status {
@@ -257,11 +253,7 @@ async fn probe_synology(url: &str) -> Option<SynologyProbe> {
         }
     }
 
-    if !confirmed {
-        return None;
-    }
-
-    Some(SynologyProbe {
+    confirmed.then_some(SynologyProbe {
         dsm_version,
         php_package_version,
     })
@@ -362,10 +354,7 @@ fn is_synology_candidate(service: &WebServiceFingerprint) -> bool {
 
 fn looks_like_synology(headers: &[(String, String)], body: &str) -> bool {
     if headers.iter().any(|(name, value)| {
-        let value = value.to_ascii_lowercase();
-        name.starts_with("x-syno")
-            || value.contains("synology")
-            || (name == "set-cookie" && value.contains("id=" ) && value.contains("syno"))
+        name.starts_with("x-syno") || value.to_ascii_lowercase().contains("synology")
     }) {
         return true;
     }
@@ -379,8 +368,9 @@ fn looks_like_synology(headers: &[(String, String)], body: &str) -> bool {
 }
 
 fn looks_like_synology_api(body: &str) -> bool {
-    let compact = body.to_ascii_lowercase();
-    compact.contains("syno.api.auth") && compact.contains("\"success\":true")
+    let compact: String = body.chars().filter(|ch| !ch.is_whitespace()).collect();
+    let lower = compact.to_ascii_lowercase();
+    lower.contains("syno.api.auth") && lower.contains("\"success\":true")
 }
 
 fn extract_dsm_version(body: &str) -> Option<String> {
@@ -404,16 +394,28 @@ fn extract_dsm_version(body: &str) -> Option<String> {
 }
 
 fn extract_php_package_version(headers: &[(String, String)], body: &str) -> Option<String> {
-    for value in headers.iter().map(|(_, value)| value).chain(std::iter::once(&body.to_string())) {
-        let lower = value.to_ascii_lowercase();
-        for marker in ["php/", "php "] {
-            if let Some(found) = lower.find(marker) {
-                let start = found + marker.len();
-                if let Some(candidate) = numeric_version_after(value, start) {
-                    if candidate.matches('-').count() >= 1 && parse_php_package_version(&candidate).is_some() {
-                        return Some(candidate);
-                    }
+    for value in headers.iter().map(|(_, value)| value.as_str()) {
+        if let Some(version) = extract_php_package_version_from_text(value) {
+            return Some(version);
+        }
+    }
+    extract_php_package_version_from_text(body)
+}
+
+fn extract_php_package_version_from_text(value: &str) -> Option<String> {
+    let lower = value.to_ascii_lowercase();
+    for marker in ["php/", "php "] {
+        let mut offset = 0;
+        while let Some(found) = lower[offset..].find(marker) {
+            let start = offset + found + marker.len();
+            if let Some(candidate) = numeric_version_after(value, start) {
+                if candidate.contains('-') && parse_php_package_version(&candidate).is_some() {
+                    return Some(candidate);
                 }
+            }
+            offset = start;
+            if offset >= value.len() {
+                break;
             }
         }
     }
@@ -435,7 +437,7 @@ fn numeric_version_after(value: &str, start: usize) -> Option<String> {
         .take_while(|ch| ch.is_ascii_digit() || matches!(ch, '.' | '-'))
         .take(40)
         .collect();
-    let candidate = candidate.trim_end_matches(['.', '-']);
+    let candidate = candidate.trim_end_matches(|ch| ch == '.' || ch == '-');
     (!candidate.is_empty()).then(|| candidate.to_string())
 }
 
@@ -497,18 +499,14 @@ fn compare_build(version: DsmVersion, fixed_build: u32, fixed_update: u16) -> Pa
     if build > fixed_build {
         return PatchStatus::Patched;
     }
-
     if fixed_update == 0 {
         return PatchStatus::Patched;
     }
 
-    let Some(update) = version.update else {
-        return PatchStatus::Unknown;
-    };
-    if update < fixed_update {
-        PatchStatus::Vulnerable
-    } else {
-        PatchStatus::Patched
+    match version.update {
+        Some(update) if update < fixed_update => PatchStatus::Vulnerable,
+        Some(_) => PatchStatus::Patched,
+        None => PatchStatus::Unknown,
     }
 }
 
@@ -547,7 +545,6 @@ fn classify_synology_php(
     if patch > fixed_patch {
         return PatchStatus::Patched;
     }
-
     if !exact_package_revision {
         return PatchStatus::Unknown;
     }
