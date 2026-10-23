@@ -33,8 +33,8 @@ pub const MAX_PORTS: usize = 1_024;
 /// the subnet, which makes every host look like it is running a service. DNS is
 /// still available in the service catalog and can be scanned explicitly.
 pub const DEFAULT_PORTS: [u16; 33] = [
-    20, 21, 22, 23, 25, 80, 110, 135, 139, 143, 389, 443, 445, 515, 587, 631, 993, 995, 1433,
-    1723, 3306, 3389, 5000, 5001, 5060, 5432, 5900, 5985, 5986, 8000, 8080, 8443, 9100,
+    20, 21, 22, 23, 25, 80, 110, 135, 139, 143, 389, 443, 445, 515, 587, 631, 993, 995, 1433, 1723,
+    3306, 3389, 5000, 5001, 5060, 5432, 5900, 5985, 5986, 8000, 8080, 8443, 9100,
 ];
 
 /// Validate, de-duplicate and sort a port list coming from the interface.
@@ -249,7 +249,9 @@ mod tests {
         assert_eq!(parse_spec("53").unwrap(), vec![53]);
         assert_eq!(sanitize(&[53]).unwrap(), vec![53]);
         assert_eq!(service_name(53), Some("DNS"));
-        assert!(catalog().iter().any(|(port, name)| *port == 53 && *name == "DNS"));
+        assert!(catalog()
+            .iter()
+            .any(|(port, name)| *port == 53 && *name == "DNS"));
     }
 
     #[test]
