@@ -1,4 +1,5 @@
 mod commands;
+mod gitlab_security;
 mod ipparse;
 mod launch;
 mod netinfo;
@@ -8,6 +9,7 @@ mod runtime;
 #[allow(clippy::manual_is_multiple_of)]
 mod scanner;
 mod security;
+mod security_v141;
 
 use tauri::{Manager, WebviewWindowBuilder};
 
@@ -98,8 +100,8 @@ pub fn run() {
             commands::open_site,
             commands::open_releases,
             commands::open_privacy,
-            security::security_assessment,
-            security::website_security_assessment,
+            security_v141::security_assessment,
+            security_v141::website_security_assessment,
         ])
         .build(tauri::generate_context!())
         .expect("error while building EXP IP Scanner")
