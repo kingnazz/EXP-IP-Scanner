@@ -5,6 +5,7 @@ mod netinfo;
 mod oui;
 mod ports;
 mod runtime;
+#[allow(clippy::manual_is_multiple_of)]
 mod scanner;
 mod security;
 
