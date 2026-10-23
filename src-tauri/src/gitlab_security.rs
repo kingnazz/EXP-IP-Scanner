@@ -218,10 +218,7 @@ fn parse_http_output(raw: &str) -> Option<(u16, Vec<(String, String)>, String)> 
         headers = lines
             .filter_map(|line| {
                 let (name, value) = line.split_once(':')?;
-                Some((
-                    name.trim().to_ascii_lowercase(),
-                    value.trim().to_string(),
-                ))
+                Some((name.trim().to_ascii_lowercase(), value.trim().to_string()))
             })
             .collect();
         last_header_index = Some(index);
@@ -292,8 +289,7 @@ fn value_after_marker(original: &str, lower: &str, marker: &str) -> Option<Strin
     let bytes = original.as_bytes();
     let mut index = start;
 
-    while index < bytes.len()
-        && matches!(bytes[index], b' ' | b'\t' | b':' | b'=' | b'\"' | b'\'')
+    while index < bytes.len() && matches!(bytes[index], b' ' | b'\t' | b':' | b'=' | b'\"' | b'\'')
     {
         index += 1;
     }
@@ -494,10 +490,8 @@ mod tests {
     #[test]
     fn extracts_gitlab_version_json() {
         assert_eq!(
-            extract_version(
-                "{\"version\":\"19.4.2-ee\",\"revision\":\"abc\",\"enterprise\":true}"
-            )
-            .as_deref(),
+            extract_version("{\"version\":\"19.4.2-ee\",\"revision\":\"abc\",\"enterprise\":true}")
+                .as_deref(),
             Some("19.4.2")
         );
     }
