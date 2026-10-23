@@ -29,11 +29,13 @@ pub(crate) async fn enrich_network(assessment: &mut SecurityAssessment) {
         if service.status.is_none() {
             continue;
         }
+
         let url = format!("{}://{}:{}/", service.scheme, target, service.port);
         if let Some(probe) = probe_gitlab(&url).await {
             let product = product_label(probe.version.as_deref());
             service.product = Some(product.clone());
             disclosed_version |= probe.version.is_some();
+
             let finding = finding(&product, service, false);
             if seen.insert(finding.id.clone()) {
                 findings.push(finding);
@@ -54,11 +56,13 @@ pub(crate) async fn enrich_website(assessment: &mut SecurityAssessment, input: &
         if service.status.is_none() {
             continue;
         }
+
         let url = url_for_service(input, &service.scheme);
         if let Some(probe) = probe_gitlab(&url).await {
             let product = product_label(probe.version.as_deref());
             service.product = Some(product.clone());
             disclosed_version |= probe.version.is_some();
+
             let finding = finding(&product, service, managed_gitlab_com);
             if seen.insert(finding.id.clone()) {
                 findings.push(finding);
@@ -78,7 +82,12 @@ fn merge_findings(
         findings.retain(|finding| finding.id != "gitlab-rce-version-hidden");
     }
 
-    let mut existing: HashSet<String> = assessment.findings.iter().map(|finding| finding.id.clone()).collect();
+    let mut existing: HashSet<String> = assessment
+        .findings
+        .iter()
+        .map(|finding| finding.id.clone())
+        .collect();
+
     for finding in findings {
         if existing.insert(finding.id.clone()) {
             assessment.findings.push(finding);
@@ -190,13 +199,18 @@ fn parse_http_output(raw: &str) -> Option<(u16, Vec<(String, String)>, String)> 
 
     for (index, block) in parts.iter().enumerate() {
         let mut lines = block.lines();
-        let first = lines.next()?.trim();
+        let Some(first) = lines.next() else {
+            continue;
+        };
+        let first = first.trim();
+
         if !first.starts_with("HTTP/") {
             if last_header_index.is_some() {
                 break;
             }
             continue;
         }
+
         status = first
             .split_whitespace()
             .nth(1)
@@ -204,7 +218,10 @@ fn parse_http_output(raw: &str) -> Option<(u16, Vec<(String, String)>, String)> 
         headers = lines
             .filter_map(|line| {
                 let (name, value) = line.split_once(':')?;
-                Some((name.trim().to_ascii_lowercase(), value.trim().to_string()))
+                Some((
+                    name.trim().to_ascii_lowercase(),
+                    value.trim().to_string(),
+                ))
             })
             .collect();
         last_header_index = Some(index);
@@ -218,6 +235,7 @@ fn parse_http_output(raw: &str) -> Option<(u16, Vec<(String, String)>, String)> 
         .copied()
         .collect::<Vec<_>>()
         .join("\n\n");
+
     Some((status, headers, truncate(&body, MAX_BODY_CHARS)))
 }
 
@@ -273,7 +291,10 @@ fn value_after_marker(original: &str, lower: &str, marker: &str) -> Option<Strin
     let start = lower.find(marker)? + marker.len();
     let bytes = original.as_bytes();
     let mut index = start;
-    while index < bytes.len() && matches!(bytes[index], b' ' | b'\t' | b':' | b'=' | b'\"' | b'\'') {
+
+    while index < bytes.len()
+        && matches!(bytes[index], b' ' | b'\t' | b':' | b'=' | b'\"' | b'\'')
+    {
         index += 1;
     }
 
@@ -292,11 +313,11 @@ fn product_label(version: Option<&str>) -> String {
         .unwrap_or_else(|| "GitLab".into())
 }
 
-fn finding(product: &str, service: &WebServiceFingerprint, managed_gitlab_com: bool) -> SecurityFinding {
-    let version = product
-        .strip_prefix("GitLab ")
-        .map(str::trim)
-        .filter(|value| !value.is_empty());
+fn finding(
+    product: &str,
+    service: &WebServiceFingerprint,
+    managed_gitlab_com: bool,
+) -> SecurityFinding {
     let endpoint = format!("{} service on port {}", service.scheme, service.port);
 
     if managed_gitlab_com {
@@ -311,41 +332,55 @@ fn finding(product: &str, service: &WebServiceFingerprint, managed_gitlab_com: b
         };
     }
 
-    match version.and_then(parse_version) {
-        Some(parsed) if classify(parsed) == PatchStatus::Vulnerable => SecurityFinding {
-            id: format!("gitlab-rce-{CVE}-{version}"),
-            severity: "critical".into(),
-            title: format!("GitLab {version} is affected by {CVE}"),
-            summary: "The disclosed GitLab version falls in the affected range for a CVSS 10.0 unauthenticated remote-code-execution vulnerability in GitLab CE/EE.".into(),
-            evidence: format!("{endpoint} was identified as GitLab and disclosed version {version}."),
-            remediation: "Patch immediately to the latest supported GitLab patch release. Minimum fixed releases are 18.11.13, 19.0.10, 19.1.9, 19.2.9, 19.3.6, 19.4.3, and 19.5.1 for their respective branches.".into(),
-            cves: vec![CVE.into()],
-        },
-        Some(parsed) if classify(parsed) == PatchStatus::Patched => SecurityFinding {
-            id: format!("gitlab-rce-patched-{version}"),
-            severity: "info".into(),
-            title: format!("GitLab {version} includes the {CVE} fix"),
-            summary: "The disclosed GitLab version is at or above the fixed patch level for its release branch.".into(),
-            evidence: format!("{endpoint} was identified as GitLab and disclosed version {version}."),
-            remediation: "No action is indicated for this CVE from the disclosed version. Continue normal GitLab patching and stay on the latest supported patch release.".into(),
-            cves: vec![CVE.into()],
-        },
-        Some(_) => SecurityFinding {
-            id: format!("gitlab-rce-unknown-{version}"),
-            severity: "high".into(),
-            title: format!("GitLab {version} requires manual {CVE} verification"),
-            summary: "GitLab was identified, but the disclosed version is outside the release ranges EXP IP Scanner can safely classify from GitLab's published patch matrix.".into(),
-            evidence: format!("{endpoint} was identified as GitLab and disclosed version {version}."),
-            remediation: "Compare the installed version with GitLab's October 21, 2026 critical patch advisory and upgrade to a currently supported patch release.".into(),
-            cves: vec![CVE.into()],
-        },
-        None => SecurityFinding {
+    let version = product
+        .strip_prefix("GitLab ")
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
+
+    let Some(version) = version else {
+        return SecurityFinding {
             id: "gitlab-rce-version-hidden".into(),
             severity: "high".into(),
             title: "GitLab detected; critical RCE patch level unknown".into(),
             summary: "This service appears to be GitLab, but it does not disclose a product version. A passive scan cannot determine whether the CVSS 10.0 GitLab RCE fix is installed.".into(),
             evidence: format!("{endpoint} returned GitLab-specific response indicators, but no reliable GitLab product version was exposed."),
             remediation: "Verify the GitLab version directly on the server and patch immediately if it is below the fixed release for its branch. Prefer the latest supported GitLab patch release.".into(),
+            cves: vec![CVE.into()],
+        };
+    };
+
+    match parse_version(version).map(classify).unwrap_or(PatchStatus::Unknown) {
+        PatchStatus::Vulnerable => SecurityFinding {
+            id: format!("gitlab-rce-{CVE}-{version}"),
+            severity: "critical".into(),
+            title: format!("GitLab {version} is affected by {CVE}"),
+            summary: "The disclosed GitLab version falls in the affected range for a CVSS 10.0 unauthenticated remote-code-execution vulnerability in GitLab CE/EE.".into(),
+            evidence: format!(
+                "{endpoint} was identified as GitLab and disclosed version {version}."
+            ),
+            remediation: "Patch immediately to the latest supported GitLab patch release. Minimum fixed releases are 18.11.13, 19.0.10, 19.1.9, 19.2.9, 19.3.6, 19.4.3, and 19.5.1 for their respective branches.".into(),
+            cves: vec![CVE.into()],
+        },
+        PatchStatus::Patched => SecurityFinding {
+            id: format!("gitlab-rce-patched-{version}"),
+            severity: "info".into(),
+            title: format!("GitLab {version} includes the {CVE} fix"),
+            summary: "The disclosed GitLab version is at or above the fixed patch level for its release branch.".into(),
+            evidence: format!(
+                "{endpoint} was identified as GitLab and disclosed version {version}."
+            ),
+            remediation: "No action is indicated for this CVE from the disclosed version. Continue normal GitLab patching and stay on the latest supported patch release.".into(),
+            cves: vec![CVE.into()],
+        },
+        PatchStatus::Unknown => SecurityFinding {
+            id: format!("gitlab-rce-unknown-{version}"),
+            severity: "high".into(),
+            title: format!("GitLab {version} requires manual {CVE} verification"),
+            summary: "GitLab was identified, but the disclosed version is outside the release ranges EXP IP Scanner can safely classify from GitLab's published patch matrix.".into(),
+            evidence: format!(
+                "{endpoint} was identified as GitLab and disclosed version {version}."
+            ),
+            remediation: "Compare the installed version with GitLab's October 21, 2026 critical patch advisory and upgrade to a currently supported patch release.".into(),
             cves: vec![CVE.into()],
         },
     }
@@ -459,8 +494,10 @@ mod tests {
     #[test]
     fn extracts_gitlab_version_json() {
         assert_eq!(
-            extract_version("{\"version\":\"19.4.2-ee\",\"revision\":\"abc\",\"enterprise\":true}")
-                .as_deref(),
+            extract_version(
+                "{\"version\":\"19.4.2-ee\",\"revision\":\"abc\",\"enterprise\":true}"
+            )
+            .as_deref(),
             Some("19.4.2")
         );
     }
