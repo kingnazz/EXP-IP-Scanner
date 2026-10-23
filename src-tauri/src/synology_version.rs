@@ -83,14 +83,26 @@ async fn discover(url: &str) -> Option<DsmDiscovery> {
 fn apply_discovery(assessment: &mut SecurityAssessment, port: u16, discovery: &DsmDiscovery) {
     let display = display_version(discovery);
 
-    if let Some(service) = assessment.web_services.iter_mut().find(|service| service.port == port) {
+    if let Some(service) = assessment
+        .web_services
+        .iter_mut()
+        .find(|service| service.port == port)
+    {
         service.product = Some(format!("Synology DSM {display}"));
         service.note = Some("DSM build discovered passively from Synology web metadata.".into());
     }
 
-    assessment
-        .findings
-        .retain(|finding| finding.id != "synology-dsm-version-hidden");
+    // The initial Synology pass may only know that DSM is present, or may have
+    // seen incomplete version metadata. Once info.cgi gives us a definitive
+    // build, remove those stale DSM-version findings before adding the stronger
+    // result. Other findings, such as PHP/package warnings, remain untouched.
+    assessment.findings.retain(|finding| {
+        !finding.id.starts_with("synology-dsm-version-hidden")
+            && !finding.id.starts_with("synology-dsm-review-")
+            && !finding.id.starts_with("synology-dsm-critical-")
+            && !finding.id.starts_with("synology-dsm-patched-")
+            && !finding.id.starts_with("synology-dsm-build-review-")
+    });
 
     let finding = build_finding(discovery, port);
     if !assessment.findings.iter().any(|item| item.id == finding.id) {
@@ -163,6 +175,9 @@ fn refresh_summary(assessment: &mut SecurityAssessment) {
     {
         assessment.status = "attention".into();
         assessment.summary = "A detected web runtime or Synology system needs patch verification. The passive check could not prove a safe patch level.".into();
+    } else {
+        assessment.status = "clear".into();
+        assessment.summary = "No critical or high-severity finding was identified by the passive web and Synology security checks.".into();
     }
 }
 
@@ -228,6 +243,7 @@ fn classify(discovery: &DsmDiscovery) -> PatchStatus {
         .and_then(|value| value.parse::<u16>().ok());
 
     match discovery.minor {
+        0 | 1 => PatchStatus::Vulnerable,
         2 => match patch {
             Some(0) => PatchStatus::Vulnerable,
             Some(1) => compare_build(discovery, 69_057, 12),
@@ -401,5 +417,48 @@ mod tests {
     fn dsm_74_fixed_build_is_patched_without_smallfix() {
         let result = parse_info_response("major=7&minor=4&build=90075&junior=0").unwrap();
         assert_eq!(classify(&result), PatchStatus::Patched);
+    }
+
+    #[test]
+    fn discovered_patched_build_clears_stale_version_warning() {
+        let mut assessment = SecurityAssessment {
+            target: "192.0.2.10".into(),
+            checked_at: "test".into(),
+            status: "attention".into(),
+            summary: "Needs review".into(),
+            web_services: vec![WebServiceFingerprint {
+                port: 5001,
+                scheme: "https".into(),
+                status: Some(200),
+                server: Some("nginx".into()),
+                powered_by: None,
+                php_version: None,
+                product: Some("Synology DSM".into()),
+                title: None,
+                note: None,
+            }],
+            findings: vec![SecurityFinding {
+                id: "synology-dsm-version-hidden".into(),
+                severity: "high".into(),
+                title: "Hidden DSM version".into(),
+                summary: "Needs review".into(),
+                evidence: "Synology detected".into(),
+                remediation: "Check DSM".into(),
+                cves: DSM_CVES.iter().map(|cve| (*cve).into()).collect(),
+            }],
+        };
+        let discovery = parse_info_response("major=7&minor=4&build=90080&junior=0&version=7.4").unwrap();
+
+        apply_discovery(&mut assessment, 5001, &discovery);
+
+        assert_eq!(assessment.status, "clear");
+        assert!(assessment
+            .findings
+            .iter()
+            .all(|finding| finding.severity != "high"));
+        assert!(assessment
+            .findings
+            .iter()
+            .any(|finding| finding.id.starts_with("synology-dsm-patched-")));
     }
 }
