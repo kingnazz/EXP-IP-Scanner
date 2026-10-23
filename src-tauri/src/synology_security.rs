@@ -248,8 +248,8 @@ async fn probe_synology(url: &str) -> Option<SynologyProbe> {
                 confirmed = true;
             }
             dsm_version = dsm_version.or_else(|| extract_dsm_version(&body));
-            php_package_version = php_package_version
-                .or_else(|| extract_php_package_version(&headers, &body));
+            php_package_version =
+                php_package_version.or_else(|| extract_php_package_version(&headers, &body));
         }
     }
 
