@@ -231,8 +231,8 @@ export function DeviceDrawer({
                 : "No web services found"}
           </button>
           <p className="mt-1.5 text-[11px] leading-snug text-ink-muted">
-            Safe scan: fingerprints HTTP/HTTPS, PHP patch level, GitLab critical patch status and Synology indicators. It does not
-            attempt exploitation.
+            Safe scan: fingerprints HTTP/HTTPS, PHP patch level, Synology DSM critical patch status
+            and Synology PHP package exposure. It does not attempt exploitation.
           </p>
 
           {securityError ? (
